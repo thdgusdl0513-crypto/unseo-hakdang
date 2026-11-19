@@ -42,6 +42,12 @@ GitHub에 올리고 Vercel로 배포하면 `○○.vercel.app` 주소로 함께 
 3. 생긴 주소(`https://○○.vercel.app`)를 친구들에게 보내기
 4. (권장) Firebase **Authentication → 설정 → 승인된 도메인**에 그 vercel.app 주소 추가
 
+## 업데이트할 때
+
+- 바뀐 파일을 같은 GitHub 저장소에 다시 올리면(같은 이름으로 덮어쓰기) Vercel이 1분쯤 뒤 자동으로 다시 배포해요. **주소는 그대로**예요.
+- `database.rules.json`이 바뀐 버전이면 Firebase **Realtime Database → 규칙**에도 새 내용을 붙여 넣고 **게시**해 주세요.
+  (플레이리스트 버전부터 좋아요(♥)를 위한 `likes` 규칙이 추가됐어요.)
+
 ## 입장 암호
 
 암호는 `homesweetreading`이에요.

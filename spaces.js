@@ -246,6 +246,12 @@ function buildRoom(id,S){reseed(id.length*97+3);let sp;
    // board on left wall
    const brd=new THREE.Group();brd.position.set(-7.95,2.4,-2);brd.rotation.y=PI/2;G.add(brd);const cork=new THREE.Mesh(new THREE.PlaneGeometry(3,1.9),std(0xffffff,{map:TEX.cork}));brd.add(cork);const bl=makeLabel('📌 기숙사 게시판');bl.sprite.position.set(0,1.25,.1);bl.sprite.scale.set(2.2,.42,1);brd.add(bl.sprite);sp.boardGroup=brd;
    sp.triggers.push({x:-6.6,z:-2,r:1.5,act:'board',title:'게시판 보기',sub:''});
+   {const rp=new THREE.Group();rp.position.set(2.4,0,-6.15);G.add(rp);box(rp,1.3,.72,.62,std(0x7a4a2a),0,.36,0);box(rp,1.34,.05,.66,std(0x5a3418),0,.73,0);[-.35,.35].forEach(x=>box(rp,.5,.5,.02,std(0x9a6a3e),x,.36,.315));
+    box(rp,.9,.1,.6,std(0xb8865a),0,.8,0);const disc=cyl(rp,.24,.24,.02,28,std(0x1a1616),-.12,.86,0);cyl(rp,.08,.08,.022,16,std(0xc4584a),-.12,.865,0);
+    const arm=box(rp,.03,.03,.36,MAT.gold,.22,.88,.02);arm.rotation.y=.5;const notes=[];for(let i=0;i<3;i++){const n=glow(0xffd28a,.5,.8);rp.add(n);notes.push({n,p:i*1.3});}
+    T.push((t,dt)=>{disc.rotation.y+=dt*3.5;notes.forEach(o=>{const k=((t*.35+o.p)%1.6)/1.6;o.n.position.set(-.1+Math.sin(t*1.5+o.p)*.25,.95+k*1.4,.05);o.n.material.opacity=.9*(1-k);});});
+    const L=makeLabel('🎵 오늘의 플레이리스트');L.sprite.position.set(0,1.55,0);L.sprite.scale.set(2.3,.43,1);rp.add(L.sprite);}
+   sp.obs.push({x:2.4,z:-6.1,r:.8});sp.triggers.push({x:2.4,z:-5,r:1.4,act:'playlist',title:'오늘의 플레이리스트',sub:''});
    // rug + low table
    const rug=new THREE.Mesh(new THREE.PlaneGeometry(7.4,5),std(0xffffff,{map:ctex(256,192,(g,w,hh)=>{g.fillStyle='#5a6a48';g.fillRect(0,0,w,hh);g.strokeStyle='#c8a46a';g.lineWidth=6;g.strokeRect(8,8,w-16,hh-16);for(let i=0;i<60;i++){g.fillStyle=['#7a8a5a','#8a6a4a','#c8b088','#4a5a3a'][i%4];g.beginPath();g.arc(R(20,w-20),R(20,hh-20),R(4,10),0,PI*2);g.fill();}})}));rug.rotation.x=-PI/2;rug.position.set(0,.02,-.4);G.add(rug);
    box(G,3.8,.1,1.9,std(0x9a6a3e),0,.45,-.5);[[-1.7,-1.3],[1.7,-1.3],[-1.7,.3],[1.7,.3]].forEach(q=>box(G,.1,.4,.1,MAT.woodDark,q[0],.2,q[1]));

@@ -85,7 +85,7 @@ let gKey='',gAct=null;
 function setGuide(force){let k='',t='',ico='',act=null;const p=me.root.position;
   if(ST.sitting>=0){if(ST.space==='dorm'){k='sit';ico='🪑';t='일어나기';act=()=>standUp();}}
   else if(!path.length){const tr=SP.triggers.find(o=>Math.hypot(o.x-p.x,o.z-p.z)<o.r);const dr=ST.space==='campus'?SP.doors.find(o=>Math.hypot(o.x-p.x,o.z-p.z)<o.r+2.2):null;const si=nearestSeat(1.6);
-    if(tr){k='tr'+tr.act;ico=tr.act==='board'?'📌':'📖';t=tr.title;act=()=>openSheet(tr.act);}
+    if(tr){k='tr'+tr.act;ico=tr.act==='board'?'📌':tr.act==='playlist'?'🎵':'📖';t=tr.title;act=()=>openSheet(tr.act);}
     else if(dr){k='door'+dr.to;ico='🚪';t=NAMEOF[dr.to]+' 들어가기';act=()=>enterSpace(dr.to);}
     else if(si>=0){k='seat'+si;ico=ST.space==='training'?'🧘':'🪑';t=ST.space==='dorm'?'의자에 앉기':'자리에 앉아 타이머 켜기';act=()=>sitDown(si);}
     else if(ST.space!=='campus'&&ST.space!=='dorm'){k='findseat';ico='🪑';t='빈 자리 찾아 앉기';act=()=>{const i=nearestSeat(99);if(i>=0){const st=SP.seats[i];autoSit=i;path=[{x:st.x,z:st.z}];}};}}
@@ -93,14 +93,14 @@ function setGuide(force){let k='',t='',ico='',act=null;const p=me.root.position;
 $('#action').addEventListener('click',()=>gAct&&gAct());
 
 /* ---------- data (shared via db, or local) ---------- */
-const DATA={board:LS.get('local.board',[]),logs:LS.get('local.logs',[]),books:LS.get('local.books',[])};
+const DATA={board:LS.get('local.board',[]),logs:LS.get('local.logs',[]),books:LS.get('local.books',[]),playlist:LS.get('local.playlist',[])};
 let DB=null,USER=null,ROOM=null,MYID='me',CANWRITE=true,MODE='local',PEERS=[];const NAMES={};
-const LIM={board:150,logs:400,books:200};
-function onData(col){if(col==='board'){renderBoard();updateBoard3D();}if(col==='logs'||col==='books')renderRecords();resolveNames(DATA[col].map(d=>d.by));}
+const LIM={board:150,logs:400,books:200,playlist:200};
+function onData(col){if(col==='playlist')renderPlaylist();if(col==='board'){renderBoard();updateBoard3D();}if(col==='logs'||col==='books')renderRecords();resolveNames(DATA[col].map(d=>d.by));}
 async function initCloud(){const C=window.claude;if(!C||!C.use){updateConn();return;}
   let db=null,user=null,room=null;try{[db,user,room]=await Promise.all([C.use('db').catch(()=>null),C.use('user').catch(()=>null),C.use('room').catch(()=>null)]);}catch(e){}
   USER=user;if(user){try{MYID=(await user.id())||'me';}catch(e){}try{const c=await user.can('data.write');CANWRITE=c!==false;}catch(e){}}
-  if(db&&MYID!=='me'){DB=db;MODE='shared';['board','logs','books'].forEach(sub);subMembers();subStamps();}
+  if(db&&MYID!=='me'){DB=db;MODE='shared';['board','logs','books','playlist'].forEach(sub);subMembers();subStamps();subLikes();}
   if(room){ROOM=room;setupRoom();}updateConn();}
 function sub(col){let timer=setTimeout(()=>{CONN.slow=true;updateConn();},10000);
   DB.collection(col).orderBy('ts','desc').limit(LIM[col]).onSnapshot(s=>{if(!s.metadata.fromCache){clearTimeout(timer);CONN.slow=false;updateConn();}DATA[col]=s.docs.map(d=>Object.assign({id:d.id},d.data()));onData(col);},e=>{clearTimeout(timer);CONN.err=e.code;updateConn();});}
@@ -127,7 +127,7 @@ function pushPresence(now){presDirty=true;if(now)flushPresence();}
 function flushPresence(){if(!ROOM||!presDirty)return;presDirty=false;presT=performance.now();ROOM.presence(myPresence()).catch(()=>{});}
 function setupRoom(){ROOM.onPeers(ch=>{PEERS=ch.peers.slice();ch.left.forEach(p=>dropRemote(p.peer));ch.peers.forEach(p=>{if(!p.sameTab&&p.kind==='viewer')upsertRemote(p);});resolveNames(PEERS.map(p=>p.by));updateConn();renderTogether();},()=>{PEERS=[];updateConn();});
   ROOM.on('chat',m=>{if(m.isMe&&m.sameTab)return;const d=m.data||{};if(typeof d.t!=='string')return;const r=REMOTES[m.peer];addChat(m.by,d.t.slice(0,200),m.peer,false,r&&r.pr&&typeof r.pr.nk==='string'?r.pr.nk.slice(0,12):'');});
-  ROOM.onConnection(c=>{if(c)pushPresence(true);});pushPresence(true);}
+  ROOM.onConnection(c=>{if(c)pushPresence(true);});pushPresence(true);renderChat();}
 function dropRemote(peer){const r=REMOTES[peer];if(!r)return;scene.remove(r.A.root,r.L.sprite,r.B.sprite);delete REMOTES[peer];}
 function upsertRemote(p){const pr=p.presence||{};let r=REMOTES[p.peer];if(!pr.sp){if(r)r.A.root.visible=false;return;}
   if(!r||r.av!==pr.av){if(r)scene.remove(r.A.root);const A=makeAvatar(AVMAP[pr.av]||pr.av==='shiba'?pr.av:'girl');scene.add(A.root);A.root.position.set(+pr.x||0,0,+pr.z||0);if(!r){r={L:makeLabel('친구'),B:makeBubble(),ph:0,amt:0};scene.add(r.L.sprite,r.B.sprite);}r.A=A;r.av=pr.av;}
@@ -172,7 +172,7 @@ function renderTogether(){if($('#records').classList.contains('show')&&recTab===
 
 /* ---------- sheets ---------- */
 function openSheet(id){closeSheets();if(id==='books'){recTab='books';id='records';}const el=$('#'+id);if(!el)return;el.classList.add('show');
-  if(id==='records')renderRecords();if(id==='sound')renderSoundUI();if(id==='stamp'){calM=null;$('#stMemo').value='';renderStamp();}if(id==='board'){renderBoard();$('#bWrite').style.display=(MODE==='shared'&&!CANWRITE)?'none':'';}if(id==='me'){$('#nickEdit').value=ST.nick||'';renderAvatars();}if(id==='map')$$('#mapList button').forEach(b=>b.classList.toggle('here',b.dataset.go===ST.space));if(id==='menu')updateMe();}
+  if(id==='records')renderRecords();if(id==='playlist')renderPlaylist();if(id==='sound')renderSoundUI();if(id==='stamp'){calM=null;$('#stMemo').value='';renderStamp();}if(id==='board'){renderBoard();$('#bWrite').style.display=(MODE==='shared'&&!CANWRITE)?'none':'';}if(id==='me'){$('#nickEdit').value=ST.nick||'';renderAvatars();}if(id==='map')$$('#mapList button').forEach(b=>b.classList.toggle('here',b.dataset.go===ST.space));if(id==='menu')updateMe();}
 function closeSheets(){$$('.modal').forEach(m=>m.classList.remove('show'));}
 $$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m||e.target.closest('[data-close]'))closeSheets();else if(e.target.closest('[data-back]'))openSheet('menu');}));
 $('#menuBtn').addEventListener('click',()=>openSheet('menu'));
@@ -194,6 +194,22 @@ function renderFaces(){$('#facePop').innerHTML='<button data-look="1"><span>🪞
 $('#faceBtn').addEventListener('click',()=>{renderFaces();$('#facePop').classList.toggle('show');});
 $('#facePop').addEventListener('click',e=>{if(e.target.closest('[data-look]')){showFace(6000);$('#facePop').classList.remove('show');return;}const b=e.target.closest('[data-fx]');if(!b)return;ST.fx=b.dataset.fx;showFace(4200);LS.set('fx',ST.fx);renderFaces();pushPresence(true);setTimeout(()=>$('#facePop').classList.remove('show'),250);});
 canvas.addEventListener('pointerdown',()=>$('#facePop').classList.remove('show'));renderFaces();
+
+/* ---------- playlist ---------- */
+let LIKES=LS.get('local.likes',{}),plSort='hot';
+function subLikes(){DB.collection('likes').limit(1000).onSnapshot(s=>{const o={};s.docs.forEach(d=>{o[d.id]=d.data()||{};});LIKES=o;renderPlaylist();},()=>{});}
+const likeN=id=>Object.keys(LIKES[id]||{}).length,iLike=id=>!!(LIKES[id]&&LIKES[id][MYID]);
+const safeUrl=u=>{try{const x=new URL(u);return /^https?:$/.test(x.protocol)?x.href:'';}catch(e){return '';}};
+function renderPlaylist(){const el=$('#plList');if(!el||!$('#playlist').classList.contains('show'))return;$$('#plSort button').forEach(b=>b.classList.toggle('on',b.dataset.s===plSort));
+  let L=DATA.playlist.slice();if(plSort==='hot')L.sort((a,b)=>likeN(b.id)-likeN(a.id)||b.ts-a.ts);
+  el.innerHTML=L.length?L.map(p=>{const u=safeUrl(p.url||'');return `<div class="pl"><div class="plMain"><b>${esc(p.title)}</b><span>${esc(p.artist||'')}</span>${p.note?`<p>“${esc(p.note)}”</p>`:''}<small>${esc(nameOf(p.by))} 추천 · ${ago(p.ts)}</small></div><div class="plSide">${u?`<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">듣기 ↗</a>`:''}<button data-like="${esc(p.id)}" class="${iLike(p.id)?'on':''}">♥ ${likeN(p.id)}</button>${p.by===MYID?`<button data-pdel="${esc(p.id)}" class="del">×</button>`:''}</div></div>`;}).join(''):'<div class="empty">아직 추천곡이 없어요. 첫 곡을 올려 보세요 🎶</div>';}
+$('#plSort').addEventListener('click',e=>{const b=e.target.closest('[data-s]');if(!b)return;plSort=b.dataset.s;renderPlaylist();});
+$('#plList').addEventListener('click',async e=>{const lk=e.target.closest('[data-like]'),dl=e.target.closest('[data-pdel]');
+  if(dl){delDoc('playlist',dl.dataset.pdel);return;}
+  if(lk){const id=lk.dataset.like,on=!iLike(id);LIKES[id]=Object.assign({},LIKES[id]);if(on)LIKES[id][MYID]={v:1};else delete LIKES[id][MYID];renderPlaylist();
+    if(DB&&MYID!=='me'){try{const r=DB.doc('likes/'+id+'/'+MYID);await(on?r.set({v:1}):r.delete());}catch(err){toast('좋아요를 남기지 못했어요');}}else LS.set('local.likes',LIKES);}});
+$('#plSave').addEventListener('click',async()=>{const title=$('#plTitle').value.trim();if(!title){$('#plTitle').focus();return;}const url=$('#plUrl').value.trim();if(url&&!safeUrl(url)){toast('링크는 https:// 로 시작하는 주소만 넣을 수 있어요');return;}
+  if(await addDoc('playlist',{title:title.slice(0,60),artist:$('#plArtist').value.trim().slice(0,40),url:url.slice(0,300),note:$('#plNote').value.trim().slice(0,80)})){['#plTitle','#plArtist','#plUrl','#plNote'].forEach(s=>$(s).value='');plSort='new';toast('🎵 추천곡을 올렸어요');chime();}});
 
 /* ---------- attendance stamps ---------- */
 const GLYPHS=['讀','學','雲','月','花','福','갓','🐾','⭐','🌸','🍁','♥'],SHAPES=[['c','동그라미'],['s','네모'],['f','꽃잎']],INKS=['#c4584a','#3a2a22','#3f5a8a','#3f7f7a','#c9952a','#d87a9a'];
