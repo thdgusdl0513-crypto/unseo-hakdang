@@ -196,13 +196,15 @@ $('#facePop').addEventListener('click',e=>{if(e.target.closest('[data-look]')){s
 canvas.addEventListener('pointerdown',()=>$('#facePop').classList.remove('show'));renderFaces();
 
 /* ---------- playlist ---------- */
-let LIKES=LS.get('local.likes',{}),plSort='hot';
+let LIKES=LS.get('local.likes',{}),plSort='hot',plOpen=null;
+const MUSIC_APPS=[['멜론',q=>'https://www.melon.com/search/total/index.htm?q='+q],['지니',q=>'https://www.genie.co.kr/search/searchMain?query='+q],['Spotify',q=>'https://open.spotify.com/search/'+q],['Apple Music',q=>'https://music.apple.com/kr/search?term='+q],['YouTube Music',q=>'https://music.youtube.com/search?q='+q]];
+function appLinks(p){const q=encodeURIComponent((p.title+' '+(p.artist||'')).trim());return `<div class="apps">${MUSIC_APPS.map(a=>`<a href="${esc(a[1](q))}" target="_blank" rel="noopener noreferrer">${a[0]}</a>`).join('')}<em>음악 앱에서 찾아 들으면 화면을 꺼도 계속 들을 수 있어요</em></div>`;}
 function subLikes(){DB.collection('likes').limit(1000).onSnapshot(s=>{const o={};s.docs.forEach(d=>{o[d.id]=d.data()||{};});LIKES=o;renderPlaylist();},()=>{});}
 const likeN=id=>Object.keys(LIKES[id]||{}).length,iLike=id=>!!(LIKES[id]&&LIKES[id][MYID]);
 const safeUrl=u=>{try{const x=new URL(u);return /^https?:$/.test(x.protocol)?x.href:'';}catch(e){return '';}};
 function renderPlaylist(){const el=$('#plList');if(!el||!$('#playlist').classList.contains('show'))return;$$('#plSort button').forEach(b=>b.classList.toggle('on',b.dataset.s===plSort));
   let L=DATA.playlist.slice();if(plSort==='hot')L.sort((a,b)=>likeN(b.id)-likeN(a.id)||b.ts-a.ts);
-  $('#plCount').textContent=L.length?`모두 ${L.length}곡`:'';el.innerHTML=L.length?L.map(p=>{const u=safeUrl(p.url||'');return `<div class="pl"><div class="plMain"><b>${esc(p.title)}</b><span>${esc(p.artist||'')}</span>${p.note?`<p>“${esc(p.note)}”</p>`:''}<small>${esc(nameOf(p.by))} 추천 · ${ago(p.ts)}</small></div><div class="plSide">${u?`<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">듣기 ↗</a>`:''}<button data-like="${esc(p.id)}" class="${iLike(p.id)?'on':''}">♥ ${likeN(p.id)}</button>${p.by===MYID?`<button data-pdel="${esc(p.id)}" class="del">×</button>`:''}</div></div>`;}).join(''):'<div class="empty">아직 추천곡이 없어요. 첫 곡을 올려 보세요 🎶</div>';}
+  $('#plCount').textContent=L.length?`모두 ${L.length}곡`:'';el.innerHTML=L.length?L.map(p=>{const u=safeUrl(p.url||'');return `<div class="pl"><div class="plMain"><b>${esc(p.title)}</b><span>${esc(p.artist||'')}</span>${p.note?`<p>“${esc(p.note)}”</p>`:''}<small>${esc(nameOf(p.by))} 추천 · ${ago(p.ts)}</small>${plOpen===p.id?appLinks(p):''}</div><div class="plSide">${u?`<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">링크 ↗</a>`:''}<button data-apps="${esc(p.id)}" class="app">🎧 앱으로</button><button data-like="${esc(p.id)}" class="${iLike(p.id)?'on':''}">♥ ${likeN(p.id)}</button>${p.by===MYID?`<button data-pdel="${esc(p.id)}" class="del">×</button>`:''}</div></div>`;}).join(''):'<div class="empty">아직 추천곡이 없어요. 첫 곡을 올려 보세요 🎶</div>';}
 /* ticker at the top + new-song alerts */
 let tkI=0,tkTimer=null;const plSeen=()=>LS.get('plSeen',0);const knownSongs=new Set();let songsPrimed=false;
 function renderTicker(){const L=DATA.playlist.slice().sort((a,b)=>b.ts-a.ts).slice(0,6);const b=$('#plTk');document.body.classList.toggle('hasTk',!!L.length);if(!L.length){b.hidden=true;return;}b.hidden=false;
@@ -214,6 +216,7 @@ $('#plTk').addEventListener('click',e=>{e.stopPropagation();openSheet('playlist'
 $('#plAdd').addEventListener('click',()=>{const f=$('#plFormBox');f.hidden=!f.hidden;$('#plAdd').textContent=f.hidden?'＋ 곡 추천하기':'접기';if(!f.hidden)$('#plTitle').focus();});
 $('#plSort').addEventListener('click',e=>{const b=e.target.closest('[data-s]');if(!b)return;plSort=b.dataset.s;renderPlaylist();});
 $('#plList').addEventListener('click',async e=>{const lk=e.target.closest('[data-like]'),dl=e.target.closest('[data-pdel]');
+  const ap=e.target.closest('[data-apps]');if(ap){plOpen=plOpen===ap.dataset.apps?null:ap.dataset.apps;renderPlaylist();return;}
   if(dl){delDoc('playlist',dl.dataset.pdel);return;}
   if(lk){const id=lk.dataset.like,on=!iLike(id);LIKES[id]=Object.assign({},LIKES[id]);if(on)LIKES[id][MYID]={v:1};else delete LIKES[id][MYID];renderPlaylist();
     if(DB&&MYID!=='me'){try{const r=DB.doc('likes/'+id+'/'+MYID);await(on?r.set({v:1}):r.delete());}catch(err){toast('좋아요를 남기지 못했어요');}}else LS.set('local.likes',LIKES);}});
