@@ -96,7 +96,7 @@ $('#action').addEventListener('click',()=>gAct&&gAct());
 const DATA={board:LS.get('local.board',[]),logs:LS.get('local.logs',[]),books:LS.get('local.books',[]),playlist:LS.get('local.playlist',[])};
 let DB=null,USER=null,ROOM=null,MYID='me',CANWRITE=true,MODE='local',PEERS=[];const NAMES={};
 const LIM={board:150,logs:400,books:200,playlist:200};
-function onData(col){if(col==='playlist')renderPlaylist();if(col==='board'){renderBoard();updateBoard3D();}if(col==='logs'||col==='books')renderRecords();resolveNames(DATA[col].map(d=>d.by));}
+function onData(col){if(col==='playlist'){renderPlaylist();renderTicker();notifyNewSongs();}if(col==='board'){renderBoard();updateBoard3D();}if(col==='logs'||col==='books')renderRecords();resolveNames(DATA[col].map(d=>d.by));}
 async function initCloud(){const C=window.claude;if(!C||!C.use){updateConn();return;}
   let db=null,user=null,room=null;try{[db,user,room]=await Promise.all([C.use('db').catch(()=>null),C.use('user').catch(()=>null),C.use('room').catch(()=>null)]);}catch(e){}
   USER=user;if(user){try{MYID=(await user.id())||'me';}catch(e){}try{const c=await user.can('data.write');CANWRITE=c!==false;}catch(e){}}
@@ -172,7 +172,7 @@ function renderTogether(){if($('#records').classList.contains('show')&&recTab===
 
 /* ---------- sheets ---------- */
 function openSheet(id){closeSheets();if(id==='books'){recTab='books';id='records';}const el=$('#'+id);if(!el)return;el.classList.add('show');
-  if(id==='records')renderRecords();if(id==='playlist')renderPlaylist();if(id==='sound')renderSoundUI();if(id==='stamp'){calM=null;$('#stMemo').value='';renderStamp();}if(id==='board'){renderBoard();$('#bWrite').style.display=(MODE==='shared'&&!CANWRITE)?'none':'';}if(id==='me'){$('#nickEdit').value=ST.nick||'';renderAvatars();}if(id==='map')$$('#mapList button').forEach(b=>b.classList.toggle('here',b.dataset.go===ST.space));if(id==='menu')updateMe();}
+  if(id==='records')renderRecords();if(id==='playlist'){LS.set('plSeen',Date.now());renderPlaylist();renderTicker();}if(id==='sound')renderSoundUI();if(id==='stamp'){calM=null;$('#stMemo').value='';renderStamp();}if(id==='board'){renderBoard();$('#bWrite').style.display=(MODE==='shared'&&!CANWRITE)?'none':'';}if(id==='me'){$('#nickEdit').value=ST.nick||'';renderAvatars();}if(id==='map')$$('#mapList button').forEach(b=>b.classList.toggle('here',b.dataset.go===ST.space));if(id==='menu')updateMe();}
 function closeSheets(){$$('.modal').forEach(m=>m.classList.remove('show'));}
 $$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m||e.target.closest('[data-close]'))closeSheets();else if(e.target.closest('[data-back]'))openSheet('menu');}));
 $('#menuBtn').addEventListener('click',()=>openSheet('menu'));
@@ -202,14 +202,23 @@ const likeN=id=>Object.keys(LIKES[id]||{}).length,iLike=id=>!!(LIKES[id]&&LIKES[
 const safeUrl=u=>{try{const x=new URL(u);return /^https?:$/.test(x.protocol)?x.href:'';}catch(e){return '';}};
 function renderPlaylist(){const el=$('#plList');if(!el||!$('#playlist').classList.contains('show'))return;$$('#plSort button').forEach(b=>b.classList.toggle('on',b.dataset.s===plSort));
   let L=DATA.playlist.slice();if(plSort==='hot')L.sort((a,b)=>likeN(b.id)-likeN(a.id)||b.ts-a.ts);
-  el.innerHTML=L.length?L.map(p=>{const u=safeUrl(p.url||'');return `<div class="pl"><div class="plMain"><b>${esc(p.title)}</b><span>${esc(p.artist||'')}</span>${p.note?`<p>“${esc(p.note)}”</p>`:''}<small>${esc(nameOf(p.by))} 추천 · ${ago(p.ts)}</small></div><div class="plSide">${u?`<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">듣기 ↗</a>`:''}<button data-like="${esc(p.id)}" class="${iLike(p.id)?'on':''}">♥ ${likeN(p.id)}</button>${p.by===MYID?`<button data-pdel="${esc(p.id)}" class="del">×</button>`:''}</div></div>`;}).join(''):'<div class="empty">아직 추천곡이 없어요. 첫 곡을 올려 보세요 🎶</div>';}
+  $('#plCount').textContent=L.length?`모두 ${L.length}곡`:'';el.innerHTML=L.length?L.map(p=>{const u=safeUrl(p.url||'');return `<div class="pl"><div class="plMain"><b>${esc(p.title)}</b><span>${esc(p.artist||'')}</span>${p.note?`<p>“${esc(p.note)}”</p>`:''}<small>${esc(nameOf(p.by))} 추천 · ${ago(p.ts)}</small></div><div class="plSide">${u?`<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">듣기 ↗</a>`:''}<button data-like="${esc(p.id)}" class="${iLike(p.id)?'on':''}">♥ ${likeN(p.id)}</button>${p.by===MYID?`<button data-pdel="${esc(p.id)}" class="del">×</button>`:''}</div></div>`;}).join(''):'<div class="empty">아직 추천곡이 없어요. 첫 곡을 올려 보세요 🎶</div>';}
+/* ticker at the top + new-song alerts */
+let tkI=0,tkTimer=null;const plSeen=()=>LS.get('plSeen',0);const knownSongs=new Set();let songsPrimed=false;
+function renderTicker(){const L=DATA.playlist.slice().sort((a,b)=>b.ts-a.ts).slice(0,6);const b=$('#plTk');document.body.classList.toggle('hasTk',!!L.length);if(!L.length){b.hidden=true;return;}b.hidden=false;
+  const nNew=DATA.playlist.filter(p=>p.ts>plSeen()&&p.by!==MYID).length;const nb=$('#plNew');nb.hidden=!nNew;nb.textContent=nNew>9?'9+':nNew;
+  const show=()=>{const p=L[tkI%L.length];const t=$('#plTkT');t.classList.add('fade');setTimeout(()=>{t.textContent=`${p.title}${p.artist?' · '+p.artist:''}  —  ${nameOf(p.by)} 추천`;t.classList.remove('fade');},300);};
+  show();clearInterval(tkTimer);if(L.length>1)tkTimer=setInterval(()=>{tkI++;show();},5000);}
+function notifyNewSongs(){DATA.playlist.forEach(p=>{if(!knownSongs.has(p.id)){knownSongs.add(p.id);if(songsPrimed&&p.by!==MYID)setTimeout(()=>toast(`🎵 ${esc(nameOf(p.by))}님이 「${esc(p.title)}」을 추천했어요<small>왼쪽 위 🎵를 누르면 모아 볼 수 있어요</small>`),900);}});songsPrimed=true;}
+$('#plTk').addEventListener('click',e=>{e.stopPropagation();openSheet('playlist');});
+$('#plAdd').addEventListener('click',()=>{const f=$('#plFormBox');f.hidden=!f.hidden;$('#plAdd').textContent=f.hidden?'＋ 곡 추천하기':'접기';if(!f.hidden)$('#plTitle').focus();});
 $('#plSort').addEventListener('click',e=>{const b=e.target.closest('[data-s]');if(!b)return;plSort=b.dataset.s;renderPlaylist();});
 $('#plList').addEventListener('click',async e=>{const lk=e.target.closest('[data-like]'),dl=e.target.closest('[data-pdel]');
   if(dl){delDoc('playlist',dl.dataset.pdel);return;}
   if(lk){const id=lk.dataset.like,on=!iLike(id);LIKES[id]=Object.assign({},LIKES[id]);if(on)LIKES[id][MYID]={v:1};else delete LIKES[id][MYID];renderPlaylist();
     if(DB&&MYID!=='me'){try{const r=DB.doc('likes/'+id+'/'+MYID);await(on?r.set({v:1}):r.delete());}catch(err){toast('좋아요를 남기지 못했어요');}}else LS.set('local.likes',LIKES);}});
 $('#plSave').addEventListener('click',async()=>{const title=$('#plTitle').value.trim();if(!title){$('#plTitle').focus();return;}const url=$('#plUrl').value.trim();if(url&&!safeUrl(url)){toast('링크는 https:// 로 시작하는 주소만 넣을 수 있어요');return;}
-  if(await addDoc('playlist',{title:title.slice(0,60),artist:$('#plArtist').value.trim().slice(0,40),url:url.slice(0,300),note:$('#plNote').value.trim().slice(0,80)})){['#plTitle','#plArtist','#plUrl','#plNote'].forEach(s=>$(s).value='');plSort='new';toast('🎵 추천곡을 올렸어요');chime();}});
+  if(await addDoc('playlist',{title:title.slice(0,60),artist:$('#plArtist').value.trim().slice(0,40),url:url.slice(0,300),note:$('#plNote').value.trim().slice(0,80)})){['#plTitle','#plArtist','#plUrl','#plNote'].forEach(s=>$(s).value='');plSort='new';toast('🎵 추천곡을 올렸어요');chime();$('#plFormBox').hidden=true;$('#plAdd').textContent='＋ 곡 추천하기';}});
 
 /* ---------- attendance stamps ---------- */
 const GLYPHS=['讀','學','雲','月','花','福','갓','🐾','⭐','🌸','🍁','♥'],SHAPES=[['c','동그라미'],['s','네모'],['f','꽃잎']],INKS=['#c4584a','#3a2a22','#3f5a8a','#3f7f7a','#c9952a','#d87a9a'];
@@ -254,7 +263,7 @@ $('#pwGo').addEventListener('click',tryPw);$('#pwIn').addEventListener('keydown'
 $('#nickGo').addEventListener('click',()=>{const v=$('#nickIn').value.trim().slice(0,12);if(!v){$('#nickMsg').textContent='닉네임을 적어 주세요.';$('#nickIn').focus();return;}ST.nick=v;LS.set('nick',v);if(!ST.avatar){ST.avatar='girl';LS.set('avatar','girl');}saveMember();pushPresence(true);updateMe();$('#welcome').textContent=v+'님, 입학을 환영해요!';$('#welcomeSub').textContent='닉네임은 다음에 와도 그대로예요. 설정에서 바꿀 수 있어요.';show('stepIn');});
 const enter=s=>{$('#intro').classList.add('hide');if(s)setSound(true);setTimeout(()=>{$('#intro').remove();updateZone();askStamp();},900);setTimeout(()=>{const hn=$('#hint');if(hn)hn.style.opacity=0;},9000);};
 $('#goSound').addEventListener('click',()=>enter(true));$('#goQuiet').addEventListener('click',()=>enter(false));
-let cloudPending=null;enterSpace('campus',null,true);updateSeasonChip();renderChat();setGuide(true);updateConn();updateMe();cloudPending=initCloud();
+let cloudPending=null;enterSpace('campus',null,true);updateSeasonChip();renderChat();setGuide(true);updateConn();updateMe();cloudPending=initCloud();renderTicker();notifyNewSongs();
 
 const clock=new THREE.Clock();let walkPh=0,speedNow=0,lastSec=0;const SPEED=4.4;
 function frame(){requestAnimationFrame(frame);const dt=Math.min(clock.getDelta(),.05),t=clock.elapsedTime;
