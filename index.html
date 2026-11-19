@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>운서학당 · 동양풍 마법사 학교</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Nanum+Myeongjo:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#f6ead2;--paper2:#efdcba;--ink:#4a3224;--ink2:#7a5a44;--amber:#d9884a;--amber2:#e8a860;--teal:#3f7f7a;--rose:#c4584a;--shadow:0 6px 18px rgba(40,22,10,.28)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:#2a1c14;color:var(--ink);font-family:'Gowun Dodum','Gowun Batang',sans-serif;overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:none}
+button,input,textarea,select{font-family:inherit;color:inherit}
+button{background:none;border:0;padding:0;cursor:pointer}
+#stage{position:fixed;inset:0;overflow:hidden;background:#2a1c14}
+#stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;filter:saturate(1.06) contrast(.97)}
+#tint{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,rgba(255,200,140,.06) 0%,rgba(60,30,10,.1) 55%,rgba(30,14,6,.55) 100%);mix-blend-mode:multiply}
+#grain{position:absolute;inset:0;pointer-events:none;opacity:.13;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+.paper{background:var(--paper);background-image:radial-gradient(rgba(160,110,60,.08) 1px,transparent 1px);background-size:6px 6px;border:1.5px solid rgba(140,96,60,.45);box-shadow:var(--shadow)}
+#top{position:absolute;left:12px;right:12px;top:calc(10px + env(safe-area-inset-top));display:flex;align-items:flex-start;gap:8px;pointer-events:none}
+#chip{pointer-events:auto;padding:8px 14px 8px 12px;border-radius:18px;font-size:13px;line-height:1.35;max-width:70vw}
+#chip b{font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:14px;letter-spacing:.04em}
+#chip small{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink2);margin-top:1px}
+#chip small i{width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 6px rgba(63,127,122,.8);flex:none}
+#chip small i.off{background:#b8a890;box-shadow:none}
+#menuBtn{pointer-events:auto;margin-left:auto;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;color:var(--ink);font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:18px}
+#bigTitle{position:absolute;left:0;right:0;top:22%;text-align:center;pointer-events:none;opacity:0;transition:opacity 1.2s;color:#fff6e4;text-shadow:0 2px 14px rgba(40,20,8,.9),0 0 30px rgba(255,170,90,.35)}
+#bigTitle.show{opacity:1}
+#bigTitle small{display:block;font-size:11px;letter-spacing:.3em;opacity:.9;margin-bottom:12px}
+#bigTitle h1{font-family:'Nanum Myeongjo',serif;font-weight:400;font-size:28px;line-height:1.45;margin:0}
+#chatWrap{position:absolute;left:12px;right:12px;top:calc(72px + env(safe-area-inset-top));display:none;pointer-events:none}
+#chatWrap.show{display:block}
+#chatLog{pointer-events:auto;max-height:26vh;max-width:420px;overflow:auto;padding:9px 12px;border-radius:14px;background:rgba(255,244,224,.78);border:1px solid rgba(140,96,60,.35);font-size:13.5px;line-height:1.55;touch-action:pan-y;user-select:text;-webkit-user-select:text;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+#chatLog div{margin:2px 0;word-break:break-all}#chatLog b{color:var(--rose);margin-right:6px}#chatLog .me b{color:var(--teal)}#chatLog .sys{color:var(--ink2);font-size:12px}
+#bottom{position:absolute;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:9px;pointer-events:none}
+#action{pointer-events:auto;display:none;align-items:center;gap:9px;padding:11px 20px;border-radius:26px;font-size:15px;color:var(--ink);animation:bob 2.4s ease-in-out infinite}
+#action.show{display:flex}#action span{font-size:18px}
+@keyframes bob{50%{transform:translateY(-3px)}}
+body.seated #hint,body.seated #action{display:none!important}
+#hint{font-size:12.5px;color:#fff3dc;text-shadow:0 1px 8px rgba(30,14,4,.9);transition:opacity 1s}
+#chatBar{pointer-events:auto;width:100%;max-width:520px;display:none;gap:8px;padding:6px;border-radius:26px}
+#chatBar.show{display:flex}
+#chatIn{flex:1;min-width:0;background:transparent;border:0;padding:8px 10px;font-size:15px;outline:none;user-select:text;-webkit-user-select:text}
+#chatIn::placeholder{color:#a08468}
+#chatSend{padding:0 16px;border-radius:20px;background:var(--rose);color:#fff6e8;font-size:14px}
+#timer{pointer-events:auto;width:100%;max-width:520px;padding:14px 16px 12px;border-radius:20px;display:none}
+#timer.show{display:block}
+.tmTop{display:flex;justify-content:space-between;align-items:center;font-size:13.5px}.tmTop em{font-style:normal;font-size:11px;color:var(--teal);border:1px solid rgba(63,127,122,.6);border-radius:10px;padding:2px 8px}
+#tmTime{font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:42px;text-align:center;color:#8a4a24;margin-top:2px}
+#tmHint{text-align:center;font-size:12px;color:var(--ink2);margin-bottom:9px}
+#tmBook{width:100%;background:rgba(255,255,255,.5);border:1px solid rgba(140,96,60,.35);border-radius:10px;padding:9px 11px;font-size:14px;margin-bottom:9px;outline:none;user-select:text;-webkit-user-select:text}
+.tmRow{display:flex;gap:7px}
+#tmModes{display:flex;gap:6px;flex:1}#tmModes button{flex:1;padding:9px 0;border-radius:10px;border:1px solid rgba(140,96,60,.35);font-size:13px;background:rgba(255,255,255,.35)}#tmModes button.on{border-color:var(--amber);background:#f7d9b0;color:#7a3e18}#tmModes button:disabled{opacity:.45}
+#tmGo{padding:10px 18px;border-radius:10px;background:var(--amber);color:#fff8ec;font-size:14px;box-shadow:0 2px 0 #a8602c}#tmGo:disabled{opacity:.45}
+#tmSave{width:100%;margin-top:8px;padding:10px;border-radius:10px;border:1px dashed rgba(140,96,60,.6);font-size:13.5px;color:#7a3e18}
+#fade{position:fixed;inset:0;background:#2a1c14;opacity:0;pointer-events:none;transition:opacity .38s;z-index:12}#fade.on{opacity:1}
+.modal{position:fixed;inset:0;background:rgba(40,22,10,.35);display:none;align-items:flex-end;justify-content:center;z-index:20}
+.modal.show{display:flex}
+.sheet{width:100%;max-width:540px;max-height:88vh;overflow:auto;border-radius:24px 24px 0 0;border-bottom:0;padding:14px 18px calc(22px + env(safe-area-inset-bottom));user-select:text;-webkit-user-select:text;touch-action:pan-y;animation:up .28s ease}
+@keyframes up{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+.grip{width:44px;height:5px;border-radius:3px;background:rgba(140,96,60,.35);margin:0 auto 10px}
+.sh{display:flex;justify-content:space-between;align-items:center;font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:16px;margin-bottom:6px}
+.back{font-size:14px;color:var(--ink2);padding:6px 0}
+.x{font-size:26px;color:var(--ink2);width:36px;height:36px}
+.sec{margin:18px 0 9px;font-size:12.5px;letter-spacing:.08em;color:#9a5a2a;font-weight:700}
+.empty{color:var(--ink2);font-size:13px;padding:6px 0;line-height:1.6}
+.sheet input,.sheet textarea,.sheet select{width:100%;background:rgba(255,255,255,.55);border:1px solid rgba(140,96,60,.35);border-radius:12px;font-size:15px;padding:11px 12px;margin-bottom:8px;outline:none;user-select:text;-webkit-user-select:text}
+.sheet select{appearance:none;-webkit-appearance:none}
+.sheet textarea{height:90px;resize:none}
+.primary{width:100%;padding:13px;border-radius:14px;background:var(--amber);color:#fff8ec;font-size:15px;box-shadow:0 3px 0 #a8602c}
+.ghost{padding:10px 14px;border-radius:12px;border:1px solid rgba(140,96,60,.45);font-size:14px;background:rgba(255,255,255,.35)}
+#menuGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+#menuGrid button{padding:14px 4px 12px;border-radius:16px;background:rgba(255,255,255,.42);border:1px solid rgba(140,96,60,.3);font-size:13px;display:flex;flex-direction:column;align-items:center;gap:7px;box-shadow:0 2px 0 rgba(140,96,60,.2)}
+#menuGrid button span{font-size:26px;line-height:1}
+#menuGrid button.on{background:#f7d9b0;border-color:var(--amber)}
+.me-card{display:flex;align-items:center;gap:12px;padding:12px;border-radius:16px;background:rgba(255,255,255,.4);border:1px solid rgba(140,96,60,.3)}
+.me-card .av{font-size:34px}.me-card b{display:block;font-family:'Nanum Myeongjo',serif;font-size:18px}.me-card small{color:var(--ink2);font-size:12px}
+.tabs{display:flex;gap:6px;margin:6px 0 4px}.tabs button{flex:1;padding:10px 0;border-radius:12px;border:1px solid rgba(140,96,60,.3);font-size:13.5px;background:rgba(255,255,255,.3)}.tabs button.on{border-color:var(--amber);background:#f7d9b0;color:#7a3e18}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.stats div{padding:12px 6px;border-radius:14px;background:rgba(255,255,255,.45);border:1px solid rgba(140,96,60,.3);text-align:center;font-size:12px}.stats small{display:block;color:var(--ink2);margin-bottom:4px}.stats b{font-family:'Nanum Myeongjo',serif;font-size:24px;color:#8a4a24;margin-right:2px}
+.bar{display:grid;grid-template-columns:112px 1fr 46px;gap:8px;align-items:center;font-size:13px;margin:7px 0}.bar span em{display:block;font-style:normal;font-size:10.5px;color:var(--ink2)}.bar i{height:10px;border-radius:6px;background:rgba(140,96,60,.15);overflow:hidden}.bar u{display:block;height:100%;background:linear-gradient(90deg,var(--teal),var(--amber2));border-radius:6px}.bar b{font-weight:400;text-align:right;color:#8a4a24}
+.row{display:flex;align-items:flex-start;gap:8px;padding:10px 0;border-bottom:1px dashed rgba(140,96,60,.3);font-size:14px;line-height:1.5}.row span{flex:1;min-width:0}.row small{display:block;color:var(--ink2);font-size:12px}.row em{font-style:normal;color:var(--ink2);font-size:12px;white-space:nowrap}.row button{color:var(--ink2);font-size:18px;line-height:1}.row.live b{color:var(--teal)}
+.stars{display:flex;gap:4px;margin:2px 0 8px}.stars button{font-size:24px;color:rgba(140,96,60,.3)}.stars button.on{color:#e0a030}
+.book{border-bottom:1px dashed rgba(140,96,60,.3);padding:10px 0}.book summary{display:flex;gap:8px;list-style:none;cursor:pointer;font-size:14.5px;line-height:1.5}.book summary::-webkit-details-marker{display:none}.book summary span{flex:1}.book small{display:block;color:var(--ink2);font-size:12px}.book summary button{color:var(--ink2);font-size:18px;align-self:flex-start}.book p{margin:8px 0 2px;padding:12px;border-radius:12px;background:rgba(255,255,255,.5);font-size:14px;line-height:1.75;white-space:pre-wrap}.book p.mute{color:var(--ink2)}
+#bList{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0 4px}
+.note{position:relative;padding:14px 12px 10px;border-radius:3px;color:#3a2618;box-shadow:0 4px 10px rgba(60,30,10,.25);min-height:88px}.note p{margin:0 0 8px;font-size:14px;line-height:1.55;white-space:pre-wrap;word-break:break-all}.note span{font-size:11px;color:#6a4a2a}.note button{position:absolute;top:2px;right:6px;color:#6a4a2a;font-size:18px}
+.note:before{content:'';position:absolute;top:-6px;left:50%;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:var(--rose);box-shadow:0 2px 3px rgba(0,0,0,.3)}
+#bList .empty{grid-column:1/-1}
+#bColors{display:flex;gap:10px;margin:2px 0 10px}#bColors button{width:28px;height:28px;border-radius:50%;border:2px solid rgba(140,96,60,.3)}#bColors button.on{border-color:var(--ink)}
+.avGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.avGrid button{padding:12px 4px 10px;border-radius:14px;background:rgba(255,255,255,.4);border:1px solid rgba(140,96,60,.3);font-size:12px;display:flex;flex-direction:column;align-items:center;gap:5px;line-height:1.3}.avGrid button span{font-size:28px;line-height:1}.avGrid button.on{border-color:var(--amber);background:#f7d9b0}
+#mapList button{width:100%;display:flex;align-items:center;gap:12px;padding:11px 2px;border-bottom:1px dashed rgba(140,96,60,.3);text-align:left}#mapList .ic{width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.5);border:1px solid rgba(140,96,60,.3);display:grid;place-items:center;font-size:20px;flex:none}#mapList b{display:block;font-weight:400;font-size:15px}#mapList small{display:block;font-size:12px;color:var(--ink2);margin-top:2px}#mapList em{margin-left:auto;font-style:normal;font-size:11px;border-radius:10px;padding:3px 8px;border:1px solid rgba(63,127,122,.6);color:var(--teal);white-space:nowrap}#mapList em.req{border-color:rgba(196,88,74,.6);color:var(--rose)}#mapList button.here{background:rgba(247,217,176,.5)}
+.camGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.camGrid button{padding:14px 0;border-radius:14px;background:rgba(255,255,255,.42);border:1px solid rgba(140,96,60,.3);font-size:14px}
+.help{font-size:14px;line-height:1.75}.help b{color:#8a4a24;font-weight:700}
+#connState{font-size:13px;line-height:1.6;color:var(--teal);padding:10px 12px;border-radius:12px;background:rgba(63,127,122,.1)}
+#toast{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%) scale(.96);max-width:84vw;padding:16px 20px;border-radius:16px;text-align:center;font-size:15px;line-height:1.6;opacity:0;pointer-events:none;transition:.3s;z-index:40}
+#toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}#toast small{display:block;color:var(--ink2);font-size:12px;margin-top:5px}
+#intro{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;background:radial-gradient(ellipse at 50% 30%,#f2c88a 0%,#c0784a 32%,#4a2a1c 72%,#24160e 100%);transition:opacity .9s;color:#fff4e2}
+#intro.hide{opacity:0;pointer-events:none}
+#intro .seal{width:84px;height:84px;border-radius:50%;background:rgba(255,240,215,.16);border:1.5px solid rgba(255,230,190,.6);display:grid;place-items:center;font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:30px;box-shadow:0 0 40px rgba(255,190,110,.4)}
+#intro h2{font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:36px;letter-spacing:.3em;margin:20px 0 4px;padding-left:.3em;text-shadow:0 2px 12px rgba(60,20,0,.6)}
+#intro .hj{font-family:'Nanum Myeongjo',serif;letter-spacing:.45em;font-size:13px;opacity:.85;padding-left:.45em}
+#intro p{font-size:14.5px;line-height:1.8;margin:18px 0 22px;text-shadow:0 1px 8px rgba(60,20,0,.6)}
+.card{width:100%;max-width:340px;padding:18px;border-radius:20px;color:var(--ink);text-align:left}
+.card label{display:block;font-size:13px;color:var(--ink2);margin-bottom:7px}
+.card input{width:100%;background:rgba(255,255,255,.6);border:1px solid rgba(140,96,60,.4);border-radius:12px;font-size:16px;padding:12px;margin-bottom:10px;outline:none;user-select:text;-webkit-user-select:text}
+.card .msg{min-height:18px;font-size:12.5px;color:var(--rose);margin:-2px 0 6px}
+.card .go2{display:block;width:100%;margin-top:10px;font-size:13.5px;color:var(--ink2);padding:6px}
+.card h3{margin:0 0 4px;font-family:'Nanum Myeongjo',serif;font-size:18px}
+#loadTxt{font-size:12px;margin-top:14px;opacity:.85;max-width:80vw}
+.fw{position:absolute;opacity:0;pointer-events:none}
+#faceBtn{pointer-events:auto;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-size:21px;margin-left:auto}
+#faceBtn+#menuBtn{margin-left:0}
+#facePop{position:absolute;right:12px;top:calc(64px + env(safe-area-inset-top));display:none;gap:4px;padding:6px;border-radius:22px;flex-wrap:wrap;max-width:calc(100vw - 24px);justify-content:center}
+#facePop.show{display:flex}#facePop button{display:flex;flex-direction:column;align-items:center;font-size:10.5px;padding:5px 6px;border-radius:14px;gap:2px;color:var(--ink2)}#facePop button span{font-size:22px}#facePop button.on{background:#f7d9b0;color:var(--ink)}
+.calHead{display:flex;align-items:center;justify-content:center;gap:18px;font-family:'Nanum Myeongjo',serif;font-size:18px;margin:2px 0}.calHead button{font-size:24px;color:var(--ink2);width:36px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:12px}
+.cal .dw{text-align:center;font-size:11px;color:var(--ink2);padding:2px 0}.cal .dw:first-child{color:var(--rose)}
+.cal .d{position:relative;aspect-ratio:1;border-radius:10px;background:rgba(255,255,255,.35);border:1px dashed rgba(140,96,60,.25);font-size:10.5px;color:var(--ink2);display:grid;place-items:center}
+.cal .d i{position:absolute;left:5px;top:3px;font-style:normal}.cal .d.today{border:1.5px solid var(--amber);background:rgba(247,217,176,.5)}.cal .d.empty{visibility:hidden}
+.stp{--c:#c4584a;display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;border:2.5px solid var(--c);box-shadow:inset 0 0 0 2px rgba(255,255,255,.5),inset 0 0 0 3.5px var(--c);color:var(--c);font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:16px;transform:rotate(-8deg);opacity:.9;background:rgba(255,255,255,.15)}
+.stp.s-s{border-radius:7px}.stp.s-f{border-radius:42% 58% 52% 48%/55% 45% 55% 45%;border-style:double;border-width:4px;box-shadow:none}
+.cal .d .stp{width:80%;height:80%;font-size:min(3.6vw,16px)}
+.stp.big{width:68px;height:68px;font-size:30px;flex:none}
+.stp.pop{animation:thump .45s cubic-bezier(.3,1.6,.5,1)}@keyframes thump{0%{transform:scale(2.2) rotate(-8deg);opacity:0}100%{transform:scale(1) rotate(-8deg);opacity:.9}}
+.preview{display:flex;align-items:center;gap:14px;margin-bottom:10px}.preview input{margin:0}
+.pick{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:9px}.pick button{min-width:38px;height:38px;border-radius:12px;border:1px solid rgba(140,96,60,.3);background:rgba(255,255,255,.4);font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:16px;padding:0 6px}.pick button.on{border:2px solid var(--ink);background:#f7d9b0}
+.pick button.col{width:32px;min-width:32px;height:32px;border-radius:50%}
+#stFriends .row .stp{width:30px;height:30px;font-size:13px;margin-right:4px}
+.bigSw{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:14px;border-radius:16px;background:rgba(255,255,255,.45);border:1px solid rgba(140,96,60,.35);font-size:15px;margin-top:4px}.bigSw span{font-size:22px}.bigSw.on{background:#f7d9b0;border-color:var(--amber)}
+.slRow{display:flex;align-items:center;gap:10px;padding:8px 0;font-size:14px}.slRow span{flex:1;min-width:0}.slRow input[type=range]{flex:1.2;margin:0;padding:0;accent-color:var(--amber);background:none;border:0;height:28px;touch-action:pan-x}
+.mini{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.4);border:1px solid rgba(140,96,60,.3);font-size:18px;opacity:.55;flex:none}.mini.on{opacity:1;background:#f7d9b0;border-color:var(--amber)}
+.seg{display:flex;gap:6px}.seg button{flex:1;padding:11px 0;border-radius:12px;border:1px solid rgba(140,96,60,.3);background:rgba(255,255,255,.35);font-size:14px}.seg button.on{background:#f7d9b0;border-color:var(--amber);color:#7a3e18}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<span class="fw" style="font-family:'Nanum Myeongjo';font-weight:800">雲書學堂閣基礎魔法靈藥溫和寮體力勅令符天地玄黃第一講藥草園</span><span class="fw" style="font-family:'Gowun Batang'">가나다 마법</span><span class="fw" style="font-family:'Gowun Dodum'">가나다</span>
+<main id="stage">
+  <div id="tint"></div><div id="grain"></div>
+  <div id="top">
+    <div id="chip" class="paper"><b id="zName">학당 마당</b><small><i id="onDot" class="off"></i><span id="online">혼자 둘러보는 중</span></small></div>
+    <button id="faceBtn" class="paper" aria-label="표정">🙂</button><button id="menuBtn" class="paper" aria-label="설정">☰</button>
+  </div>
+  <div id="facePop" class="paper"></div>
+  <div id="bigTitle"><small id="zEn"></small><h1 id="zTitle"></h1></div>
+  <div id="chatWrap"><div id="chatLog"></div></div>
+  <div id="bottom">
+    <button id="action" class="paper"><span id="aIco">🪑</span><b id="aTxt" style="font-weight:400"></b></button>
+    <div id="hint">바닥을 톡 누르면 걸어가고, 끌면 시점이 돌아가요</div>
+    <div id="timer" class="paper">
+      <div class="tmTop"><span id="tmSub"></span><em id="tmTag"></em></div>
+      <div id="tmTime">0:00</div><div id="tmHint"></div>
+      <input id="tmBook" maxlength="60" placeholder="읽는 책 · 공부할 내용 (선택)">
+      <div class="tmRow"><div id="tmModes"><button data-m="0">자유</button><button data-m="25">25분</button><button data-m="50">50분</button></div><button id="tmGo">시작</button></div>
+      <button id="tmSave">일어나기</button>
+    </div>
+    <div id="chatBar" class="paper"><input id="chatIn" maxlength="200" placeholder="기숙사 친구들에게 한마디" enterkeyhint="send"><button id="chatSend">보내기</button></div>
+  </div>
+</main>
+
+<div id="menu" class="modal"><div class="sheet paper"><div class="grip"></div>
+  <div class="sh"><span>학당 설정</span><button class="x" data-close>×</button></div>
+  <div class="me-card"><span class="av" id="meEmo">👧</span><span><b id="meNick">나</b><small id="meAv"></small></span></div>
+  <div id="menuGrid">
+    <button data-open="stamp"><span>🔖</span>출석도장</button>
+    <button data-open="map"><span>🗺</span>학당 지도</button>
+    <button data-open="records"><span>📒</span>기록장</button>
+    <button data-open="board"><span>📌</span>게시판</button>
+    <button data-open="me"><span><svg viewBox="0 0 40 40" width="30" height="30"><ellipse cx="20" cy="25" rx="17" ry="4.5" fill="#2a2420" opacity=".85"/><path d="M13 24V14Q13 10 20 10Q27 10 27 14V24Z" fill="#2a2420"/><rect x="13" y="21" width="14" height="2.4" fill="#6a4a30"/><path d="M9 27Q20 39 31 27" stroke="#d9a050" stroke-width="1.8" fill="none" stroke-dasharray="1.6 2.2"/></svg></span>닉네임·캐릭터</button>
+    <button id="sndTile"><span><svg viewBox="0 0 40 40" width="28" height="28"><line x1="20" y1="2" x2="20" y2="8" stroke="#3a2a20" stroke-width="1.5"/><path d="M12 22Q12 8 20 8Q28 8 28 22Z" fill="#6a7a6a"/><rect x="11" y="21" width="18" height="3" rx="1" fill="#4a5a4a"/><line x1="20" y1="24" x2="20" y2="30" stroke="#3a2a20" stroke-width="1.2"/><path d="M14 31Q20 28 25 31L23 33L26 36Q20 37.5 14 33Z" fill="#c9a65a"/></svg></span><em id="sndState" style="font-style:normal">소리</em></button>
+    <button data-open="cam"><span>🔭</span>시점 조절</button>
+    <button data-open="season"><span>🍁</span>계절·시간</button>
+    <button data-open="help"><span>📜</span>이용 안내</button>
+    <button data-open="conn"><span><svg viewBox="0 0 40 40" width="28" height="28"><line x1="20" y1="2" x2="20" y2="8" stroke="#3a2a20" stroke-width="1.5"/><rect x="11" y="8" width="18" height="3" rx="1" fill="#c9a65a"/><path d="M11 11h18v10H11z" fill="#d23a33"/><path d="M11 21h18v10H11z" fill="#2c55a8"/><rect x="11" y="31" width="18" height="3" rx="1" fill="#c9a65a"/><line x1="20" y1="34" x2="20" y2="39" stroke="#d23a33" stroke-width="2"/></svg></span>연결 상태</button>
+  </div>
+</div></div>
+
+<div id="me" class="modal"><div class="sheet paper"><div class="grip"></div>
+  <div class="sh"><button class="back" data-back>‹ 설정</button><button class="x" data-close>×</button></div>
+  <div class="sec">닉네임</div>
+  <input id="nickEdit" maxlength="12" placeholder="학당에서 불릴 이름"><button class="primary" id="nickSave">닉네임 저장</button>
+  <div class="sec">캐릭터 · 모두 한복과 갓을 써요</div>
+  <div class="avGrid" id="avGrid"></div>
+</div></div>
+
+<div id="map" class="modal"><div class="sheet paper"><div class="grip"></div>
+  <div class="sh"><button class="back" data-back>‹ 설정</button><button class="x" data-close>×</button></div>
+  <div id="mapList">
+    <button data-go="campus"><span class="ic"><svg viewBox="0 0 40 40" width="24" height="24"><path d="M2 15Q20 3 38 15Q30 12.5 20 12Q10 12.5 2 15Z" fill="#3a3430"/><rect x="8" y="15" width="24" height="3" fill="#2e6a5c"/><rect x="10" y="18" width="3" height="17" fill="#9a2e26"/><rect x="27" y="18" width="3" height="17" fill="#9a2e26"/><rect x="13" y="18" width="14" height="3" fill="#c9a65a"/></svg></span><span><b>학당 마당</b><small>계절마다 모습이 바뀌는 중앙 마당</small></span></button>
+    <button data-go="basics"><span class="ic">✴</span><span><b>마법학 기초</b><small>기초마법당 · 칠판과 마법진, 좌식 서안</small></span><em class="req">전공 필수</em></button>
+    <button data-go="potion"><span class="ic">⚗</span><span><b>마법약 수업</b><small>영약당 · 부글부글 끓는 솥 앞 자리</small></span><em class="req">전공 필수</em></button>
+    <button data-go="herbs"><span class="ic">🌿</span><span><b>약초학 수업</b><small>유리 온실 · 약초 화단과 나비</small></span><em>전공 선택</em></button>
+    <button data-go="training"><span class="ic">🥋</span><span><b>기초체력훈련</b><small>수련장 · 매트 위 집중 타이머</small></span><em>전공 선택</em></button>
+    <button data-go="library"><span class="ic">📚</span><span><b>도서관 · 운서각</b><small>함께 읽기 · 읽은 책과 독후감 기록</small></span><em>자유 독서</em></button>
+    <button data-go="dorm"><span class="ic"><svg viewBox="0 0 40 40" width="24" height="24"><line x1="20" y1="2" x2="20" y2="8" stroke="#3a2a20" stroke-width="1.5"/><rect x="11" y="8" width="18" height="3" rx="1" fill="#c9a65a"/><path d="M11 11h18v10H11z" fill="#d23a33"/><path d="M11 21h18v10H11z" fill="#2c55a8"/><rect x="11" y="31" width="18" height="3" rx="1" fill="#c9a65a"/><line x1="20" y1="34" x2="20" y2="39" stroke="#d23a33" stroke-width="2"/></svg></span><span><b>기숙사 · 온화료</b><small>노을 창가, 좌식 탁자, 게시판과 대화</small></span><em>자유 대화</em></button>
+  </div>
+</div></div>
+
+<div id="records" class="modal"><div class="sheet paper"><div class="grip"></div>
+  <div class="sh"><button class="back" data-back>‹ 설정</button><button class="x" data-close>×</button></div>
+  <div class="tabs" id="recTabs"><button data-t="me">나의 기록</button><button data-t="friends">함께 기록</button><button data-t="books">읽은 책</button></div>
+  <div id="recBody"></div>
+</div></div>
+
+<div id="board" class="modal"><div class="sheet paper"><div class="grip"></div>
+  <div class="sh"><span>📌 기숙사 게시판</span><button class="x" data-close>×</button></div>
+  <div id="bWrite"><textarea id="bText" maxlength="300" placeholder="친구들에게 남길 쪽지 (스터디 모집, 책 추천, 응원 한마디…)"></textarea><div id="bColors"><button class="on"></button><button></button><button></button><button></button><button></button></div><button class="primary" id="bSave">쪽지 붙이기</button></div>
+  <div id="bList"></div>
+</div></div>
+
+<div id="cam" class="modal"><div class="sheet paper"><div class="grip"></div>
+  <div class="sh"><button class="back" data-back>‹ 설정</button><button class="x" data-close>×</button></div>
+  <div class="sec">시점 조절 · 화면을 끌면 돌아가고, 두 손가락으로 벌리면 확대돼요</div>
+  <div class="camGrid"><button id="zin">🔍 가까이</button><button id="zout">🔭 멀리</button><button id="lookFace">🪞 얼굴 보기</button><button id="rotL">⟲ 왼쪽으로</button><button id="rotR">⟳ 오른쪽으로</button><button id="pup">⤒ 위에서</button><button id="pdn">⤓ 낮게</button><button id="recenter">↺ 처음대로</button><button data-close>✓ 닫기</button></div>
+</div></div>
+
+<div id="season" class="modal"><div class="sheet paper"><div class="grip"></div>
+  <div class="sh"><button class="back" data-back>‹ 설정</button><button class="x" data-close>×</button></div>
+  <div class="sec">계절 · 월별 풍경</div><select id="seasonSel"></select>
+  <div class="sec">시간</div><select id="todSel"><option value="auto">자동 (지금 시각)</option><option value="day">낮</option><option value="dusk">저녁노을</option><option value="night">밤</option></select>
+  <div class="empty">자동이면 오늘 날짜와 시각에 맞춰 바뀌어요. 다른 달을 고르면 그 달 풍경을 이 기기에서만 미리 볼 수 있어요.</div>
+</div></div>
+
+<div id="conn" class="modal"><div class="sheet paper"><div class="grip"></div>
+  <div class="sh"><button class="back" data-back>‹ 설정</button><button class="x" data-close>×</button></div>
+  <div class="sec">연결 상태</div><div id="connState"></div>
+  <div class="sec">자동 입장</div><div class="empty">이 기기에 암호가 저장돼 있어 다음부터 바로 들어와요.</div><button class="ghost" id="logoutBtn">이 기기에서 자동 입장 해제</button>
+</div></div>
+
+<div id="help" class="modal"><div class="sheet paper"><div class="grip"></div>
+  <div class="sh"><button class="back" data-back>‹ 설정</button><button class="x" data-close>×</button></div>
+  <div class="help">
+    <p><b>걷기</b> — 가고 싶은 바닥을 톡 누르면 걸어가요. 건물 문 앞을 누르면 안으로 들어가고, 실내에서는 아래쪽 금빛 발판을 눌러 나가요. 설정의 <b>학당 지도</b>로 바로 이동할 수도 있어요.</p>
+    <p><b>앉기와 타이머</b> — 빈 의자·방석·매트를 누르면 걸어가 앉아요. 강의실과 도서관에서는 공부·독서 타이머가 열려요(자유 / 25분 / 50분). 1분 이상부터 기록장에 남아요.</p>
+    <p><b>함께 읽기</b> — 타이머를 켠 친구 머리 위에 📖 몇 분째인지 보여요. 기록장의 ‘함께 기록’에서 친구들 기록도 볼 수 있어요.</p>
+    <p><b>도서관</b> — 가운데 빛나는 책 앞에서 읽은 책과 독후감을 서가에 꽂아요.</p>
+    <p><b>기숙사</b> — 아래 대화창으로 지금 접속한 친구들과 실시간 대화를 해요(대화는 저장되지 않아요). 오래 남길 말은 게시판 쪽지로.</p>
+    <p><b>닉네임·캐릭터</b> — 처음 정한 닉네임은 다음에 와도 그대로예요. 설정에서 언제든 바꿀 수 있어요.</p>
+  </div>
+</div></div>
+
+<div id="stamp" class="modal"><div class="sheet paper"><div class="grip"></div>
+  <div class="sh"><button class="back" data-back>‹ 설정</button><button class="x" data-close>×</button></div>
+  <div class="calHead"><button id="calPrev">‹</button><b id="calTitle"></b><button id="calNext">›</button></div>
+  <div class="stats" id="stStats"></div>
+  <div class="cal" id="cal"></div>
+  <div id="todayBox">
+    <div class="sec">오늘의 도장 꾸미기</div>
+    <div class="preview"><span id="stPrev" class="stp big"></span><input id="stMemo" maxlength="30" placeholder="오늘의 한 줄 다짐 (선택)"></div>
+    <div class="pick" id="pickGlyph"></div>
+    <div class="pick" id="pickShape"></div>
+    <div class="pick" id="pickColor"></div>
+    <button class="primary" id="stampGo">쾅! 도장 찍기</button>
+  </div>
+  <div class="sec">오늘 출석한 친구들</div><div id="stFriends"></div>
+</div></div>
+<div id="sound" class="modal"><div class="sheet paper"><div class="grip"></div>
+  <div class="sh"><button class="back" data-back>‹ 설정</button><button class="x" data-close>×</button></div>
+  <div id="sndBody"></div>
+</div></div>
+<div id="toast" class="paper"></div><div id="fade"></div>
+
+<div id="intro">
+  <div class="seal">學</div>
+  <h2>운서학당</h2>
+  <div class="hj">雲 書 學 堂</div>
+  <p>등불 아래 마법사를 길러내는 동양풍 학당.<br>함께 읽고, 함께 기록해요.</p>
+  <div class="card paper" id="stepPw">
+    <label>입장 암호</label>
+    <input id="pwIn" type="password" autocomplete="off" placeholder="암호를 적어 주세요" enterkeyhint="go">
+    <div class="msg" id="pwMsg"></div>
+    <button class="primary" id="pwGo">대문 두드리기</button>
+  </div>
+  <div class="card paper" id="stepNick" hidden>
+    <h3>처음 오셨군요!</h3>
+    <label>학당에서 불릴 닉네임 (12자까지)</label>
+    <input id="nickIn" maxlength="12" placeholder="예: 책벌레 송현">
+    <label>캐릭터 · 한복과 갓 차림</label>
+    <div class="avGrid" id="introAv"></div>
+    <div class="msg" id="nickMsg"></div>
+    <button class="primary" id="nickGo" style="margin-top:8px">입학하기</button>
+  </div>
+  <div class="card paper" id="stepIn" hidden>
+    <h3 id="welcome"></h3>
+    <label id="welcomeSub">오늘도 천천히 머물다 가요.</label>
+    <button class="primary" id="goSound">소리와 함께 들어가기</button>
+    <button class="go2" id="goQuiet">조용히 들어가기</button>
+  </div>
+  <div id="loadTxt">학당 문을 여는 중…</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="cloud.js"></script>
+<script>
+(async function(){
+  try{await Promise.race([Promise.all([document.fonts.load('800 80px "Nanum Myeongjo"','雲書學堂閣基礎魔法靈藥溫和寮體力勅令符天地玄黃第一講藥草園'),document.fonts.load('30px "Gowun Batang"','가나다 마법')]),new Promise(r=>setTimeout(r,2500))]);}catch(e){}
+  try{for(const s of ['core.js','avatars.js','spaces.js','sound.js','app.js']){await new Promise((res,rej)=>{const el=document.createElement('script');el.src=s;el.onload=res;el.onerror=()=>rej(new Error(s+' 불러오기 실패'));document.body.appendChild(el);});}}
+  catch(e){document.getElementById('loadTxt').textContent='학당을 열지 못했어요: '+e.message;}
+})();
+window.addEventListener('error',e=>{const l=document.getElementById('loadTxt');if(l)l.textContent='오류: '+e.message;});
+</script>
+</body>
+</html>

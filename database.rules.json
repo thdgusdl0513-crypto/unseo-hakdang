@@ -1,0 +1,43 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "members": {
+      ".read": "auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading'",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        "nick": { ".validate": "newData.isString() && newData.val().length <= 12" }
+      }
+    },
+    "stamps": {
+      ".read": "auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading'",
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading'"
+      }
+    },
+    "data": {
+      "$col": {
+        ".read": "auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading'",
+        ".indexOn": ["ts"],
+        "$id": {
+          ".write": "auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading' && ((!data.exists() && newData.child('by').val() === auth.uid) || (data.exists() && data.child('by').val() === auth.uid))"
+        }
+      }
+    },
+    "presence": {
+      ".read": "auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading'",
+      "$peer": {
+        ".write": "auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading' && ((newData.exists() && newData.child('by').val() === auth.uid) || (!newData.exists() && data.child('by').val() === auth.uid))"
+      }
+    },
+    "chat": {
+      ".read": "auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading'",
+      ".indexOn": ["t"],
+      "$m": {
+        ".write": "auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading' && !data.exists() && newData.child('by').val() === auth.uid",
+        ".validate": "newData.child('d').child('t').isString() && newData.child('d').child('t').val().length <= 200"
+      }
+    }
+  }
+}
