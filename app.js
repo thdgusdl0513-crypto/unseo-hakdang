@@ -118,7 +118,7 @@ $('#action').addEventListener('click',()=>gAct&&gAct());
 
 /* ---------- data (shared via db, or local) ---------- */
 const DATA={board:LS.get('local.board',[]),logs:LS.get('local.logs',[]),books:LS.get('local.books',[]),playlist:LS.get('local.playlist',[])};
-let DB=null,USER=null,ROOM=null,MYID='me',CANWRITE=true,MODE='local',PEERS=[];const NAMES={};
+let CLOUD_DONE=false;let DB=null,USER=null,ROOM=null,MYID='me',CANWRITE=true,MODE='local',PEERS=[];const NAMES={};
 const LIM={board:150,logs:400,books:200,playlist:200};
 function onData(col){if(col==='playlist'){renderPlaylist();renderTicker();notifyNewSongs();}if(col==='board'){renderBoard();updateBoard3D();updateBdDot();}if(col==='logs'||col==='books')renderRecords();resolveNames(DATA[col].map(d=>d.by));}
 async function initCloud(){const C=window.claude;if(!C||!C.use){updateConn();return;}
@@ -140,7 +140,7 @@ async function resolveNames(ids){if(!USER)return;const need=[...new Set(ids)].fi
 const nameOf=(id,fb)=>id===MYID||id==='me'?(ST.nick||'나'):((MEMBERS[id]&&MEMBERS[id].nick)||fb||NAMES[id]||'친구');
 const CONN={slow:false,err:null};
 function updateConn(){const n=new Set(PEERS.filter(p=>p.kind==='viewer').map(p=>p.by||p.peer)).size;
-  $('#online').textContent=ROOM&&n>0?`지금 학당에 ${n}명`:MODE==='shared'?'친구를 기다리는 중':'혼자 둘러보는 중';$('#onDot').classList.toggle('off',!(ROOM&&n>0));
+  $('#online').textContent=ROOM&&n>1?`지금 학당에 ${n}명`:ROOM&&n===1?'접속한 친구 없음 · 나만 있어요':MODE==='shared'?'친구를 기다리는 중':CLOUD_DONE?'오프라인 · 이 기기에만 저장돼요':'학당에 연결하는 중…';$('#onDot').classList.toggle('off',!(ROOM&&n>0));
   const s=MODE==='shared'?(CONN.err?'공유 저장소에 연결하지 못했어요 ('+CONN.err+')':CONN.slow?'공유 기록을 불러오는 중이에요…':CANWRITE?'공유 저장 · 게시판과 기록이 친구들과 함께 보여요':'읽기 전용 · 만든 사람에게 편집 권한을 받아야 글을 남길 수 있어요'):'혼자 모드 · 이 기기에만 저장돼요';
   $('#connState').textContent=s+(ROOM?' · 실시간 접속 켜짐':' · 실시간 접속 꺼짐');}
 
@@ -326,7 +326,7 @@ $('#pwGo').addEventListener('click',tryPw);$('#pwIn').addEventListener('keydown'
 $('#nickGo').addEventListener('click',()=>{const v=$('#nickIn').value.trim().slice(0,12);if(!v){$('#nickMsg').textContent='닉네임을 적어 주세요.';$('#nickIn').focus();return;}ST.nick=v;LS.set('nick',v);if(!ST.avatar){ST.avatar='girl';LS.set('avatar','girl');}saveMember();pushPresence(true);updateMe();$('#welcome').textContent=v+'님, 입학을 환영해요!';$('#welcomeSub').textContent='닉네임은 다음에 와도 그대로예요. 설정에서 바꿀 수 있어요.';show('stepIn');});
 const enter=s=>{$('#intro').classList.add('hide');if(s)setSound(true);setTimeout(()=>{$('#intro').remove();updateZone();askStamp();},900);setTimeout(()=>{const hn=$('#hint');if(hn)hn.style.opacity=0;},9000);};
 $('#goSound').addEventListener('click',()=>enter(true));$('#goQuiet').addEventListener('click',()=>enter(false));
-let cloudPending=null;enterSpace('campus',null,true);updateSeasonChip();renderChat();setGuide(true);updateConn();updateMe();cloudPending=initCloud();fetchWx();setInterval(()=>fetchWx(),30*60e3);renderTicker();notifyNewSongs();
+let cloudPending=null;enterSpace('campus',null,true);updateSeasonChip();renderChat();setGuide(true);updateConn();updateMe();cloudPending=initCloud();Promise.resolve(cloudPending).finally(()=>setTimeout(()=>{CLOUD_DONE=true;updateConn();},1500));fetchWx();setInterval(()=>fetchWx(),30*60e3);renderTicker();notifyNewSongs();
 
 const clock=new THREE.Clock();let walkPh=0,speedNow=0,lastSec=0;const SPEED=4.4;
 function frame(){requestAnimationFrame(frame);const dt=Math.min(clock.getDelta(),.05),t=clock.elapsedTime;
