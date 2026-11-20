@@ -96,7 +96,8 @@ function applyLook(A,look){look=look||DEFAULT_LOOK;A.look=look;const F=A.fit;if(
     else if(F.sleeve){A.arms.forEach(a=>{if(a.wing)return;const s=sph(a.g,F.sleeve[0],sm,0,F.sleeve[2],0,1,F.sleeve[1],1);if(S.wide)s.scale.x=s.scale.z=1.3;});}
   }
   /* ----- hat ----- */
-  const gat=A.gat;if(gat&&look.h!=='gat'){gat.visible=false;if(look.h!=='none')buildHat(A,look.h,cH);}else if(gat&&cH!=null){gat.traverse(m=>{if(m.isMesh&&m.material===GATM){m.material=GATM.clone();m.material.color.setHex(cH);m.material.emissive&&m.material.emissive.setHex(new THREE.Color(cH).multiplyScalar(.12).getHex());}});}
+  const gat=A.gat;if(gat&&look.h!=='gat'){gat.visible=false;if(look.h!=='none')buildHat(A,look.h,cH);
+    if(['beanie','cap','jobawi','beret'].includes(look.h)&&A.head){const lim=(A.headR||.4)*.3;A.head.children.forEach(m=>{if(!m.isMesh||m===A.face||m===gat)return;if(m.position.y>lim)m.visible=false;});}}else if(gat&&cH!=null){gat.traverse(m=>{if(m.isMesh&&m.material===GATM){m.material=GATM.clone();m.material.color.setHex(cH);m.material.emissive&&m.material.emissive.setHex(new THREE.Color(cH).multiplyScalar(.12).getHex());}});}
   /* ----- accessories ----- */
   (look.a||[]).forEach(id=>buildAcc(A,id,colOf(look,id)));}
 
