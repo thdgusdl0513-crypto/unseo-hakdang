@@ -10,7 +10,7 @@
   const lsGet=k=>{try{const v=localStorage.getItem('unseo.'+k);return v==null?null:JSON.parse(v);}catch(e){return null;}};
   let uid=null,joined=false,joinWaiters=[];
   const readyP=new Promise(res=>joinWaiters.push(res));
-  const markJoined=()=>{if(joined)return;joined=true;CS.stage='ok';CS.err='';joinWaiters.forEach(f=>f());joinWaiters=[];};
+  const markJoined=()=>{if(joined)return;joined=true;CS.stage='ok';CS.err='';fdb.ref('stamps').limitToFirst(1).get().then(()=>{window.__rulesOld=false;},e=>{if(/permission/i.test(String(e&&e.message||e))){window.__rulesOld=true;}});joinWaiters.forEach(f=>f());joinWaiters=[];};
   async function join(pw){if(!uid)await authP;if(!uid)throw new Error('no-auth');CS.stage='join';try{await fdb.ref('members/'+uid).update({key:pw,ts:Date.now()});}catch(e){CS.err='join';CS.msg=String(e&&e.message||e);throw e;}markJoined();}
   window.__cloudJoin=pw=>join(pw).catch(e=>{console.warn('입장 기록 실패',e);});
   CS.stage='auth';const authP=auth.signInAnonymously().then(async c=>{uid=c.user.uid;CS.stage='member';
@@ -70,6 +70,7 @@
   window.__cloudAdmin={
     async kick(id,nick){await fdb.ref('bans/'+id).set({ts:Date.now(),nick:String(nick||'').slice(0,12)});
       try{const s=await fdb.ref('presence').get();const jobs=[];s.forEach(c=>{const v=c.val()||{};if(v.by===id)jobs.push(fdb.ref('presence/'+c.key).remove());});await Promise.all(jobs);}catch(e){}},
+    async verify(){try{await fdb.ref('bans').limitToFirst(1).get();return true;}catch(e){return /permission/i.test(String(e&&e.message||e))?false:null;}},
     unkick(id){return fdb.ref('bans/'+id).remove();},
     watchBans(cb){const ref=fdb.ref('bans');const h=ref.on('value',s=>cb(s.val()||{}),()=>cb(null));return ()=>ref.off('value',h);}};
   window.claude={use:async name=>{await authP;await readyP;

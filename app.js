@@ -143,8 +143,8 @@ const T0=Date.now();
 function cloudProblem(){const S=window.__cloudState;if(!S)return '';if(S.err==='auth')return '연결 실패 · 익명 로그인이 꺼져 있어요';if(S.err==='join')return '연결 실패 · 데이터베이스 규칙을 확인해 주세요';if(S.err==='init')return '연결 실패 · firebase-config.js를 확인해 주세요';if(Date.now()-T0>12000)return S.stage==='needpw'?'암호를 다시 적으면 연결돼요':'연결이 늦어요 · 새로고침해 보세요';return '';}
 setInterval(()=>{if(MODE!=='shared'&&!CLOUD_DONE)updateConn();},3000);
 function updateConn(){const n=new Set(PEERS.filter(p=>p.kind==='viewer').map(p=>p.by||p.peer)).size;
-  $('#online').textContent=ROOM&&n>1?`지금 학당에 ${n}명`:ROOM&&n===1?'접속한 친구 없음 · 나만 있어요':MODE==='shared'?'친구를 기다리는 중':CLOUD_DONE?'오프라인 · 이 기기에만 저장돼요':cloudProblem()||'학당에 연결하는 중…';$('#onDot').classList.toggle('off',!(ROOM&&n>0));
-  const s=MODE==='shared'?(CONN.err?'공유 저장소에 연결하지 못했어요 ('+CONN.err+')':CONN.slow?'공유 기록을 불러오는 중이에요…':CANWRITE?'공유 저장 · 게시판과 기록이 친구들과 함께 보여요':'읽기 전용 · 만든 사람에게 편집 권한을 받아야 글을 남길 수 있어요'):(cloudProblem()?cloudProblem()+((window.__cloudState||{}).msg?' ('+window.__cloudState.msg.slice(0,80)+')':''):CLOUD_DONE?'오프라인 · 이 기기에만 저장돼요':'학당에 연결하는 중…');
+  $('#online').textContent=window.__rulesOld?'⚠️ Firebase 규칙을 다시 붙여 넣어 주세요':ROOM&&n>1?`지금 학당에 ${n}명`:ROOM&&n===1?'접속한 친구 없음 · 나만 있어요':MODE==='shared'?'친구를 기다리는 중':CLOUD_DONE?'오프라인 · 이 기기에만 저장돼요':cloudProblem()||'학당에 연결하는 중…';$('#onDot').classList.toggle('off',!(ROOM&&n>0));
+  const s=window.__rulesOld?'Firebase 규칙이 예전 버전이라 기록을 저장하지 못해요. 콘솔 → Realtime Database → 규칙에 database.rules.json을 다시 붙여 넣고 게시해 주세요.':MODE==='shared'?(CONN.err?'공유 저장소에 연결하지 못했어요 ('+CONN.err+')':CONN.slow?'공유 기록을 불러오는 중이에요…':CANWRITE?'공유 저장 · 게시판과 기록이 친구들과 함께 보여요':'읽기 전용 · 만든 사람에게 편집 권한을 받아야 글을 남길 수 있어요'):(cloudProblem()?cloudProblem()+((window.__cloudState||{}).msg?' ('+window.__cloudState.msg.slice(0,80)+')':''):CLOUD_DONE?'오프라인 · 이 기기에만 저장돼요':'학당에 연결하는 중…');
   $('#connState').textContent=s+(ROOM?' · 실시간 접속 켜짐':' · 실시간 접속 꺼짐');}
 
 /* ---------- room: presence, chat ---------- */
@@ -327,7 +327,7 @@ function renderStamp(){if(!$('#stamp').classList.contains('show'))return;const n
 $('#todayBox').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.id==='stampGo')return;if(b.dataset.g)pick.g=b.dataset.g;if(b.dataset.s)pick.s=b.dataset.s;if(b.dataset.c)pick.c=b.dataset.c;LS.set('stampPick',pick);renderStamp();});
 $('#calPrev').addEventListener('click',()=>{calM.setMonth(calM.getMonth()-1);renderStamp();});$('#calNext').addEventListener('click',()=>{calM.setMonth(calM.getMonth()+1);renderStamp();});
 $('#stampGo').addEventListener('click',async()=>{const k=dkey(new Date());myDays[k]={g:pick.g,s:pick.s,c:pick.c,m:$('#stMemo').value.trim().slice(0,30)};const ks=Object.keys(myDays).sort();while(ks.length>800)delete myDays[ks.shift()];LS.set('local.stamps',myDays);calM=new Date(new Date().getFullYear(),new Date().getMonth(),1);renderStamp.pop=true;renderStamp();chime();toast(`출석 완료! 연속 ${streak()}일째예요 🔖`);
-  if(DB&&CANWRITE&&MYID!=='me'){try{await DB.doc('stamps/'+MYID).set({days:myDays,ts:Date.now()});}catch(e){toast('도장을 공유 저장소에 남기지 못했어요<small>이 기기에는 저장됐어요</small>');}}});
+  if(DB&&CANWRITE&&MYID!=='me'){try{await DB.doc('stamps/'+MYID).set({days:myDays,ts:Date.now()});}catch(e){toast('도장을 공유 저장소에 남기지 못했어요<small>'+(window.__rulesOld?'Firebase 규칙을 다시 붙여 넣어 주세요':'이 기기에는 저장됐어요')+'</small>');}}});
 function askStamp(){const k=dkey(new Date());if(myDays[k]||LS.get('stampAsked','')===k)return;LS.set('stampAsked',k);setTimeout(()=>{if(!$$('.modal.show').length)openSheet('stamp');},1600);}
 /* ---------- 친구 내보내기 (관리자) ---------- */
 let BANS={},bansOff=null,kickArm=null,kickT;
@@ -337,7 +337,11 @@ function watchBans(){if(bansOff||!canKick())return;bansOff=window.__cloudAdmin.w
 function renderBans(){const el=$('#banList');if(!el)return;const ids=Object.keys(BANS);el.innerHTML=!ADMIN_ON?'':ids.length?'<div class="sec">내보낸 친구</div>'+ids.map(id=>`<div class="frRow"><span><b>${esc((MEMBERS[id]&&MEMBERS[id].nick)||BANS[id].nick||'친구')}</b><small>${ago(BANS[id].ts||0)} 내보냄</small></span><button class="ghost" data-unkick="${id}">다시 들이기</button></div>`).join(''):'';}
 async function kickFriend(id,nick){try{await window.__cloudAdmin.kick(id,nick);Object.values(REMOTES).forEach(r=>{if(r.by===id)dropRemote(r.peer);});toast(esc(nick)+'님을 학당에서 내보냈어요<small>설정 → 연결에서 다시 들일 수 있어요</small>');renderFriends();}catch(e){toast('내보내지 못했어요<small>관리자 코드가 맞는지 확인해 주세요</small>');}}
 function renderAdmin(){watchBans();renderBans();const on=ADMIN_ON;$('#adminState').textContent=on?'관리자 모드 켜짐 · 모든 추천곡과 쪽지에 삭제 버튼이 보여요':'꺼짐';$('#adminOff').hidden=!on;$('#adminIn').parentElement.hidden=on;}
-$('#adminGo').addEventListener('click',async()=>{const v=$('#adminIn').value.trim();if(!v)return;if(DB&&MYID!=='me'){try{await DB.doc('members/'+MYID).set({admin:v});}catch(e){toast('저장하지 못했어요');return;}}ADMIN_ON=true;LS.set('adminOn',true);$('#adminIn').value='';renderAdmin();renderPlaylist();renderBoard();toast('관리자 모드를 켰어요<small>암호가 틀리면 삭제할 때 막혀요</small>');});
+$('#adminGo').addEventListener('click',async()=>{const v=$('#adminIn').value.trim();if(!v)return;const btn=$('#adminGo');btn.disabled=true;btn.textContent='확인 중…';const done=()=>{btn.disabled=false;btn.textContent='켜기';};
+  if(DB&&MYID!=='me'){try{await DB.doc('members/'+MYID).set({admin:v});}catch(e){done();toast('저장하지 못했어요<small>연결 상태를 확인해 주세요</small>');return;}
+    if(window.__cloudAdmin&&window.__cloudAdmin.verify){await new Promise(r=>setTimeout(r,400));const ok=await window.__cloudAdmin.verify();
+      if(ok===false){done();try{await DB.doc('members/'+MYID).set({admin:''});}catch(e){}$('#adminMsg').textContent=window.__rulesOld?'❌ Firebase 규칙이 예전 것이에요. 규칙을 다시 붙여 넣고 게시해 주세요.':'❌ 코드가 맞지 않아요. 다시 확인해 주세요.';$('#adminMsg').className='adminMsg bad';$('#adminIn').select();return;}}}
+  done();ADMIN_ON=true;LS.set('adminOn',true);$('#adminIn').value='';$('#adminMsg').textContent='✅ 코드가 맞아요! 관리자 모드가 켜졌어요.';$('#adminMsg').className='adminMsg ok';renderAdmin();renderPlaylist();renderBoard();});
 $('#adminOff').addEventListener('click',async()=>{ADMIN_ON=false;LS.set('adminOn',false);if(DB&&MYID!=='me'){try{await DB.doc('members/'+MYID).set({admin:''});}catch(e){}}renderAdmin();renderPlaylist();renderBoard();});
 $('#logoutBtn').addEventListener('click',()=>{LS.set('pwok','');LS.set('pwk','');toast('자동 입장을 해제했어요<small>다음에는 암호를 다시 적어요</small>');});
 
@@ -425,5 +429,5 @@ $('#mini').addEventListener('click',()=>openSheet('map'));
 window.__dbg={me,enterSpace,get SP(){return SP;},sitDown,ST,TM};
 if(LS.get('pwok','')===PWH){afterGate.auto=true;$('#stepPw').hidden=true;$('#loadTxt').textContent='자동으로 대문을 여는 중…';afterGate().then(()=>{$('#loadTxt').textContent='';});}
 
-setInterval(()=>{if(ADMIN_ON)watchBans();},3000);
+setInterval(()=>{if(ADMIN_ON)watchBans();if(window.__rulesOld!==window.__rulesShown){window.__rulesShown=window.__rulesOld;updateConn();}},3000);
 $('#banList')&&$('#banList').addEventListener('click',async e=>{const b=e.target.closest('[data-unkick]');if(!b)return;try{await window.__cloudAdmin.unkick(b.dataset.unkick);toast('다시 들어올 수 있어요<small>친구가 암호를 한 번 더 적으면 돼요</small>');}catch(err){toast('바꾸지 못했어요');}});
