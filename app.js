@@ -149,16 +149,18 @@ function updateConn(){const n=new Set(PEERS.filter(p=>p.kind==='viewer').map(p=>
 
 /* ---------- room: presence, chat ---------- */
 const REMOTES={};let presT=0,presDirty=false;
-function myPresence(){const p=me.root.position;return {sp:ST.space,x:+p.x.toFixed(2),z:+p.z.toFixed(2),ry:+me.root.rotation.y.toFixed(2),av:ST.avatar||'girl',st:ST.sitting,rd:TM.run?Date.now()-elapsed():0,bk:($('#tmBook').value||'').slice(0,24),pt:ST.pet||'none',lk:lookStr(ST.look),nk:(ST.nick||'').slice(0,12),fx:ST.fx};}
+function myPresence(){const p=me.root.position;return {sp:ST.space,x:+p.x.toFixed(2),z:+p.z.toFixed(2),ry:+me.root.rotation.y.toFixed(2),av:ST.avatar||'girl',st:ST.sitting,rd:TM.run?Date.now()-elapsed():0,bk:($('#tmBook').value||'').slice(0,24),pt:ST.pet||'none',lk:lookStr(ST.look),nk:(ST.nick||'').slice(0,12),fx:ST.fx,em:MY_EM,cl:MY_CL};}
 function pushPresence(now){presDirty=true;if(now)flushPresence();}
 function flushPresence(){if(!ROOM||!presDirty)return;presDirty=false;presT=performance.now();ROOM.presence(myPresence()).catch(()=>{});}
-function setupRoom(){ROOM.onPeers(ch=>{PEERS=ch.peers.slice();ch.left.forEach(p=>dropRemote(p.peer));ch.peers.forEach(p=>{if(!p.sameTab&&p.kind==='viewer')upsertRemote(p);});resolveNames(PEERS.map(p=>p.by));updateConn();renderTogether();},()=>{PEERS=[];updateConn();});
+function setupRoom(){ROOM.onPeers(ch=>{PEERS=ch.peers.slice();ch.left.forEach(p=>dropRemote(p.peer));ch.peers.forEach(p=>{if(!p.sameTab&&p.kind==='viewer')upsertRemote(p);});resolveNames(PEERS.map(p=>p.by));updateConn();renderTogether();const sig=onlineFriends().map(r=>r.by+r.pr.sp+(r.pr.rd?1:0)).join();if(sig!==window.__frSig){window.__frSig=sig;if($('#friends').classList.contains('show'))renderFriends();}},()=>{PEERS=[];updateConn();});
   ROOM.on('chat',m=>{if(m.isMe&&m.sameTab)return;const d=m.data||{};if(typeof d.t!=='string')return;const r=REMOTES[m.peer];addChat(m.by,d.t.slice(0,200),m.peer,false,r&&r.pr&&typeof r.pr.nk==='string'?r.pr.nk.slice(0,12):'');});
   ROOM.onConnection(c=>{if(c)pushPresence(true);});pushPresence(true);renderChat();}
 function dropRemote(peer){const r=REMOTES[peer];if(!r)return;scene.remove(r.A.root,r.L.sprite,r.B.sprite);if(r.pet)scene.remove(r.pet.root);delete REMOTES[peer];}
 function upsertRemote(p){const pr=p.presence||{};let r=REMOTES[p.peer];if(!pr.sp){if(r)r.A.root.visible=false;return;}
   const lk=typeof pr.lk==='string'?pr.lk.slice(0,120):'';if(!r||r.av!==pr.av||r.lk!==lk){if(r)scene.remove(r.A.root);const A=makeAvatar(AVMAP[pr.av]||pr.av==='shiba'?pr.av:'girl',lookParse(lk));if(r)r.lk=lk;scene.add(A.root);A.root.position.set(+pr.x||0,0,+pr.z||0);if(!r){r={L:makeLabel('친구'),B:makeBubble(),ph:0,amt:0,lk};scene.add(r.L.sprite,r.B.sprite);}r.A=A;r.av=pr.av;}
   const pid=PETMAP[pr.pt]?pr.pt:'none';if(r.petId!==pid){if(r.pet)scene.remove(r.pet.root);r.pet=makePet(pid);r.petId=pid;if(r.pet){r.pet.root.position.copy(r.A.root.position);scene.add(r.pet.root);}}
+  if(typeof pr.em==='string'&&pr.em!==r.emSeen){const first=r.emSeen===undefined;r.emSeen=pr.em;const k=pr.em.split(':')[0];if(!first&&pr.sp===ST.space){playEmote(r.A,k);if(k==='heart'||k==='wave'){const nm=nameOf(p.by,pr.nk);toast(k==='heart'?`${esc(nm)}님이 하트를 보냈어요 💗`:`${esc(nm)}님이 인사해요 👋`);}}}else if(r.emSeen===undefined)r.emSeen=pr.em||'';
+  if(typeof pr.cl==='string'&&pr.cl!==r.clSeen){const first=r.clSeen===undefined;r.clSeen=pr.cl;const [to,ts]=pr.cl.split('|');if(!first&&(to===MYID||to==='*')&&p.by!==MYID&&Date.now()-(+ts||0)<120000)gotCall(p.by,pr);}else if(r.clSeen===undefined)r.clSeen=pr.cl||'';
   r.pr=pr;r.by=p.by;r.peer=p.peer;r.A.root.visible=r.L.sprite.visible=pr.sp===ST.space;if(r.pet)r.pet.root.visible=r.A.root.visible;REMOTES[p.peer]=r;}
 function refreshRemotes(){Object.values(REMOTES).forEach(r=>{const v=r.pr&&r.pr.sp===ST.space;r.A.root.visible=r.L.sprite.visible=v;if(r.pet)r.pet.root.visible=v;if(!v)r.B.sprite.visible=false;else if(r.pr){r.A.root.position.set(+r.pr.x||0,0,+r.pr.z||0);}});}
 const CHAT=[];
@@ -200,7 +202,7 @@ function renderTogether(){if($('#records').classList.contains('show')&&recTab===
 
 /* ---------- sheets ---------- */
 function openSheet(id){closeSheets();if(id==='books'){recTab='books';id='records';}const el=$('#'+id);if(!el)return;el.classList.add('show');
-  if(id==='records')renderRecords();if(id==='conn')renderAdmin();if(id==='wardrobe')renderWardrobe();if(id==='playlist'){LS.set('plSeen',Date.now());renderPlaylist();renderTicker();}if(id==='sound')renderSoundUI();if(id==='stamp'){calM=null;$('#stMemo').value='';renderStamp();}if(id==='board'){LS.set('bdSeen',Date.now());updateBdDot();renderBoard();$('#bWrite').style.display=(MODE==='shared'&&!CANWRITE)?'none':'';}if(id==='me'){$('#nickEdit').value=ST.nick||'';renderAvatars();}if(id==='map')$$('#mapList button').forEach(b=>b.classList.toggle('here',b.dataset.go===ST.space));if(id==='menu')updateMe();}
+  if(id==='records')renderRecords();if(id==='conn')renderAdmin();if(id==='wardrobe')renderWardrobe();if(id==='friends')renderFriends();if(id==='playlist'){LS.set('plSeen',Date.now());renderPlaylist();renderTicker();}if(id==='sound')renderSoundUI();if(id==='stamp'){calM=null;$('#stMemo').value='';renderStamp();}if(id==='board'){LS.set('bdSeen',Date.now());updateBdDot();renderBoard();$('#bWrite').style.display=(MODE==='shared'&&!CANWRITE)?'none':'';}if(id==='me'){$('#nickEdit').value=ST.nick||'';renderAvatars();}if(id==='map')$$('#mapList button').forEach(b=>b.classList.toggle('here',b.dataset.go===ST.space));if(id==='menu')updateMe();}
 function closeSheets(){$$('.modal').forEach(m=>m.classList.remove('show'));}
 $$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m||e.target.closest('[data-close]'))closeSheets();else if(e.target.closest('[data-back]'))openSheet('menu');}));
 $('#menuBtn').addEventListener('click',()=>openSheet('menu'));
@@ -220,11 +222,30 @@ let toastT;function toast(h){const t=$('#toast');t.innerHTML=h;t.classList.add('
 
 
 /* ---------- faces ---------- */
-function renderFaces(){$('#facePop').innerHTML='<button data-look="1"><span>🪞</span>얼굴 보기</button>'+FACES.map(f=>`<button data-fx="${f[0]}" class="${f[0]===ST.fx?'on':''}"><span>${f[1]}</span>${f[2]}</button>`).join('');$('#faceBtn').textContent=(FACES.find(f=>f[0]===ST.fx)||FACES[0])[1];}
+var MY_EM='',MY_CL='';
+/* ---------- 친구 부르기 ---------- */
+const spName=sp=>sp==='campus'?'학당 마당':(ROOMS[sp]?ROOMS[sp].name:'학당');
+function onlineFriends(){const seen=new Set();return Object.values(REMOTES).filter(r=>r.pr&&r.pr.sp&&r.by&&r.by!==MYID&&!seen.has(r.by)&&seen.add(r.by));}
+function renderFriends(){const el=$('#frList');if(!el)return;const fr=onlineFriends();
+  el.innerHTML=fr.length?fr.map(r=>{const im=thumbOf('av',AVMAP[r.pr.av]?r.pr.av:'girl');const here=r.pr.sp===ST.space;return `<div class="frRow">${im?`<img src="${im}" alt="">`:''}<span><b>${esc(nameOf(r.by,r.pr.nk))}</b><small>${esc(spName(r.pr.sp))}${here?' · 같은 곳':''}${r.pr.rd?' · 공부 중':''}</small></span><button class="ghost" data-go="${r.peer}">찾아가기</button><button class="primary" data-call="${r.by}">부르기</button></div>`;}).join(''):`<div class="empty">${MODE==='shared'?'지금 접속한 친구가 없어요. 아래 \'학당 링크 보내기\'로 불러 보세요!':'학당이 연결되지 않아 친구를 볼 수 없어요. 왼쪽 위 연결 상태를 확인해 주세요.'}</div>`;}
+let callCool=0;
+function sendCall(to){if(MODE!=='shared'){toast('학당이 연결돼 있어야 친구를 부를 수 있어요');return;}if(Date.now()<callCool){toast('잠깐만요, 조금 뒤에 다시 불러 주세요');return;}callCool=Date.now()+8000;MY_CL=to+'|'+Date.now();pushPresence(true);
+  toast(to==='*'?'모두에게 초대장을 보냈어요 📣':esc(nameOf(to))+'님에게 초대장을 보냈어요 📣');playEmote(me,'wave');}
+let callFrom=null,callT;
+function gotCall(by,pr){callFrom={by,sp:pr.sp,x:+pr.x||0,z:+pr.z||0};$('#callTxt').innerHTML=`📣 <b>${esc(nameOf(by,pr.nk))}</b>님이<br>${esc(spName(pr.sp))}(으)로 불러요!`;$('#callPop').classList.add('show');try{if(typeof chime==='function')chime();}catch(e){}if(navigator.vibrate)try{navigator.vibrate([60,40,60]);}catch(e){}clearTimeout(callT);callT=setTimeout(()=>$('#callPop').classList.remove('show'),20000);}
+function goNear(sp,x,z){const a=Math.random()*Math.PI*2;const at={x:x+Math.cos(a)*1.2,z:z+Math.sin(a)*1.2};closeSheets();if(sp===ST.space&&SP){me.root.position.set(at.x,0,at.z);path=[];if(myPet)myPet.root.position.set(at.x+1,0,at.z+.7);pushPresence(true);}else enterSpace(sp,at);}
+$('#callGo').addEventListener('click',()=>{$('#callPop').classList.remove('show');if(callFrom){goNear(callFrom.sp,callFrom.x,callFrom.z);const by=callFrom.by;setTimeout(()=>{doEmote('wave');},1100);toast(esc(nameOf(by))+'님 곁으로 왔어요');}});
+$('#callNo').addEventListener('click',()=>$('#callPop').classList.remove('show'));
+$('#frAll').addEventListener('click',()=>{sendCall('*');closeSheets();});
+$('#frShare').addEventListener('click',async()=>{const url=location.href.split('#')[0];const text='운서학당에 놀러 와! 같이 책 읽자 📚';try{if(navigator.share){await navigator.share({title:'운서학당',text,url});return;}}catch(e){if(e&&e.name==='AbortError')return;}try{await navigator.clipboard.writeText(text+'\n'+url);toast('링크를 복사했어요<small>카톡에 붙여 넣어 보내 주세요</small>');}catch(e){toast(esc(url));}});
+$('#frList').addEventListener('click',e=>{const c=e.target.closest('[data-call]');if(c){sendCall(c.dataset.call);return;}const g=e.target.closest('[data-go]');if(g){const r=REMOTES[g.dataset.go];if(r&&r.pr){goNear(r.pr.sp,+r.pr.x||0,+r.pr.z||0);toast(esc(nameOf(r.by,r.pr.nk))+'님을 찾아왔어요');}}});
+$('#chip').addEventListener('click',e=>{if(e.target.closest('#plTk'))return;openSheet('friends');});
+function doEmote(k){MY_EM=k+':'+Date.now();playEmote(me,k);showFace((EM_DUR[k]||2)*1000+400);pushPresence(true);}
+function renderFaces(){$('#facePop').innerHTML='<div class="fpSec">행동 · 친구들에게도 보여요</div>'+EMOTES.map(m=>`<button data-em="${m[0]}"><span>${m[1]}</span>${m[2]}</button>`).join('')+'<div class="fpSec">표정</div><button data-look="1"><span>🪞</span>얼굴 보기</button>'+FACES.map(f=>`<button data-fx="${f[0]}" class="${f[0]===ST.fx?'on':''}"><span>${f[1]}</span>${f[2]}</button>`).join('');$('#faceBtn').textContent=(FACES.find(f=>f[0]===ST.fx)||FACES[0])[1];}
 function updateBdDot(){const seen=LS.get('bdSeen',0);const n=(DATA.board||[]).some(d=>d.ts>seen&&d.by!==MYID);$('#bdDot').hidden=!n;}
 $('#boardBtn').addEventListener('click',()=>{$('#facePop').classList.remove('show');if(ST.space!=='dorm'){enterSpace('dorm',{x:-5.6,z:-0.8});setTimeout(()=>{me.root.rotation.y=Math.atan2(-1,-1);openSheet('board');},950);}else openSheet('board');});
 $('#faceBtn').addEventListener('click',()=>{renderFaces();$('#facePop').classList.toggle('show');});
-$('#facePop').addEventListener('click',e=>{if(e.target.closest('[data-look]')){showFace(6000);$('#facePop').classList.remove('show');return;}const b=e.target.closest('[data-fx]');if(!b)return;ST.fx=b.dataset.fx;showFace(4200);LS.set('fx',ST.fx);renderFaces();pushPresence(true);setTimeout(()=>$('#facePop').classList.remove('show'),250);});
+$('#facePop').addEventListener('click',e=>{const em=e.target.closest('[data-em]');if(em){doEmote(em.dataset.em);$('#facePop').classList.remove('show');return;}if(e.target.closest('[data-look]')){showFace(6000);$('#facePop').classList.remove('show');return;}const b=e.target.closest('[data-fx]');if(!b)return;ST.fx=b.dataset.fx;showFace(4200);LS.set('fx',ST.fx);renderFaces();pushPresence(true);setTimeout(()=>$('#facePop').classList.remove('show'),250);});
 canvas.addEventListener('pointerdown',()=>$('#facePop').classList.remove('show'));renderFaces();
 
 /* ---------- wardrobe ---------- */
@@ -342,13 +363,13 @@ function frame(){requestAnimationFrame(frame);const dt=Math.min(clock.getDelta()
     const ang=Math.atan2(-vx,-vz);let da=ang-me.root.rotation.y;da=Math.atan2(Math.sin(da),Math.cos(da));me.root.rotation.y+=da*Math.min(1,dt*12);pushPresence();
     doorCool-=dt;if(doorCool<=0)for(const d of SP.doors){if(Math.hypot(d.x-P.x,d.z-P.z)<(ST.space==='campus'?1.1:.8)){if(d.to==='campus')enterSpace('campus',DOORS[ST.space].back);else enterSpace(d.to);doorCool=9;break;}}}
   else{doorCool-=dt;if(performance.now()<poseUntil&&ST.sitting<0){let da=yawCur+PI-me.root.rotation.y;da=Math.atan2(Math.sin(da),Math.cos(da));me.root.rotation.y+=da*Math.min(1,dt*6);}}
-  speedNow+=((len>.001&&ST.sitting<0?1:0)-speedNow)*Math.min(1,dt*10);walkPh+=dt*12*speedNow;animateAvatar(me,walkPh,speedNow,t,ST.sitting>=0);const nowP=performance.now();faceTick(me,nowP,ST.fx==='base'&&TM.run?'focus':ST.fx);if(myPet){petFollow(myPet,me.root,dt,t,SP.bounds);faceTick(myPet,nowP,'base');}
+  speedNow+=((len>.001&&ST.sitting<0?1:0)-speedNow)*Math.min(1,dt*10);walkPh+=dt*12*speedNow;animateAvatar(me,walkPh,speedNow,t,ST.sitting>=0);emoteTick(me,dt);emoteFxTick(dt);const nowP=performance.now();faceTick(me,nowP,emoteFace(me)||(ST.fx==='base'&&TM.run?'focus':ST.fx));if(myPet){petFollow(myPet,me.root,dt,t,SP.bounds);faceTick(myPet,nowP,'base');}
   myLabel.sprite.position.set(P.x,P.y+me.h+.2,P.z);myBubble.sprite.position.set(P.x,P.y+me.h+.75,P.z);if(myBubble.sprite.visible&&performance.now()>myBubble.until)myBubble.sprite.visible=false;
   // remotes
   Object.values(REMOTES).forEach(r=>{if(!r.A.root.visible||!r.pr)return;const R0=r.A.root,pr=r.pr;const sit=pr.st>=0&&SP.seats[pr.st];const tx=sit?sit.x:+pr.x,tz=sit?sit.z:+pr.z,ty=sit?sit.h:0;const dx=tx-R0.position.x,dz=tz-R0.position.z,d=Math.hypot(dx,dz);
     if(d>6){R0.position.set(tx,ty,tz);}else{R0.position.x+=dx*Math.min(1,dt*8);R0.position.z+=dz*Math.min(1,dt*8);R0.position.y+=(ty-R0.position.y)*Math.min(1,dt*8);}
     let tr=sit?sit.ry:+pr.ry||0;let da=tr-R0.rotation.y;da=Math.atan2(Math.sin(da),Math.cos(da));R0.rotation.y+=da*Math.min(1,dt*10);
-    r.amt+=((d>.05&&!sit?1:0)-r.amt)*Math.min(1,dt*8);r.ph+=dt*12*r.amt;animateAvatar(r.A,r.ph,r.amt,t,!!sit);const fx=FACES.some(f=>f[0]===pr.fx)?pr.fx:'base';faceTick(r.A,nowP,fx==='base'&&pr.rd?'focus':fx);if(r.A.book)r.A.book.visible=!!sit&&!!ROOMS[pr.sp]&&ROOMS[pr.sp].study;
+    r.amt+=((d>.05&&!sit?1:0)-r.amt)*Math.min(1,dt*8);r.ph+=dt*12*r.amt;animateAvatar(r.A,r.ph,r.amt,t,!!sit);emoteTick(r.A,dt);const fx=FACES.some(f=>f[0]===pr.fx)?pr.fx:'base';faceTick(r.A,nowP,emoteFace(r.A)||(fx==='base'&&pr.rd?'focus':fx));if(r.A.book)r.A.book.visible=!!sit&&!!ROOMS[pr.sp]&&ROOMS[pr.sp].study;
     const lab=pr.rd?`📖 ${Math.floor((Date.now()-pr.rd)/60000)}분`:'';const nm=nameOf(r.by,typeof pr.nk==='string'?pr.nk.slice(0,12):'');if(r.lastLabel!==nm+lab){r.L.set(nm,lab);r.lastLabel=nm+lab;}
     if(r.pet){petFollow(r.pet,R0,dt,t,SP.bounds);faceTick(r.pet,nowP,'base');}
     r.L.sprite.position.set(R0.position.x,R0.position.y+r.A.h+.2,R0.position.z);r.B.sprite.position.set(R0.position.x,R0.position.y+r.A.h+.75,R0.position.z);if(r.B.sprite.visible&&performance.now()>r.B.until)r.B.sprite.visible=false;});
