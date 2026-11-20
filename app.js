@@ -83,7 +83,9 @@ function onTap(cx,cy){poseUntil=0;const r=canvas.getBoundingClientRect();ndc.set
 /* ---------- seats & timer ---------- */
 function seatTaken(i){return Object.values(REMOTES).some(r=>r.pr&&r.pr.sp===ST.space&&r.pr.st===i);}
 function nearestSeat(maxD){let best=-1,bd=maxD;const p=me.root.position;SP.seats.forEach((s,i)=>{const d=Math.hypot(s.x-p.x,s.z-p.z);if(d<bd&&!seatTaken(i)){bd=d;best=i;}});return best;}
-function placeOnSeat(){const s=SP.seats[ST.sitting];me.root.position.set(s.x,s.h,s.z);me.root.rotation.y=s.ry;}
+function sitDrop(A){const F=A&&A.fit;return F?Math.min(.32,(F.legTop||.22)*.82):.25;}
+function petAnchor(root){const ry=root.rotation.y;return {position:{x:root.position.x-Math.sin(ry)*1.25,z:root.position.z-Math.cos(ry)*1.25},rotation:{y:ry}};}
+function placeOnSeat(){const s=SP.seats[ST.sitting];me.root.position.set(s.x,Math.max(0,s.h-sitDrop(me)),s.z);me.root.rotation.y=s.ry;}
 function sitDown(i){if(i<0)return;ST.sitting=i;path=[];placeOnSeat();me.book&&(me.book.visible=ROOMS[ST.space]&&ROOMS[ST.space].study);pushPresence(true);if(ROOMS[ST.space]&&ROOMS[ST.space].study)showTimer(true);setGuide(true);}
 function standUp(force){if(ST.sitting<0)return;if(!force&&TM.run){toast('타이머가 돌아가는 중이에요<small>일시정지하거나 기록한 뒤 일어나 주세요</small>');return;}const s=SP&&SP.seats[ST.sitting];ST.sitting=-1;if(s){me.root.position.set(s.x-Math.sin(s.ry)*-.0,0,s.z);}me.root.position.y=0;if(me.book)me.book.visible=false;if(force){TM.run=false;TM.acc=0;TM.done=false;}showTimer(false);pushPresence(true);setGuide(true);}
 const TM={mode:0,run:false,start:0,acc:0,done:false};
@@ -122,7 +124,7 @@ function updateCam(dt,snap){const p=me.root.position;const pose=performance.now(
 
 /* ---------- zone & guide ---------- */
 function updateZone(){const info=ST.space==='campus'?{en:'THE COURTYARD · MONGWON',title:SEASON.key==='xmas'?'눈 내리는 마당,<br>트리 아래 모여요.':SEASON.key==='halloween'?'호박등 켜진 밤,<br>학당 마당으로.':SEASON.key==='birthday'?'생일 축하의 달,<br>케이크 앞에서.':SEASON.blossom?'벚꽃 흩날리는<br>학당 마당.':SEASON.key==='autumn'?'단풍 물든<br>학당 마당.':SEASON.rain?'장맛비 내리는<br>학당 마당.':SEASON.snow?'눈 쌓인<br>학당 마당.':'햇살 머무는<br>학당 마당.',loc:'몽원학당 · 강의동, 도서관, 기숙사'}:{en:ROOMS[ST.space].en,title:ROOMS[ST.space].title,loc:ROOMS[ST.space].name+' · '+ROOMS[ST.space].tag};
-  $('#zName').textContent=ST.space==='campus'?`학당 마당 · ${SEASON.ico} ${SEASON.month}월`+(SEASON.wx?` · ${WX_LABEL[SEASON.wx][0]} ${SEASON.temp}°`:''):ROOMS[ST.space].name;$('#zEn').textContent=info.en;$('#zTitle').innerHTML=info.title;const bt=$('#bigTitle');bt.classList.add('show');clearTimeout(updateZone.t);updateZone.t=setTimeout(()=>bt.classList.remove('show'),3600);$('#chatWrap').classList.toggle('show',ST.space==='dorm');}
+  $('#zName').textContent=ST.space==='campus'?`학당 마당 · ${SEASON.ico} ${SEASON.month}월`+(SEASON.wx?` · ${WX_LABEL[SEASON.wx][0]} ${SEASON.temp}°`:''):ROOMS[ST.space].name;$('#zEn').textContent=info.en;$('#zTitle').innerHTML=info.title;const bt=$('#bigTitle');bt.classList.add('show');clearTimeout(updateZone.t);updateZone.t=setTimeout(()=>bt.classList.remove('show'),3600);$('#chatWrap').classList.toggle('show',CHAT_SP.includes(ST.space));renderChat();}
 function updateSeasonChip(){if(ST.space==='campus')$('#zName').textContent=`학당 마당 · ${SEASON.ico} ${SEASON.month}월`+(SEASON.wx?` · ${WX_LABEL[SEASON.wx][0]} ${SEASON.temp}°`:'');}
 const NAMEOF={library:'도서관',basics:'마법학 기초 강의동',potion:'마법약 강의동',herbs:'약초학 온실',training:'기초체력 수련장',dorm:'기숙사'};
 let gKey='',gAct=null;
@@ -173,7 +175,7 @@ function myPresence(){const p=me.root.position;return {sp:ST.space,x:+p.x.toFixe
 function pushPresence(now){presDirty=true;if(now)flushPresence();}
 function flushPresence(){if(!ROOM||!presDirty)return;presDirty=false;presT=performance.now();ROOM.presence(myPresence()).catch(()=>{});}
 function setupRoom(){ROOM.onPeers(ch=>{PEERS=ch.peers.slice();ch.left.forEach(p=>dropRemote(p.peer));ch.peers.forEach(p=>{if(!p.sameTab&&p.kind==='viewer')upsertRemote(p);});resolveNames(PEERS.map(p=>p.by));updateConn();renderTogether();const sig=onlineFriends().map(r=>r.by+r.pr.sp+(r.pr.rd?1:0)).join();if(sig!==window.__frSig){window.__frSig=sig;if($('#friends').classList.contains('show'))renderFriends();}},()=>{PEERS=[];updateConn();});
-  ROOM.on('chat',m=>{if(m.isMe&&m.sameTab)return;const d=m.data||{};if(typeof d.t!=='string')return;const r=REMOTES[m.peer];addChat(m.by,d.t.slice(0,200),m.peer,false,r&&r.pr&&typeof r.pr.nk==='string'?r.pr.nk.slice(0,12):'');});
+  ROOM.on('chat',m=>{if(m.isMe&&m.sameTab)return;const d=m.data||{};if(typeof d.t!=='string')return;const r=REMOTES[m.peer];addChat(m.by,d.t.slice(0,200),m.peer,false,r&&r.pr&&typeof r.pr.nk==='string'?r.pr.nk.slice(0,12):'',typeof d.sp==='string'?d.sp:'dorm');});
   ROOM.onConnection(c=>{if(c)pushPresence(true);});pushPresence(true);renderChat();}
 function dropRemote(peer){const r=REMOTES[peer];if(!r)return;scene.remove(r.A.root,r.L.sprite,r.B.sprite);if(r.C)scene.remove(r.C.sprite);if(r.pet)scene.remove(r.pet.root);delete REMOTES[peer];}
 function upsertRemote(p){const pr=p.presence||{};let r=REMOTES[p.peer];if(!pr.sp){if(r)r.A.root.visible=false;return;}
@@ -184,11 +186,12 @@ function upsertRemote(p){const pr=p.presence||{};let r=REMOTES[p.peer];if(!pr.sp
   r.pr=pr;r.by=p.by;r.peer=p.peer;r.A.root.visible=r.L.sprite.visible=pr.sp===ST.space;if(r.C&&pr.sp!==ST.space)r.C.sprite.visible=false;if(r.pet)r.pet.root.visible=r.A.root.visible;REMOTES[p.peer]=r;}
 function refreshRemotes(){Object.values(REMOTES).forEach(r=>{const v=r.pr&&r.pr.sp===ST.space;r.A.root.visible=r.L.sprite.visible=v;if(r.pet)r.pet.root.visible=v;if(!v){r.B.sprite.visible=false;if(r.C)r.C.sprite.visible=false;}else if(r.pr){r.A.root.position.set(+r.pr.x||0,0,+r.pr.z||0);}});}
 const CHAT=[];
-function addChat(by,text,peer,mine,nk){CHAT.push({by,text,mine,nk,ts:Date.now()});if(CHAT.length>60)CHAT.shift();renderChat();if(mine){myBubble.set(text);}else{const r=REMOTES[peer];if(r&&r.A.root.visible)r.B.set(text);}}
-function renderChat(){const el=$('#chatLog');el.innerHTML=CHAT.length?CHAT.map(c=>`<div class="${c.mine?'me':''}"><b>${esc(c.mine?(ST.nick||'나'):nameOf(c.by,c.nk))}</b>${esc(c.text)}</div>`).join(''):`<div class="sys">${ROOM?'기숙사 대화방이에요. 지금 접속한 친구들과 실시간으로 이야기해요. (대화는 저장되지 않아요 · 남길 말은 게시판에)':'혼자 모드예요. 친구들과 함께 쓰는 학당에서는 여기 대화가 실시간으로 오가요.'}</div>`;el.scrollTop=el.scrollHeight;}
-function sendChat(){const i=$('#chatIn');const t=i.value.trim().slice(0,200);if(!t)return;i.value='';addChat(MYID,t,null,true);if(ROOM&&ROOM.connected())ROOM.emit('chat',{t,sp:'dorm'}).catch(e=>{if(e&&e.code==='not_permitted')toast('대화를 보낼 권한이 없어요');});}
+function addChat(by,text,peer,mine,nk,sp){sp=sp||'dorm';CHAT.push({by,text,mine,nk,sp,ts:Date.now()});if(CHAT.length>60)CHAT.shift();renderChat();if(mine){myBubble.set(text);}else{const r=REMOTES[peer];if(r&&r.A.root.visible)r.B.set(text);}}
+function renderChat(){const el=$('#chatLog');if(!el)return;const LIST=CHAT.filter(c=>(c.sp||'dorm')===ST.space);el.innerHTML=LIST.length?LIST.map(c=>`<div class="${c.mine?'me':''}"><b>${esc(c.mine?(ST.nick||'나'):nameOf(c.by,c.nk))}</b>${esc(c.text)}</div>`).join(''):`<div class="sys">${ROOM?(ST.space==='campus'?'마당 대화방이에요. 지금 마당에 있는 친구들과 이야기해요.':'기숙사 대화방이에요. 지금 기숙사에 있는 친구들과 이야기해요.')+' (대화는 저장되지 않아요 · 남길 말은 게시판에)':'혼자 모드예요. 친구들과 함께 쓰는 학당에서는 여기 대화가 실시간으로 오가요.'}</div>`;el.scrollTop=el.scrollHeight;}
+function sendChat(){const i=$('#chatIn');const t=i.value.trim().slice(0,200);if(!t)return;i.value='';addChat(MYID,t,null,true,'',ST.space);if(ROOM&&ROOM.connected())ROOM.emit('chat',{t,sp:ST.space}).catch(e=>{if(e&&e.code==='not_permitted')toast('대화를 보낼 권한이 없어요');});}
 $('#chatSend').addEventListener('click',sendChat);$('#chatIn').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();sendChat();}});
-function setFooter(){$('#chatBar').classList.toggle('show',ST.space==='dorm');}
+const CHAT_SP=['dorm','campus'];
+function setFooter(){$('#chatBar').classList.toggle('show',CHAT_SP.includes(ST.space));const ci=$('#chatIn');if(ci&&!ci.disabled)ci.placeholder=ST.space==='campus'?'마당에 있는 친구들에게 한마디':'기숙사 친구들에게 한마디';}
 
 /* ---------- board ---------- */
 const NOTE_COLORS=['#f6e08a','#f6b8c4','#b8e0c8','#bcd4f2','#f2c89a'];let noteColor=0;
@@ -402,17 +405,17 @@ function frame(){requestAnimationFrame(frame);const dt=Math.min(clock.getDelta()
     const ang=Math.atan2(-vx,-vz);let da=ang-me.root.rotation.y;da=Math.atan2(Math.sin(da),Math.cos(da));me.root.rotation.y+=da*Math.min(1,dt*12);pushPresence();
     doorCool-=dt;if(doorCool<=0)for(const d of SP.doors){if(Math.hypot(d.x-P.x,d.z-P.z)<(ST.space==='campus'?1.1:.8)){if(d.to==='campus')enterSpace('campus',DOORS[ST.space].back);else enterSpace(d.to);doorCool=9;break;}}}
   else{doorCool-=dt;if(performance.now()<poseUntil&&ST.sitting<0){let da=yawCur+PI-me.root.rotation.y;da=Math.atan2(Math.sin(da),Math.cos(da));me.root.rotation.y+=da*Math.min(1,dt*6);}}
-  speedNow+=((len>.001&&ST.sitting<0?1:0)-speedNow)*Math.min(1,dt*10);walkPh+=dt*12*speedNow;animateAvatar(me,walkPh,speedNow,t,ST.sitting>=0);emoteTick(me,dt);emoteFxTick(dt);const nowP=performance.now();faceTick(me,nowP,emoteFace(me)||(ST.fx==='base'&&TM.run?'focus':ST.fx));if(myPet){petFollow(myPet,me.root,dt,t,SP.bounds);faceTick(myPet,nowP,'base');}
+  speedNow+=((len>.001&&ST.sitting<0?1:0)-speedNow)*Math.min(1,dt*10);walkPh+=dt*12*speedNow;animateAvatar(me,walkPh,speedNow,t,ST.sitting>=0);emoteTick(me,dt);emoteFxTick(dt);const nowP=performance.now();faceTick(me,nowP,emoteFace(me)||(ST.fx==='base'&&TM.run?'focus':ST.fx));if(myPet){petFollow(myPet,ST.sitting>=0?petAnchor(me.root):me.root,dt,t,SP.bounds);faceTick(myPet,nowP,'base');}
   myLabel.sprite.position.set(P.x,P.y+me.h+.2,P.z);{const run=TM.run||(TM.acc>0&&ST.sitting>=0);myClock.sprite.visible=run;if(run){const e=elapsed();myClock.set(fmtClock(e),TM.run?`오늘 ${todayTot(MYID,Math.floor(e/60000))}분`:'일시정지');myClock.sprite.position.set(P.x,P.y+me.h+.74,P.z);}myBubble.sprite.position.set(P.x,P.y+me.h+(run?1.45:.75),P.z);}if(myBubble.sprite.visible&&performance.now()>myBubble.until)myBubble.sprite.visible=false;
   // remotes
   const seatUsed=new Set();if(ST.sitting>=0)seatUsed.add(ST.sitting);let bumpN=0;
-  Object.values(REMOTES).sort((a,b)=>String(a.peer).localeCompare(String(b.peer))).forEach(r=>{if(!r.A.root.visible||!r.pr)return;const R0=r.A.root,pr=r.pr;let sit=pr.st>=0&&SP.seats[pr.st];let tx=sit?sit.x:+pr.x,tz=sit?sit.z:+pr.z,ty=sit?sit.h:0;
+  Object.values(REMOTES).sort((a,b)=>String(a.peer).localeCompare(String(b.peer))).forEach(r=>{if(!r.A.root.visible||!r.pr)return;const R0=r.A.root,pr=r.pr;let sit=pr.st>=0&&SP.seats[pr.st];let tx=sit?sit.x:+pr.x,tz=sit?sit.z:+pr.z,ty=sit?Math.max(0,sit.h-sitDrop(r.A)):0;
     if(sit&&seatUsed.has(pr.st)){/* 같은 자리에 겹치면 옆에 서 있게 */const s=sit;bumpN++;const a=(s.ry||0)+Math.PI/2*(bumpN%2?1:-1);tx=s.x+Math.sin(a)*.95;tz=s.z+Math.cos(a)*.95;ty=0;sit=false;}else if(sit)seatUsed.add(pr.st);const dx=tx-R0.position.x,dz=tz-R0.position.z,d=Math.hypot(dx,dz);
     if(d>6){R0.position.set(tx,ty,tz);}else{R0.position.x+=dx*Math.min(1,dt*8);R0.position.z+=dz*Math.min(1,dt*8);R0.position.y+=(ty-R0.position.y)*Math.min(1,dt*8);}
     let tr=sit?sit.ry:+pr.ry||0;let da=tr-R0.rotation.y;da=Math.atan2(Math.sin(da),Math.cos(da));R0.rotation.y+=da*Math.min(1,dt*10);
     r.amt+=((d>.05&&!sit?1:0)-r.amt)*Math.min(1,dt*8);r.ph+=dt*12*r.amt;animateAvatar(r.A,r.ph,r.amt,t,!!sit);emoteTick(r.A,dt);const fx=FACES.some(f=>f[0]===pr.fx)?pr.fx:'base';faceTick(r.A,nowP,emoteFace(r.A)||(fx==='base'&&pr.rd?'focus':fx));if(r.A.book)r.A.book.visible=!!sit&&!!ROOMS[pr.sp]&&ROOMS[pr.sp].study;
     const lab=focusSub(r.by,pr.rd?Math.max(0,Math.floor((Date.now()-pr.rd)/60000)):-1);const nm=nameOf(r.by,typeof pr.nk==='string'?pr.nk.slice(0,12):'');if(r.lastLabel!==nm+lab){r.L.set(nm,lab);r.lastLabel=nm+lab;}
-    if(r.pet){petFollow(r.pet,R0,dt,t,SP.bounds);faceTick(r.pet,nowP,'base');}
+    if(r.pet){petFollow(r.pet,(r.pr&&r.pr.st>=0)?petAnchor(R0):R0,dt,t,SP.bounds);faceTick(r.pet,nowP,'base');}
     r.L.sprite.position.set(R0.position.x,R0.position.y+r.A.h+.2,R0.position.z);{if(!r.C){r.C=makeGlassClock();scene.add(r.C.sprite);}const run=!!pr.rd;r.C.sprite.visible=run;if(run){const e=Date.now()-pr.rd;r.C.set(fmtClock(e),`오늘 ${todayTot(r.by,Math.floor(e/60000))}분`);r.C.sprite.position.set(R0.position.x,R0.position.y+r.A.h+.74,R0.position.z);}r.B.sprite.position.set(R0.position.x,R0.position.y+r.A.h+(run?1.45:.75),R0.position.z);}if(r.B.sprite.visible&&performance.now()>r.B.until)r.B.sprite.visible=false;});
   SP.tick.forEach(f=>f(t,dt));
   if(tapT>0){tapT=Math.max(0,tapT-dt*1.4);tapRing.material.opacity=tapT*.9;tapRing.scale.setScalar(1+(1-tapT)*1.2);}
