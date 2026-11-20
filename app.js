@@ -1,18 +1,40 @@
 /* 운서학당 · app: state, data, room, UI, loop */
 const STUDY=['basics','potion','herbs','training','library'];
-const ST={space:'campus',pet:LS.get('pet','none'),fx:LS.get('fx','base'),nick:LS.get('nick',''),avatar:LS.get('avatar',null),seasonPick:LS.get('seasonPick','auto'),todPick:LS.get('todPick','auto'),sitting:-1};
+const ST={look:lookParse(LS.get('look','')),space:'campus',pet:LS.get('pet','none'),fx:LS.get('fx','base'),nick:LS.get('nick',''),avatar:LS.get('avatar',null),seasonPick:LS.get('seasonPick','auto'),todPick:LS.get('todPick','auto'),sitting:-1};
 function curMonth(){return ST.seasonPick==='auto'?new Date().getMonth()+1:+ST.seasonPick;}
 function curTod(){return ST.todPick==='auto'?autoTod():ST.todPick;}
 if(ST.avatar==='shiba'){ST.avatar='sapsal';LS.set('avatar','sapsal');}
-SEASON=makeSeason(curMonth(),curTod());
+/* ---------- real weather (Open-Meteo, no key) ---------- */
+const CITIES={'서울':[37.5665,126.978],'인천':[37.456,126.705],'수원':[37.263,127.029],'천안':[36.815,127.114],'아산':[36.79,127.002],'청양':[36.459,126.802],'대전':[36.351,127.385],'대구':[35.871,128.601],'광주':[35.16,126.851],'부산':[35.18,129.076],'강릉':[37.752,128.876],'제주':[33.499,126.531]};
+let WX=LS.get('wxCache',null);ST.wxPick=LS.get('wxPick','auto');
+function wxKind(c){if(c==null)return null;if(c===0||c===1)return 'clear';if(c===2||c===3)return 'cloudy';if(c===45||c===48)return 'fog';if(c>=95)return 'storm';if((c>=71&&c<=77)||c===85||c===86)return 'snow';if((c>=51&&c<=67)||(c>=80&&c<=82))return 'rain';return 'cloudy';}
+const WX_LABEL={clear:['☀️','맑음'],cloudy:['☁️','흐림'],fog:['🌫️','안개'],rain:['🌧️','비'],snow:['🌨️','눈'],storm:['⛈️','뇌우']};
+function applyWx(S){if(ST.wxPick==='off'||!WX||Date.now()-WX.t>3*3600e3)return S;const k=WX.kind;S.wx=k;S.temp=WX.temp;
+  const sky=new THREE.Color(S.sky);
+  if(k==='rain'||k==='storm'){S.rain=true;S.wxSnow=false;sky.lerp(new THREE.Color(S.night?0x0c1216:0x8a96a0),k==='storm'?.75:.55);S.fogD=.03;S.hemi*=.8;S.sun*=.45;}
+  else if(k==='snow'){S.rain=false;S.wxSnow=true;sky.lerp(new THREE.Color(S.night?0x1a2230:0xd4dce4),.5);S.sun*=.6;}
+  else if(k==='fog'){S.rain=false;sky.lerp(new THREE.Color(S.night?0x2a3034:0xd8dcd8),.7);S.fogD=.05;S.sun*=.5;}
+  else if(k==='cloudy'){S.rain=false;sky.lerp(new THREE.Color(S.night?0x1a2026:0xb4bcc2),.4);S.sun*=.7;}
+  else{S.rain=false;}
+  S.sky=sky.getHex();return S;}
+function curSeason(){return applyWx(makeSeason(curMonth(),curTod()));}
+async function wxCoords(){const pick=ST.wxPick;if(CITIES[pick])return {lat:CITIES[pick][0],lon:CITIES[pick][1],name:pick};
+  const geo=await new Promise(res=>{if(!navigator.geolocation)return res(null);let done=false;const to=setTimeout(()=>{if(!done){done=true;res(null);}},6000);try{navigator.geolocation.getCurrentPosition(p=>{if(!done){done=true;clearTimeout(to);res(p);}},()=>{if(!done){done=true;clearTimeout(to);res(null);}},{maximumAge:3600e3,timeout:6000});}catch(e){res(null);}});
+  return geo?{lat:geo.coords.latitude,lon:geo.coords.longitude,name:'내 위치'}:{lat:CITIES['서울'][0],lon:CITIES['서울'][1],name:'서울'};}
+async function fetchWx(force){if(ST.wxPick==='off'){renderWxState();return;}if(!force&&WX&&Date.now()-WX.t<30*60e3&&WX.pick===ST.wxPick){renderWxState();return;}
+  try{const c=await wxCoords();const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${c.lat.toFixed(3)}&longitude=${c.lon.toFixed(3)}&current=weather_code,temperature_2m&timezone=Asia%2FSeoul`);if(!r.ok)throw 0;const d=await r.json();const cur=d.current||{};
+    const prev=WX&&WX.kind;WX={t:Date.now(),kind:wxKind(cur.weather_code),code:cur.weather_code,temp:Math.round(cur.temperature_2m),name:c.name,pick:ST.wxPick};LS.set('wxCache',WX);renderWxState();if(prev!==WX.kind||force)rebuildSeason();else updateSeasonChip();}
+  catch(e){renderWxState('날씨를 불러오지 못했어요 · 계절 풍경만 보여요');}}
+function renderWxState(msg){const el=$('#wxState');if(!el)return;if(ST.wxPick==='off'){el.textContent='날씨 연동 꺼짐 · 달력의 계절 풍경만 보여요';return;}if(msg){el.textContent=msg;return;}if(!WX){el.textContent='날씨를 불러오는 중…';return;}const L=WX_LABEL[WX.kind]||['',''];const tm=new Date(WX.t);el.textContent=`${WX.name} · ${L[0]} ${L[1]} · ${WX.temp}°C (${tm.getHours()}:${String(tm.getMinutes()).padStart(2,'0')} 기준)`;}
+SEASON=curSeason();
 
 /* ---------- player ---------- */
-let me=makeAvatar(ST.avatar||'girl');scene.add(me.root);
+let me=makeAvatar(ST.avatar||'girl',ST.look);scene.add(me.root);
 let myPet=null;function setPet(id,quiet){if(myPet){scene.remove(myPet.root);myPet=null;}ST.pet=PETMAP[id]?id:'none';LS.set('pet',ST.pet);myPet=makePet(ST.pet);if(myPet){const p=me.root.position;myPet.root.position.set(p.x+1,0,p.z+.7);scene.add(myPet.root);}if(!quiet){saveMember();pushPresence(true);}}
 setPet(ST.pet,true);
 const myLabel=makeLabel('나',{bg:'rgba(255,226,180,.95)',line:'rgba(200,120,60,.9)',fg:'#6a3010'});scene.add(myLabel.sprite);
 const myBubble=makeBubble();scene.add(myBubble.sprite);
-function setAvatar(id){const p=me.root.position.clone(),r=me.root.rotation.y;scene.remove(me.root);me=makeAvatar(id);me.root.position.copy(p);me.root.rotation.y=r;scene.add(me.root);ST.avatar=id;LS.set('avatar',id);saveMember();updateMe();pushPresence(true);if(ST.sitting>=0)placeOnSeat();}
+function setAvatar(id){const p=me.root.position.clone(),r=me.root.rotation.y;scene.remove(me.root);me=makeAvatar(id,ST.look);me.root.position.copy(p);me.root.rotation.y=r;scene.add(me.root);ST.avatar=id;LS.set('avatar',id);saveMember();updateMe();pushPresence(true);if(ST.sitting>=0)placeOnSeat();}
 
 /* ---------- spaces ---------- */
 let SP=null;const cache={};
@@ -22,7 +44,7 @@ function applyEnv(){const indoor=ST.space!=='campus';const c=indoor?(ST.space===
 let doorCool=0;
 function enterSpace(id,at,instant){const go=()=>{if(SP)scene.remove(SP.G);standUp(true);ST.space=id;SP=getSpace(id);scene.add(SP.G);const p=at||SP.spawn;me.root.position.set(p.x,0,p.z);me.root.rotation.y=0;if(myPet)myPet.root.position.set(p.x+1,0,p.z+.7);path=[];doorCool=1.2;applyEnv();updateZone();refreshRemotes();updateBoard3D();pushPresence(true);updateCam(0,true);setFooter();soundForSpace();};
   if(instant){go();return;}const f=$('#fade');f.classList.add('on');setTimeout(()=>{go();setTimeout(()=>f.classList.remove('on'),60);},380);}
-function rebuildSeason(){SEASON=makeSeason(curMonth(),curTod());Object.keys(cache).forEach(k=>delete cache[k]);const p=me.root.position;enterSpace(ST.space,{x:p.x,z:p.z},true);updateSeasonChip();}
+function rebuildSeason(){SEASON=curSeason();Object.keys(cache).forEach(k=>delete cache[k]);const p=me.root.position;enterSpace(ST.space,{x:p.x,z:p.z},true);updateSeasonChip();}
 
 /* ---------- movement ---------- */
 const keys={up:0,down:0,left:0,right:0};let path=[];
@@ -80,8 +102,8 @@ function updateCam(dt,snap){const p=me.root.position;const pose=performance.now(
 
 /* ---------- zone & guide ---------- */
 function updateZone(){const info=ST.space==='campus'?{en:'THE COURTYARD · 雲書學堂',title:SEASON.key==='xmas'?'눈 내리는 마당,<br>트리 아래 모여요.':SEASON.key==='halloween'?'호박등 켜진 밤,<br>학당 마당으로.':SEASON.key==='birthday'?'생일 축하의 달,<br>케이크 앞에서.':SEASON.blossom?'벚꽃 흩날리는<br>학당 마당.':SEASON.key==='autumn'?'단풍 물든<br>학당 마당.':SEASON.rain?'장맛비 내리는<br>학당 마당.':SEASON.snow?'눈 쌓인<br>학당 마당.':'햇살 머무는<br>학당 마당.',loc:'운서학당 · 강의동, 도서관, 기숙사'}:{en:ROOMS[ST.space].en,title:ROOMS[ST.space].title,loc:ROOMS[ST.space].name+' · '+ROOMS[ST.space].tag};
-  $('#zName').textContent=ST.space==='campus'?`학당 마당 · ${SEASON.ico} ${SEASON.month}월`:ROOMS[ST.space].name;$('#zEn').textContent=info.en;$('#zTitle').innerHTML=info.title;const bt=$('#bigTitle');bt.classList.add('show');clearTimeout(updateZone.t);updateZone.t=setTimeout(()=>bt.classList.remove('show'),3600);$('#chatWrap').classList.toggle('show',ST.space==='dorm');}
-function updateSeasonChip(){if(ST.space==='campus')$('#zName').textContent=`학당 마당 · ${SEASON.ico} ${SEASON.month}월`;}
+  $('#zName').textContent=ST.space==='campus'?`학당 마당 · ${SEASON.ico} ${SEASON.month}월`+(SEASON.wx?` · ${WX_LABEL[SEASON.wx][0]} ${SEASON.temp}°`:''):ROOMS[ST.space].name;$('#zEn').textContent=info.en;$('#zTitle').innerHTML=info.title;const bt=$('#bigTitle');bt.classList.add('show');clearTimeout(updateZone.t);updateZone.t=setTimeout(()=>bt.classList.remove('show'),3600);$('#chatWrap').classList.toggle('show',ST.space==='dorm');}
+function updateSeasonChip(){if(ST.space==='campus')$('#zName').textContent=`학당 마당 · ${SEASON.ico} ${SEASON.month}월`+(SEASON.wx?` · ${WX_LABEL[SEASON.wx][0]} ${SEASON.temp}°`:'');}
 const NAMEOF={library:'도서관',basics:'마법학 기초 강의동',potion:'마법약 강의동',herbs:'약초학 온실',training:'기초체력 수련장',dorm:'기숙사'};
 let gKey='',gAct=null;
 function setGuide(force){let k='',t='',ico='',act=null;const p=me.root.position;
@@ -112,8 +134,8 @@ async function addDoc(col,obj){obj=Object.assign({},obj,{by:MYID,ts:Date.now()})
   obj.id='l'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);DATA[col].unshift(obj);DATA[col]=DATA[col].slice(0,LIM[col]);LS.set('local.'+col,DATA[col]);onData(col);return true;}
 async function delDoc(col,id){if(DB){try{await DB.collection(col).doc(id).delete();return true;}catch(e){toast('지우지 못했어요<small>'+(ADMIN_ON?'관리자 암호가 맞는지 확인해 주세요':'내가 올린 것만 지울 수 있어요')+'</small>');return false;}}DATA[col]=DATA[col].filter(d=>d.id!==id);LS.set('local.'+col,DATA[col]);onData(col);}
 const MEMBERS={};let membersReady=false;
-function subMembers(){let done=false;const fin=()=>{if(!done){done=true;membersReady=true;}};setTimeout(fin,6000);DB.collection('members').limit(200).onSnapshot(s=>{s.docs.forEach(d=>{MEMBERS[d.id]=d.data();});if(!s.metadata.fromCache){const mine=MEMBERS[MYID];if(!done){if(mine){if(mine.nick){ST.nick=String(mine.nick).slice(0,12);LS.set('nick',ST.nick);pushPresence(true);}if(mine.av&&AVMAP[mine.av]&&mine.av!==ST.avatar){setAvatar(mine.av);}if(mine.pet&&PETMAP[mine.pet]&&mine.pet!==ST.pet)setPet(mine.pet,true);}else if(ST.nick)saveMember();}fin();}renderBoard();renderRecords();Object.values(REMOTES).forEach(r=>r.lastLabel='');updateMe();},()=>fin());}
-let memSaving=false,memAgain=false;async function saveMember(){if(!DB||MYID==='me')return;if(memSaving){memAgain=true;return;}memSaving=true;try{await DB.doc('members/'+MYID).set({nick:ST.nick||'',av:ST.avatar||'girl',pet:ST.pet||'none',ts:Date.now()});}catch(e){}memSaving=false;if(memAgain){memAgain=false;saveMember();}}
+function subMembers(){let done=false;const fin=()=>{if(!done){done=true;membersReady=true;}};setTimeout(fin,6000);DB.collection('members').limit(200).onSnapshot(s=>{s.docs.forEach(d=>{MEMBERS[d.id]=d.data();});if(!s.metadata.fromCache){const mine=MEMBERS[MYID];if(!done){if(mine){if(mine.nick){ST.nick=String(mine.nick).slice(0,12);LS.set('nick',ST.nick);pushPresence(true);}if(mine.av&&AVMAP[mine.av]&&mine.av!==ST.avatar){setAvatar(mine.av);}if(mine.pet&&PETMAP[mine.pet]&&mine.pet!==ST.pet)setPet(mine.pet,true);if(typeof mine.look==='string'&&mine.look!==lookStr(ST.look)){ST.look=lookParse(mine.look);LS.set('look',lookStr(ST.look));setAvatar(ST.avatar||'girl');}}else if(ST.nick)saveMember();}fin();}renderBoard();renderRecords();Object.values(REMOTES).forEach(r=>r.lastLabel='');updateMe();},()=>fin());}
+let memSaving=false,memAgain=false;async function saveMember(){if(!DB||MYID==='me')return;if(memSaving){memAgain=true;return;}memSaving=true;try{await DB.doc('members/'+MYID).set({nick:ST.nick||'',av:ST.avatar||'girl',pet:ST.pet||'none',look:lookStr(ST.look),ts:Date.now()});}catch(e){}memSaving=false;if(memAgain){memAgain=false;saveMember();}}
 async function resolveNames(ids){if(!USER)return;const need=[...new Set(ids)].filter(i=>i&&i!=='me'&&!(i in NAMES));if(!need.length)return;need.forEach(i=>NAMES[i]='');try{const ps=await USER.profiles(need);need.forEach(i=>NAMES[i]=(ps&&ps[i]&&ps[i].name)||'');renderBoard();renderRecords();Object.values(REMOTES).forEach(r=>r.lastLabel='');}catch(e){}}
 const nameOf=(id,fb)=>id===MYID||id==='me'?(ST.nick||'나'):((MEMBERS[id]&&MEMBERS[id].nick)||fb||NAMES[id]||'친구');
 const CONN={slow:false,err:null};
@@ -124,7 +146,7 @@ function updateConn(){const n=new Set(PEERS.filter(p=>p.kind==='viewer').map(p=>
 
 /* ---------- room: presence, chat ---------- */
 const REMOTES={};let presT=0,presDirty=false;
-function myPresence(){const p=me.root.position;return {sp:ST.space,x:+p.x.toFixed(2),z:+p.z.toFixed(2),ry:+me.root.rotation.y.toFixed(2),av:ST.avatar||'girl',st:ST.sitting,rd:TM.run?Date.now()-elapsed():0,bk:($('#tmBook').value||'').slice(0,24),pt:ST.pet||'none',nk:(ST.nick||'').slice(0,12),fx:ST.fx};}
+function myPresence(){const p=me.root.position;return {sp:ST.space,x:+p.x.toFixed(2),z:+p.z.toFixed(2),ry:+me.root.rotation.y.toFixed(2),av:ST.avatar||'girl',st:ST.sitting,rd:TM.run?Date.now()-elapsed():0,bk:($('#tmBook').value||'').slice(0,24),pt:ST.pet||'none',lk:lookStr(ST.look),nk:(ST.nick||'').slice(0,12),fx:ST.fx};}
 function pushPresence(now){presDirty=true;if(now)flushPresence();}
 function flushPresence(){if(!ROOM||!presDirty)return;presDirty=false;presT=performance.now();ROOM.presence(myPresence()).catch(()=>{});}
 function setupRoom(){ROOM.onPeers(ch=>{PEERS=ch.peers.slice();ch.left.forEach(p=>dropRemote(p.peer));ch.peers.forEach(p=>{if(!p.sameTab&&p.kind==='viewer')upsertRemote(p);});resolveNames(PEERS.map(p=>p.by));updateConn();renderTogether();},()=>{PEERS=[];updateConn();});
@@ -132,7 +154,7 @@ function setupRoom(){ROOM.onPeers(ch=>{PEERS=ch.peers.slice();ch.left.forEach(p=
   ROOM.onConnection(c=>{if(c)pushPresence(true);});pushPresence(true);renderChat();}
 function dropRemote(peer){const r=REMOTES[peer];if(!r)return;scene.remove(r.A.root,r.L.sprite,r.B.sprite);if(r.pet)scene.remove(r.pet.root);delete REMOTES[peer];}
 function upsertRemote(p){const pr=p.presence||{};let r=REMOTES[p.peer];if(!pr.sp){if(r)r.A.root.visible=false;return;}
-  if(!r||r.av!==pr.av){if(r)scene.remove(r.A.root);const A=makeAvatar(AVMAP[pr.av]||pr.av==='shiba'?pr.av:'girl');scene.add(A.root);A.root.position.set(+pr.x||0,0,+pr.z||0);if(!r){r={L:makeLabel('친구'),B:makeBubble(),ph:0,amt:0};scene.add(r.L.sprite,r.B.sprite);}r.A=A;r.av=pr.av;}
+  const lk=typeof pr.lk==='string'?pr.lk.slice(0,120):'';if(!r||r.av!==pr.av||r.lk!==lk){if(r)scene.remove(r.A.root);const A=makeAvatar(AVMAP[pr.av]||pr.av==='shiba'?pr.av:'girl',lookParse(lk));if(r)r.lk=lk;scene.add(A.root);A.root.position.set(+pr.x||0,0,+pr.z||0);if(!r){r={L:makeLabel('친구'),B:makeBubble(),ph:0,amt:0,lk};scene.add(r.L.sprite,r.B.sprite);}r.A=A;r.av=pr.av;}
   const pid=PETMAP[pr.pt]?pr.pt:'none';if(r.petId!==pid){if(r.pet)scene.remove(r.pet.root);r.pet=makePet(pid);r.petId=pid;if(r.pet){r.pet.root.position.copy(r.A.root.position);scene.add(r.pet.root);}}
   r.pr=pr;r.by=p.by;r.peer=p.peer;r.A.root.visible=r.L.sprite.visible=pr.sp===ST.space;if(r.pet)r.pet.root.visible=r.A.root.visible;REMOTES[p.peer]=r;}
 function refreshRemotes(){Object.values(REMOTES).forEach(r=>{const v=r.pr&&r.pr.sp===ST.space;r.A.root.visible=r.L.sprite.visible=v;if(r.pet)r.pet.root.visible=v;if(!v)r.B.sprite.visible=false;else if(r.pr){r.A.root.position.set(+r.pr.x||0,0,+r.pr.z||0);}});}
@@ -175,7 +197,7 @@ function renderTogether(){if($('#records').classList.contains('show')&&recTab===
 
 /* ---------- sheets ---------- */
 function openSheet(id){closeSheets();if(id==='books'){recTab='books';id='records';}const el=$('#'+id);if(!el)return;el.classList.add('show');
-  if(id==='records')renderRecords();if(id==='conn')renderAdmin();if(id==='playlist'){LS.set('plSeen',Date.now());renderPlaylist();renderTicker();}if(id==='sound')renderSoundUI();if(id==='stamp'){calM=null;$('#stMemo').value='';renderStamp();}if(id==='board'){renderBoard();$('#bWrite').style.display=(MODE==='shared'&&!CANWRITE)?'none':'';}if(id==='me'){$('#nickEdit').value=ST.nick||'';renderAvatars();}if(id==='map')$$('#mapList button').forEach(b=>b.classList.toggle('here',b.dataset.go===ST.space));if(id==='menu')updateMe();}
+  if(id==='records')renderRecords();if(id==='conn')renderAdmin();if(id==='wardrobe')renderWardrobe();if(id==='playlist'){LS.set('plSeen',Date.now());renderPlaylist();renderTicker();}if(id==='sound')renderSoundUI();if(id==='stamp'){calM=null;$('#stMemo').value='';renderStamp();}if(id==='board'){renderBoard();$('#bWrite').style.display=(MODE==='shared'&&!CANWRITE)?'none':'';}if(id==='me'){$('#nickEdit').value=ST.nick||'';renderAvatars();}if(id==='map')$$('#mapList button').forEach(b=>b.classList.toggle('here',b.dataset.go===ST.space));if(id==='menu')updateMe();}
 function closeSheets(){$$('.modal').forEach(m=>m.classList.remove('show'));}
 $$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m||e.target.closest('[data-close]'))closeSheets();else if(e.target.closest('[data-back]'))openSheet('menu');}));
 $('#menuBtn').addEventListener('click',()=>openSheet('menu'));
@@ -189,6 +211,7 @@ $('#introAv').addEventListener('click',e=>{const b=e.target.closest('[data-av]')
 $('#mapList').addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(!b)return;closeSheets();const id=b.dataset.go;if(id===ST.space)return;enterSpace(id);});
 const mSel=$('#seasonSel');mSel.innerHTML='<option value="auto">자동 (오늘 날짜)</option>'+Object.entries(MONTHS).map(([m,v])=>`<option value="${m}">${m}월 · ${v[1]}</option>`).join('');mSel.value=ST.seasonPick;
 mSel.addEventListener('change',()=>{ST.seasonPick=mSel.value;LS.set('seasonPick',ST.seasonPick);rebuildSeason();});
+const wSel=$('#wxSel');wSel.innerHTML='<option value="auto">내 위치 (안 되면 서울)</option>'+Object.keys(CITIES).map(c=>`<option value="${c}">${c}</option>`).join('')+'<option value="off">연동 안 함</option>';wSel.value=ST.wxPick;wSel.addEventListener('change',()=>{ST.wxPick=wSel.value;LS.set('wxPick',ST.wxPick);WX=null;if(ST.wxPick==='off'){rebuildSeason();renderWxState();}else{renderWxState();fetchWx(true);}});
 const tSel=$('#todSel');tSel.value=ST.todPick;tSel.addEventListener('change',()=>{ST.todPick=tSel.value;LS.set('todPick',ST.todPick);rebuildSeason();});
 let toastT;function toast(h){const t=$('#toast');t.innerHTML=h;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3000);}
 
@@ -198,6 +221,23 @@ function renderFaces(){$('#facePop').innerHTML='<button data-look="1"><span>🪞
 $('#faceBtn').addEventListener('click',()=>{renderFaces();$('#facePop').classList.toggle('show');});
 $('#facePop').addEventListener('click',e=>{if(e.target.closest('[data-look]')){showFace(6000);$('#facePop').classList.remove('show');return;}const b=e.target.closest('[data-fx]');if(!b)return;ST.fx=b.dataset.fx;showFace(4200);LS.set('fx',ST.fx);renderFaces();pushPresence(true);setTimeout(()=>$('#facePop').classList.remove('show'),250);});
 canvas.addEventListener('pointerdown',()=>$('#facePop').classList.remove('show'));renderFaces();
+
+/* ---------- wardrobe ---------- */
+let wTab='modern';
+const HAT_ICO={gat:'🎩',none:'🙅',jobawi:'🧣',jokduri:'👑',hwagwan:'💐',beanie:'🧶',beret:'🎨',cap:'🧢'},ACC_ICO={glasses:'👓',sunglasses:'🕶️',scarf:'🧣',norigae:'🎐',flowerpin:'🌸',headphones:'🎧',backpack:'🎒',crossbag:'👜'};
+ACC_ICO.norigae='🪢';
+function previewImg(){try{if(!thumbR){thumbOf('av','girl');}const sc=new THREE.Scene();sc.add(new THREE.HemisphereLight(0xfff4e0,0x8a6a4a,1.05));const dl=new THREE.DirectionalLight(0xffffff,.7);dl.position.set(2,4,-5);sc.add(dl);
+  const o=makeAvatar(ST.avatar||'girl',ST.look);sc.add(o.root);o.setFace('smile');const h=o.h||2;const cam=new THREE.PerspectiveCamera(30,1,.1,50);cam.position.set(-.6,h*.55,-h*1.6-.5);cam.lookAt(0,h*.45,0);thumbR.render(sc,cam);return thumbR.domElement.toDataURL('image/png');}catch(e){return '';}}
+function renderWardrobe(){if(!$('#wardrobe').classList.contains('show'))return;$$('#wTabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===wTab));const L=ST.look;const el=$('#wGrid');
+  if(wTab==='hat')el.innerHTML=HATS.map(h=>`<button data-h="${h[0]}" class="${L.h===h[0]?'on':''}"><span>${HAT_ICO[h[0]]}</span>${h[1]}</button>`).join('');
+  else if(wTab==='acc')el.innerHTML=ACCS.map(a=>`<button data-a="${a[0]}" class="${L.a.includes(a[0])?'on':''}"><span>${ACC_ICO[a[0]]}</span>${a[1]}</button>`).join('');
+  else el.innerHTML=OUTFITS.filter(o=>o.cat===wTab).map(o=>`<button data-o="${o.id}" class="${L.o===o.id?'on':''}"><i class="sw">${o.sw.map(c=>`<b style="background:${c}"></b>`).join('')}</i>${o.name}</button>`).join('');
+  const im=previewImg();$('#wPrev').innerHTML=im?`<img src="${im}" alt="">`:'';$('#wNote').textContent=wTab==='acc'?`소품은 4개까지 · 지금 ${L.a.length}개`:'';}
+function setLook(L){ST.look=L;LS.set('look',lookStr(L));setAvatar(ST.avatar||'girl');renderWardrobe();}
+$('#wTabs').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(!b)return;wTab=b.dataset.t;renderWardrobe();});
+$('#wGrid').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const L=Object.assign({},ST.look,{a:ST.look.a.slice()});
+  if(b.dataset.o)L.o=b.dataset.o;else if(b.dataset.h)L.h=b.dataset.h;else if(b.dataset.a){const i=L.a.indexOf(b.dataset.a);if(i>=0)L.a.splice(i,1);else{if(L.a.length>=4){toast('소품은 4개까지 착용할 수 있어요');return;}L.a.push(b.dataset.a);}}setLook(L);});
+$('#wReset').addEventListener('click',()=>setLook(Object.assign({},DEFAULT_LOOK,{a:[]})));
 
 /* ---------- playlist ---------- */
 let LIKES=LS.get('local.likes',{}),plSort='hot',plOpen=null,armed=null,armT=null;let ADMIN_ON=!!LS.get('adminOn',false);
@@ -284,7 +324,7 @@ $('#pwGo').addEventListener('click',tryPw);$('#pwIn').addEventListener('keydown'
 $('#nickGo').addEventListener('click',()=>{const v=$('#nickIn').value.trim().slice(0,12);if(!v){$('#nickMsg').textContent='닉네임을 적어 주세요.';$('#nickIn').focus();return;}ST.nick=v;LS.set('nick',v);if(!ST.avatar){ST.avatar='girl';LS.set('avatar','girl');}saveMember();pushPresence(true);updateMe();$('#welcome').textContent=v+'님, 입학을 환영해요!';$('#welcomeSub').textContent='닉네임은 다음에 와도 그대로예요. 설정에서 바꿀 수 있어요.';show('stepIn');});
 const enter=s=>{$('#intro').classList.add('hide');if(s)setSound(true);setTimeout(()=>{$('#intro').remove();updateZone();askStamp();},900);setTimeout(()=>{const hn=$('#hint');if(hn)hn.style.opacity=0;},9000);};
 $('#goSound').addEventListener('click',()=>enter(true));$('#goQuiet').addEventListener('click',()=>enter(false));
-let cloudPending=null;enterSpace('campus',null,true);updateSeasonChip();renderChat();setGuide(true);updateConn();updateMe();cloudPending=initCloud();renderTicker();notifyNewSongs();
+let cloudPending=null;enterSpace('campus',null,true);updateSeasonChip();renderChat();setGuide(true);updateConn();updateMe();cloudPending=initCloud();fetchWx();setInterval(()=>fetchWx(),30*60e3);renderTicker();notifyNewSongs();
 
 const clock=new THREE.Clock();let walkPh=0,speedNow=0,lastSec=0;const SPEED=4.4;
 function frame(){requestAnimationFrame(frame);const dt=Math.min(clock.getDelta(),.05),t=clock.elapsedTime;

@@ -139,7 +139,7 @@ function buildCampus(S){reseed(21);const G=new THREE.Group();const T=[];const sp
   const A=[-22,22,0,9,-20,24];
   if(S.blossom||S.someBlossom){const p=particles(G,S.blossom?260:90,{tex:TEX.petal,size:.22,area:A,fall:.45,sway:.5,colors:[0xffc0d0,0xffd8e2,0xffffff]});T.push(p.tick);}
   if(S.key==='autumn'||S.key==='halloween'){const p=particles(G,S.month===9?80:200,{tex:TEX.petal,size:.3,area:A,fall:.6,sway:.8,wind:.3,colors:[0xd9482a,0xe8902a,0xe8c040,0xa83a20]});T.push(p.tick);}
-  if(S.snow){const p=particles(G,500,{tex:TEX.dot,size:.16,area:A,fall:.9,sway:.4,colors:[0xffffff]});T.push(p.tick);}
+  if(S.snow||S.wxSnow){const p=particles(G,S.wxSnow&&!S.snow?380:500,{tex:TEX.dot,size:.16,area:A,fall:.9,sway:.4,colors:[0xffffff]});T.push(p.tick);}
   if(S.rain){const p=particles(G,1100,{tex:TEX.streak,size:.9,area:[-22,22,0,12,-20,24],fall:16,colors:[0xe4eef6],op:.75});T.push(p.tick);
     for(let i=0;i<10;i++){const pd=new THREE.Mesh(new THREE.CircleGeometry(R(.4,1),18),std(0x2a3a44,{metalness:.6,roughness:.1}));pd.rotation.x=-PI/2;pd.position.set(R(-6,6),.03,R(-8,18));G.add(pd);}}
   if((S.month>=6&&S.month<=8)&&S.night){const p=particles(G,70,{tex:TEX.glow,size:.35,area:[-18,18,.3,3,-12,20],fall:0,wander:true,colors:[0xd8ff90],add:true});T.push((t,dt)=>{p.tick(t,dt);p.P.material.opacity=.5+Math.sin(t*2)*.4;});}

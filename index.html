@@ -145,6 +145,9 @@ body.seated #hint,body.seated #action{display:none!important}
 .apps em{flex-basis:100%;font-style:normal;font-size:11px;color:var(--ink2)}
 .plSide button.del.armed{background:var(--rose);color:#fff8ec;border-radius:12px;padding:4px 10px;font-size:12.5px}
 .plSide button.del{border:1px solid rgba(140,96,60,.35);background:rgba(255,255,255,.4);color:var(--ink2);font-size:12.5px;padding:4px 10px;border-radius:12px}
+.wTop{display:flex;gap:12px;align-items:center;margin:4px 0 10px}#wPrev{width:120px;height:120px;border-radius:18px;background:radial-gradient(#fff8ec,#f2dfbf);flex:none;display:grid;place-items:center;overflow:hidden}#wPrev img{width:128px;height:128px}.wSide{flex:1}.wSide .ghost{margin-top:6px}
+#wTabs button{font-size:12.5px;padding:9px 0}
+.sw{display:flex;gap:3px;margin-bottom:4px}.sw b{width:18px;height:18px;border-radius:50%;border:1px solid rgba(0,0,0,.15)}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -182,6 +185,7 @@ body.seated #hint,body.seated #action{display:none!important}
     <button data-open="records"><span>📒</span>기록장</button>
     <button data-open="board"><span>📌</span>게시판</button>
     <button data-open="playlist"><span>🎵</span>플레이리스트</button>
+    <button data-open="wardrobe"><span>🧥</span>옷장</button>
     <button data-open="me"><span><svg viewBox="0 0 40 40" width="30" height="30"><ellipse cx="20" cy="25" rx="17" ry="4.5" fill="#2a2420" opacity=".85"/><path d="M13 24V14Q13 10 20 10Q27 10 27 14V24Z" fill="#2a2420"/><rect x="13" y="21" width="14" height="2.4" fill="#6a4a30"/><path d="M9 27Q20 39 31 27" stroke="#d9a050" stroke-width="1.8" fill="none" stroke-dasharray="1.6 2.2"/></svg></span>닉네임·캐릭터</button>
     <button id="sndTile"><span><svg viewBox="0 0 40 40" width="28" height="28"><line x1="20" y1="2" x2="20" y2="8" stroke="#3a2a20" stroke-width="1.5"/><path d="M12 22Q12 8 20 8Q28 8 28 22Z" fill="#6a7a6a"/><rect x="11" y="21" width="18" height="3" rx="1" fill="#4a5a4a"/><line x1="20" y1="24" x2="20" y2="30" stroke="#3a2a20" stroke-width="1.2"/><path d="M14 31Q20 28 25 31L23 33L26 36Q20 37.5 14 33Z" fill="#c9a65a"/></svg></span><em id="sndState" style="font-style:normal">소리</em></button>
     <button data-open="cam"><span>🔭</span>시점 조절</button>
@@ -236,6 +240,7 @@ body.seated #hint,body.seated #action{display:none!important}
   <div class="sh"><button class="back" data-back>‹ 설정</button><button class="x" data-close>×</button></div>
   <div class="sec">계절 · 월별 풍경</div><select id="seasonSel"></select>
   <div class="sec">시간</div><select id="todSel"><option value="auto">자동 (지금 시각)</option><option value="day">낮</option><option value="dusk">저녁노을</option><option value="night">밤</option></select>
+  <div class="sec">오늘 날씨 연동</div><select id="wxSel"></select><div class="empty" id="wxState" style="margin-top:6px">날씨를 불러오는 중…</div>
   <div class="empty">자동이면 오늘 날짜와 시각에 맞춰 바뀌어요. 다른 달을 고르면 그 달 풍경을 이 기기에서만 미리 볼 수 있어요.</div>
 </div></div>
 
@@ -283,6 +288,12 @@ body.seated #hint,body.seated #action{display:none!important}
   <div class="plForm" id="plFormBox" hidden><input id="plTitle" maxlength="60" placeholder="곡 제목"><input id="plArtist" maxlength="40" placeholder="가수 (선택)"><input id="plUrl" maxlength="300" inputmode="url" placeholder="링크 (유튜브·멜론 등, 선택)"><input id="plNote" maxlength="80" placeholder="한마디 · 언제 들으면 좋은지 (선택)"><button class="primary" id="plSave">추천하기</button></div>
   <div id="plCount"></div><div id="plList"></div>
 </div></div>
+<div id="wardrobe" class="modal"><div class="sheet paper"><div class="grip"></div>
+  <div class="sh"><button class="back" data-back>‹ 설정</button><span>🧥 옷장</span><button class="x" data-close>×</button></div>
+  <div class="wTop"><div id="wPrev"></div><div class="wSide"><div class="empty">고르는 즉시 갈아입어요. 친구들 화면에도 그대로 보여요.</div><button class="ghost" id="wReset">교복으로 돌아가기</button></div></div>
+  <div class="tabs" id="wTabs"><button data-t="modern">현대</button><button data-t="trad">전통</button><button data-t="mhan">모던 한복</button><button data-t="hat">모자</button><button data-t="acc">소품</button></div>
+  <div class="empty" id="wNote"></div><div class="avGrid" id="wGrid"></div>
+</div></div>
 <div id="toast" class="paper"></div><div id="fade"></div>
 
 <div id="intro">
@@ -323,7 +334,7 @@ body.seated #hint,body.seated #action{display:none!important}
 <script>
 (async function(){
   try{await Promise.race([Promise.all([document.fonts.load('800 80px "Nanum Myeongjo"','雲書學堂閣基礎魔法靈藥溫和寮體力勅令符天地玄黃第一講藥草園天下大將軍地女'),document.fonts.load('30px "Gowun Batang"','가나다 마법')]),new Promise(r=>setTimeout(r,2500))]);}catch(e){}
-  try{for(const s of ['core.js','avatars.js','pets.js','spaces.js','sound.js','app.js']){await new Promise((res,rej)=>{const el=document.createElement('script');el.src=s;el.onload=res;el.onerror=()=>rej(new Error(s+' 불러오기 실패'));document.body.appendChild(el);});}}
+  try{for(const s of ['core.js','avatars.js','wardrobe.js','pets.js','spaces.js','sound.js','app.js']){await new Promise((res,rej)=>{const el=document.createElement('script');el.src=s;el.onload=res;el.onerror=()=>rej(new Error(s+' 불러오기 실패'));document.body.appendChild(el);});}}
   catch(e){document.getElementById('loadTxt').textContent='학당을 열지 못했어요: '+e.message;}
 })();
 window.addEventListener('error',e=>{const l=document.getElementById('loadTxt');if(l)l.textContent='오류: '+e.message;});
