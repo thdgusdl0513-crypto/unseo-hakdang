@@ -6,6 +6,9 @@ const css=`
 #pro.on{opacity:1}
 #pro .top{position:absolute;top:calc(12px + env(safe-area-inset-top));left:14px;right:14px;display:flex;justify-content:space-between;align-items:center;color:#f6e8d0;font-size:13px}
 #pro .top b{font-family:'Nanum Myeongjo',serif;letter-spacing:.12em;font-size:14px}
+#pro .voice:not(.lit){animation:glow 1.4s ease-in-out infinite}
+#pro .skip.lit{background:#f2d79a;color:#2a1c14;border-color:#f2d79a}
+#pro .page.cur .voicehint{animation:glow 1.2s infinite}
 #pro .skip{color:#f6e8d0;border:1px solid rgba(246,232,208,.45);border-radius:14px;padding:6px 12px;font-size:13px;background:rgba(255,255,255,.06)}
 #pro .stage{position:relative;width:min(420px,92vw);height:min(600px,calc(100dvh - 170px));margin-top:30px}
 #pro .page{position:absolute;inset:0;display:flex;flex-direction:column;gap:10px;opacity:0;pointer-events:none;transform:translateX(30px) rotate(1deg);transition:opacity .4s,transform .45s cubic-bezier(.2,.9,.3,1.2)}
@@ -139,18 +142,36 @@ function pages(){const S=(typeof ST!=='undefined')?ST:{};const me=img('av',S.ava
     <div class="bub" style="left:8%;bottom:42%;--d:.6s;--tx:40px">막히면 ☰ 설정 → 📜 이용 안내!<br>그럼, 즐거운 학당 생활 되길 🌙</div></div>`];}
 function esc2(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 let clockT=null;
+/* ---------- 목소리 (휴대폰에 들어 있는 한국어 음성으로 읽어 줘요) ---------- */
+const VOICE={on:false,v:null};
+function pickVoice(){try{const vs=speechSynthesis.getVoices().filter(v=>/^ko/i.test(v.lang));VOICE.v=vs.find(v=>/yuna|유나|google|sora|heami|female|여/i.test(v.name))||vs[0]||null;}catch(e){}}
+try{pickVoice();speechSynthesis.onvoiceschanged=pickVoice;}catch(e){}
+const VP={hae:{pitch:1.45,rate:1.08},me:{pitch:1.15,rate:1.02},fr:{pitch:1.6,rate:1.12},nar:{pitch:1.0,rate:1.0}};
+function sayLines(lines){try{speechSynthesis.cancel();}catch(e){return;}if(!VOICE.on||!window.speechSynthesis)return;
+  lines.forEach(([who,t])=>{const u=new SpeechSynthesisUtterance(t.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu,'').replace(/[~…]/g,' '));u.lang='ko-KR';if(VOICE.v)u.voice=VOICE.v;const P=VP[who]||VP.nar;u.pitch=P.pitch;u.rate=P.rate;u.volume=1;speechSynthesis.speak(u);});}
+function script(){const S=(typeof ST!=='undefined')?ST:{};const nick=S.nick||'새내기';return [
+  [['hae',`${nick}, 왔구나! 난 학당 문지기 해태야.`],['me','아직 아무것도 모르는데요?'],['hae',`괜찮아! ${NAME} 구경, 내가 시켜 줄게.`]],
+  [['hae','가고 싶은 바닥을 톡! 누르면 거기로 걸어가.'],['hae','꾹 누르고 끌면 시점이 빙글빙글. 두 손가락이면 확대랑 축소!']],
+  [['hae','강의실이나 도서관 의자에 앉으면 집중 타이머가 시작돼.'],['hae','머리 위 유리 시계는 친구들도 같이 볼 수 있어.'],['hae','다 했으면 기록하고 일어나기! 오늘 공부가 기록장에 쏙 들어가.']],
+  [['fr','오늘 뭐 읽어?'],['fr','데미안!'],['fr','개굴! 같이 하자!'],['hae','게시판엔 쪽지를, 레코드판엔 추천곡을 남겨 봐.']],
+  [['hae','웃는 얼굴 버튼을 누르면 인사, 하트, 춤까지 다 할 수 있어.'],['hae','심심하면 친구 부르기! 다들 도서관으로 모여!']],
+  [['hae','옷장에서 한복, 후드티, 갓, 비니로 변신하고, 색깔도 마음대로!'],['hae','그리고 매일 한 번, 출석도장 꾹!']],
+  [['hae',`입학을 축하해! 막히면 설정의 이용 안내를 봐.`],['hae','그럼, 즐거운 학당 생활 되길!']]];}
 window.showPrologue=function(done){if(document.getElementById('pro'))return;
   if(!document.getElementById('proCss')){const st=document.createElement('style');st.id='proCss';st.textContent=css;document.head.appendChild(st);}
-  const P=pages();const el=document.createElement('div');el.id='pro';
-  el.innerHTML=`<div class="top"><b>${NAME} 안내서</b><button class="skip">건너뛰기 ›</button></div><div class="stage">${P.map((p,i)=>`<div class="page" data-i="${i}">${p}</div>`).join('')}</div>
+  const P=pages(),SC=script();const el=document.createElement('div');el.id='pro';
+  el.innerHTML=`<div class="top"><b>${NAME} 안내서</b><span style="display:flex;gap:8px"><button class="skip voice">🔈 목소리 듣기</button><button class="skip sk">건너뛰기 ›</button></span></div><div class="stage">${P.map((p,i)=>`<div class="page" data-i="${i}">${p}</div>`).join('')}</div>
     <div class="nav"><button class="bk" aria-label="이전">‹</button><div class="dots">${P.map(()=>'<i></i>').join('')}</div><button class="nx">다음 ›</button></div>`;
   document.body.appendChild(el);requestAnimationFrame(()=>el.classList.add('on'));
   let cur=-1;const pg=[...el.querySelectorAll('.page')],dots=[...el.querySelectorAll('.dots i')],nx=el.querySelector('.nx'),bk=el.querySelector('.bk');
   const go=i=>{if(i<0)return;if(i>=pg.length){close();return;}pg.forEach((p,k)=>{p.classList.toggle('cur',k===i);p.classList.toggle('prev',k<i);});dots.forEach((d,k)=>d.classList.toggle('on',k===i));
     bk.disabled=i===0;nx.textContent=i===pg.length-1?'학당으로 출발! 🎉':'다음 ›';nx.classList.toggle('go',i===pg.length-1);cur=i;
-    clearInterval(clockT);const ck=pg[i].querySelector('[data-clock]');if(ck){let s=0;ck.textContent='0:00';clockT=setInterval(()=>{s+=37;const m=Math.floor(s/60),x=s%60;ck.textContent=m+':'+String(x).padStart(2,'0');if(s>1500)s=0;},120);}};
-  const close=()=>{clearInterval(clockT);try{LS.set('prologue',1);}catch(e){}el.classList.remove('on');setTimeout(()=>{el.remove();if(typeof done==='function')done();},450);};
-  nx.addEventListener('click',e=>{e.stopPropagation();go(cur+1);});bk.addEventListener('click',e=>{e.stopPropagation();go(cur-1);});el.querySelector('.skip').addEventListener('click',e=>{e.stopPropagation();close();});
+    sayLines(SC[i]||[]);clearInterval(clockT);const ck=pg[i].querySelector('[data-clock]');if(ck){let s=0;ck.textContent='0:00';clockT=setInterval(()=>{s+=37;const m=Math.floor(s/60),x=s%60;ck.textContent=m+':'+String(x).padStart(2,'0');if(s>1500)s=0;},120);}};
+  const close=()=>{clearInterval(clockT);try{speechSynthesis.cancel();}catch(e){}try{LS.set('prologue',1);}catch(e){}el.classList.remove('on');setTimeout(()=>{el.remove();if(typeof done==='function')done();},450);};
+  nx.addEventListener('click',e=>{e.stopPropagation();go(cur+1);});bk.addEventListener('click',e=>{e.stopPropagation();go(cur-1);});el.querySelector('.sk').addEventListener('click',e=>{e.stopPropagation();close();});
+  const vb=el.querySelector('.voice');if(!window.speechSynthesis)vb.hidden=true;
+  vb.addEventListener('click',e=>{e.stopPropagation();VOICE.on=!VOICE.on;try{LS.set('proVoice',VOICE.on?1:0);}catch(x){}vb.textContent=VOICE.on?'🔊 목소리 끄기':'🔈 목소리 듣기';vb.classList.toggle('lit',VOICE.on);if(VOICE.on){pickVoice();sayLines(SC[cur]||[]);}else{try{speechSynthesis.cancel();}catch(x){}}});
+  try{if(LS.get('proVoice',0)){VOICE.on=true;vb.textContent='🔊 목소리 끄기';vb.classList.add('lit');}}catch(x){}
   el.querySelector('.stage').addEventListener('click',e=>{const r=el.getBoundingClientRect();go(e.clientX<r.width*.3?cur-1:cur+1);});
   let sx=null;el.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;},{passive:true});el.addEventListener('touchend',e=>{if(sx==null)return;const dx=e.changedTouches[0].clientX-sx;sx=null;if(Math.abs(dx)>50){go(dx<0?cur+1:cur-1);}},{passive:true});
   go(0);};
