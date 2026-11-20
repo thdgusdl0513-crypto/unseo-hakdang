@@ -171,7 +171,7 @@ function updateConn(){const n=new Set(PEERS.filter(p=>p.kind==='viewer').map(p=>
 
 /* ---------- room: presence, chat ---------- */
 const REMOTES={};let presT=0,presDirty=false;
-function myPresence(){const p=me.root.position;return {sp:ST.space,x:+p.x.toFixed(2),z:+p.z.toFixed(2),ry:+me.root.rotation.y.toFixed(2),av:ST.avatar||'girl',st:ST.sitting,rd:TM.run?Date.now()-elapsed():0,bk:($('#tmBook').value||'').slice(0,24),pt:ST.pet||'none',lk:lookStr(ST.look),nk:(ST.nick||'').slice(0,12),fx:ST.fx,em:MY_EM,cl:MY_CL};}
+function myPresence(){const p=me.root.position;return {sp:ST.space,x:+p.x.toFixed(2),z:+p.z.toFixed(2),ry:+me.root.rotation.y.toFixed(2),av:ST.avatar||'girl',st:ST.sitting,rd:TM.run?Date.now()-elapsed():0,bk:($('#tmBook').value||'').slice(0,24),pt:ST.pet||'none',lk:lookStr(ST.look),nk:(ST.nick||'').slice(0,12),fx:ST.fx,em:MY_EM,cl:MY_CL,gm:window.__myGame||''};}
 function pushPresence(now){presDirty=true;if(now)flushPresence();}
 function flushPresence(){if(!ROOM||!presDirty)return;presDirty=false;presT=performance.now();ROOM.presence(myPresence()).catch(()=>{});}
 function setupRoom(){ROOM.onPeers(ch=>{PEERS=ch.peers.slice();ch.left.forEach(p=>dropRemote(p.peer));ch.peers.forEach(p=>{if(!p.sameTab&&p.kind==='viewer')upsertRemote(p);});resolveNames(PEERS.map(p=>p.by));updateConn();renderTogether();const sig=onlineFriends().map(r=>r.by+r.pr.sp+(r.pr.rd?1:0)).join();if(sig!==window.__frSig){window.__frSig=sig;if($('#friends').classList.contains('show'))renderFriends();}},()=>{PEERS=[];updateConn();});

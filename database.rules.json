@@ -72,6 +72,78 @@
         }
       }
     },
+    "cheongdo": {
+      "members": {
+        ".read": "auth != null",
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && auth.uid === $uid",
+          "nick": {
+            ".validate": "newData.isString() && newData.val().length <= 12"
+          },
+          "admin": {
+            ".validate": "newData.isString() && newData.val().length <= 40"
+          }
+        }
+      },
+      "stamps": {
+        ".read": "auth != null",
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid"
+        }
+      },
+      "data": {
+        "$col": {
+          ".read": "auth != null",
+          ".indexOn": [
+            "ts"
+          ],
+          "$id": {
+            ".write": "(auth != null && ((!data.exists() && newData.child('by').val() === auth.uid) || (data.exists() && data.child('by').val() === auth.uid))) || (auth != null && root.child('cheongdo').child('members').child(auth.uid).child('admin').val() === 'happy_life' && !newData.exists())"
+          }
+        }
+      },
+      "presence": {
+        ".read": "auth != null",
+        "$peer": {
+          ".write": "(auth != null && ((newData.exists() && newData.child('by').val() === auth.uid) || (!newData.exists() && data.child('by').val() === auth.uid))) || (auth != null && root.child('cheongdo').child('members').child(auth.uid).child('admin').val() === 'happy_life' && !newData.exists())"
+        }
+      },
+      "bans": {
+        ".read": "auth != null && root.child('cheongdo').child('members').child(auth.uid).child('admin').val() === 'happy_life'",
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && root.child('cheongdo').child('members').child(auth.uid).child('admin').val() === 'happy_life'"
+        }
+      },
+      "chat": {
+        ".read": "auth != null",
+        ".indexOn": [
+          "t"
+        ],
+        "$m": {
+          ".write": "auth != null && !data.exists() && newData.child('by').val() === auth.uid",
+          ".validate": "newData.child('d').child('t').isString() && newData.child('d').child('t').val().length <= 200"
+        }
+      },
+      "likes": {
+        ".read": "auth != null",
+        "$item": {
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid"
+          }
+        }
+      },
+      "dm": {
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+          "$m": {
+            ".write": "auth != null && ((!data.exists() && newData.child('by').val() === auth.uid && newData.child('to').val() === $uid) || (auth.uid === $uid && !newData.exists()))",
+            ".validate": "!newData.exists() || (newData.child('t').isString() && newData.child('t').val().length <= 300 && newData.child('g').isString() && newData.child('g').val().length <= 2500)"
+          }
+        }
+      }
+    },
     "songhyeon": {
       "members": {
         ".read": "auth != null",
