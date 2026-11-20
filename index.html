@@ -43,6 +43,10 @@ body.hasTk #chatWrap{top:calc(112px + env(safe-area-inset-top));}
 #mini{position:absolute;left:12px;bottom:calc(14px + env(safe-area-inset-bottom) + var(--mmLift,0px));width:104px;height:104px;border-radius:50%;padding:4px;pointer-events:auto;cursor:pointer;transition:bottom .3s;z-index:2}#miniC{width:100%;height:100%;border-radius:50%;display:block}#miniN{position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);font-size:10px;font-weight:700;white-space:nowrap;padding:1px 7px;border-radius:9px;background:#fbf3e2;color:var(--ink);box-shadow:0 1px 4px rgba(60,30,10,.25)}
 @media (max-width:420px){#mini{width:88px;height:88px;left:8px}}
 body.mmHide #mini{display:none}
+#shotBtn{position:absolute;right:12px;bottom:calc(14px + env(safe-area-inset-bottom) + var(--mmLift,0px));width:52px;height:52px;border-radius:50%;font-size:24px;display:grid;place-items:center;pointer-events:auto;z-index:2;transition:bottom .3s}@media (max-width:420px){#shotBtn{right:8px;width:46px;height:46px;font-size:21px}}
+#shotImg{width:100%;border-radius:14px;display:block;margin:4px 0 12px;box-shadow:0 6px 18px rgba(40,20,8,.25);-webkit-touch-callout:default;user-select:auto;-webkit-user-select:auto}.shotBtns{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
+#flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:80;transition:opacity .35s}#flash.on{opacity:.85;transition:none}
+body.kbOpen #mini,body.kbOpen #shotBtn,body.kbOpen #hint,body.kbOpen #action,body.kbOpen #timer{display:none!important}body.kbOpen #bottom{bottom:6px}body.kbOpen #chatWrap{top:calc(64px + env(safe-area-inset-top))}
 #bottom{position:absolute;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:9px;pointer-events:none}
 #action{pointer-events:auto;display:none;align-items:center;gap:9px;padding:11px 20px;border-radius:26px;font-size:15px;color:var(--ink);animation:bob 2.4s ease-in-out infinite}
 #action.show{display:flex}#action span{font-size:18px}
@@ -128,7 +132,29 @@ body.seated #hint,body.seated #action{display:none!important}
 #faceBtn+#menuBtn{margin-left:0}
 #boardBtn{pointer-events:auto;width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-size:20px;margin-left:auto;position:relative}#boardBtn+#faceBtn{margin-left:0}#bdDot{position:absolute;top:6px;right:7px;width:10px;height:10px;border-radius:50%;background:#d8483a;border:2px solid #fbf3e2}
 #facePop{z-index:8;position:absolute;right:12px;top:calc(64px + env(safe-area-inset-top));display:none;gap:4px;padding:6px;border-radius:22px;flex-wrap:wrap;max-width:calc(100vw - 24px);justify-content:center}
-#facePop.show{display:flex}#wCol .sec small{font-weight:400;font-size:11px;color:var(--ink2);margin-left:6px}.cRow{margin:8px 0 4px}.cRow>span{display:block;font-size:13px;margin-bottom:6px}.cSw{display:flex;flex-wrap:wrap;gap:8px}.cSw button{width:30px;height:30px;border-radius:50%;border:2px solid rgba(255,255,255,.9);box-shadow:0 0 0 1px rgba(140,96,60,.35);padding:0}.cSw button.on{box-shadow:0 0 0 3px #d8843a}.cSw button.def{background:linear-gradient(135deg,#fff 45%,#c4584a 46%,#c4584a 54%,#fff 55%)}.adminMsg{font-size:13px;margin:6px 2px 0;min-height:0}.adminMsg.ok{color:#2f7a4a}.adminMsg.bad{color:#b8483a}.kickRow{text-align:right;margin:-4px 0 6px}.kick{font-size:12px;color:#a8483a;padding:4px 8px;border-radius:8px;border:1px solid rgba(168,72,58,.35);background:rgba(255,255,255,.3)}.kick.armed{background:#c4584a;color:#fff}#kicked{position:fixed;inset:0;z-index:99;display:grid;place-items:center;background:rgba(20,12,8,.88)}#kicked>div{padding:26px 24px;border-radius:22px;text-align:center;width:min(300px,84vw);color:var(--ink);line-height:1.7}#kicked b{display:block;font-size:17px}#kicked small{color:var(--ink2)}.frTop{display:flex;flex-direction:column;gap:8px;margin:4px 0 12px}.frRow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed rgba(140,96,60,.3)}.frRow img{width:44px;height:44px;border-radius:12px;background:radial-gradient(#fff8ec,#f2dfbf);flex:none}.frRow span{flex:1;min-width:0;font-size:14px}.frRow small{display:block;color:var(--ink2);font-size:12px}.frRow button{padding:7px 10px;font-size:13px;border-radius:10px;flex:none;width:auto!important;margin:0!important;white-space:nowrap}
+#facePop.show{display:flex}
+.frMore{display:flex;gap:6px;justify-content:flex-end;margin:-4px 0 6px}.frMore button{padding:5px 10px;font-size:12.5px;border-radius:10px;width:auto!important;margin:0!important}
+.tileDot,.dmN{display:inline-block;min-width:9px;height:9px;border-radius:9px;background:#d8483a;margin-left:4px;vertical-align:top}.dmN{font-style:normal;color:#fff;font-size:10px;line-height:15px;height:15px;padding:0 5px}
+#dmLog{height:min(46vh,380px);overflow-y:auto;padding:6px 2px;display:flex;flex-direction:column;gap:6px;background:rgba(138,90,184,.06);border-radius:14px}
+.dmM{max-width:78%;align-self:flex-start}.dmM span{display:inline-block;padding:8px 12px;border-radius:16px 16px 16px 4px;background:#fff;box-shadow:0 1px 3px rgba(60,30,10,.12);font-size:14.5px;line-height:1.45;word-break:break-all}.dmM small{display:block;font-size:10.5px;color:var(--ink2);margin:2px 6px}
+.dmM.me{align-self:flex-end;text-align:right}.dmM.me span{background:#e6d4f6;border-radius:16px 16px 4px 16px}
+.dmBar{display:flex;gap:8px;margin-top:10px}.dmBar input{flex:1;margin:0}.dmBar button{width:auto!important;padding:0 16px;margin:0!important}
+.gCard{display:flex;gap:12px;padding:12px 4px;border-bottom:1px dashed rgba(140,96,60,.3)}.gIco{font-size:34px;width:46px;text-align:center}.gTx{flex:1}.gTx b{font-size:16px}.gTx small{display:block;color:var(--ink2);font-size:12.5px;margin:2px 0 8px}
+.gBtn{display:flex;gap:6px;flex-wrap:wrap}.gBtn button{width:auto!important;margin:0!important;padding:7px 12px;font-size:13px}.gRec{font-size:12px;color:var(--ink2);margin:12px 2px 4px}
+#gBody{min-height:300px}.rpsTop{display:flex;justify-content:space-between;align-items:center;margin:4px 0 10px}.rpsTop>div{text-align:center;min-width:70px}.rpsTop small{display:block;font-size:12px;color:var(--ink2)}.rpsTop b{font-size:28px;font-family:'Nanum Myeongjo',serif}.rpsTop .vs{font-size:14px;color:var(--ink2)}
+.rpsShow{display:flex;justify-content:space-around;margin:8px 0}.hand{font-size:64px;width:110px;height:110px;display:grid;place-items:center;border-radius:24px;background:rgba(255,255,255,.55)}.hand.op{transform:scaleX(-1)}.hand.pop{animation:hpop .4s cubic-bezier(.2,1.6,.4,1)}@keyframes hpop{from{transform:scale(.5)}}
+.gMsg{text-align:center;font-size:17px;font-weight:700;margin:12px 0;min-height:24px}
+.rpsBtns{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px}.rpsBtns.two{grid-template-columns:1fr 1fr}.rpsBtns button{font-size:38px;padding:10px 0;border-radius:18px;background:#fbf3e2;border:2px solid rgba(140,96,60,.35)}.rpsBtns button small{display:block;font-size:12px}.rpsBtns button.on{background:#f7d9b0;border-color:#d8843a}.rpsBtns button:disabled{opacity:.5}
+.yTop{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;margin-bottom:8px}.yTop small{display:block;font-size:11px;color:var(--ink2)}.yTop .turn{font-size:12px;background:#f7d36a;border-radius:10px;padding:3px 8px;font-weight:700}.dim{font-size:11px;color:var(--ink2)}
+.yBoard{position:relative;width:min(300px,78vw);aspect-ratio:1;margin:0 auto;background:linear-gradient(135deg,#f7e8c8,#ecd3a4);border-radius:18px;border:3px solid #8a5a3a}
+.yc{position:absolute;width:16px;height:16px;border-radius:50%;background:#fff8ea;border:2px solid #a87a52;transform:translate(-50%,-50%);font-size:9px;font-style:normal;display:grid;place-items:center;color:#8a4a2a}.yc.big{width:26px;height:26px;background:#f2d79a}
+.yt{position:absolute;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:12px;color:#fff;box-shadow:0 3px 6px rgba(0,0,0,.3);z-index:2}.yt sup{font-size:9px}.yt.p0{background:#c4384a}.yt.p1{background:#2a5a9a}.yt.in{position:relative;display:inline-grid;margin:2px}.yt.done{background:#9aa}.yt.can{outline:3px solid #f7d36a;animation:bnc2 .8s infinite;cursor:pointer}@keyframes bnc2{50%{transform:translateY(-4px)}}
+.yt.can:not(.in){animation:none}.ySticks{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);display:flex;gap:7px}.ySticks i{width:13px;height:62px;border-radius:7px;background:#e8c890;border:2px solid #8a5a3a}.ySticks i.b{background:repeating-linear-gradient(0deg,#8a5a3a 0 6px,#e8c890 6px 14px)}.ySticks.flip i{animation:flipS .35s linear infinite}@keyframes flipS{50%{transform:scaleY(.2) translateY(-30px)}}
+.yRes{position:absolute;left:50%;top:72%;transform:translate(-50%,-50%);font:800 30px 'Nanum Myeongjo',serif;color:#c4384a;text-shadow:0 2px 0 #fff;animation:hpop .4s}
+#yThrow{margin-top:4px}#yThrow:disabled{opacity:.45;filter:grayscale(.4)}
+.chamStage{position:relative;height:190px;display:flex;align-items:center;justify-content:center;gap:24px}.chamFace{width:120px;height:120px;transition:transform .25s;font-size:80px;display:grid;place-items:center}.chamFace img{width:100%}.chamHand{font-size:64px}.chamHand.L,.chamHand.R{animation:hpop .3s}
+.memo{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:320px;margin:0 auto}.memo button{aspect-ratio:1;border-radius:14px;font-size:30px;background:#8a3a3a;color:#f2d79a;border:2px solid #5a2222;font-family:'Nanum Myeongjo',serif;transition:transform .25s}.memo button span{font-size:22px}.memo button.o span{font-size:32px}.memo button.o{background:#fff8ea;color:inherit;transform:rotateY(180deg) scaleX(-1)}.memo button.m{background:#e6f2dc;border-color:#7aa86a}
+#gInv{position:fixed;left:50%;top:calc(80px + env(safe-area-inset-top));transform:translate(-50%,-20px);width:min(320px,88vw);padding:16px;border-radius:18px;z-index:46;opacity:0;pointer-events:none;transition:.3s;text-align:center;color:var(--ink);font-size:15px;line-height:1.6}#gInv.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}#wCol .sec small{font-weight:400;font-size:11px;color:var(--ink2);margin-left:6px}.cRow{margin:8px 0 4px}.cRow>span{display:block;font-size:13px;margin-bottom:6px}.cSw{display:flex;flex-wrap:wrap;gap:8px}.cSw button{width:30px;height:30px;border-radius:50%;border:2px solid rgba(255,255,255,.9);box-shadow:0 0 0 1px rgba(140,96,60,.35);padding:0}.cSw button.on{box-shadow:0 0 0 3px #d8843a}.cSw button.def{background:linear-gradient(135deg,#fff 45%,#c4584a 46%,#c4584a 54%,#fff 55%)}.adminMsg{font-size:13px;margin:6px 2px 0;min-height:0}.adminMsg.ok{color:#2f7a4a}.adminMsg.bad{color:#b8483a}.kickRow{text-align:right;margin:-4px 0 6px}.kick{font-size:12px;color:#a8483a;padding:4px 8px;border-radius:8px;border:1px solid rgba(168,72,58,.35);background:rgba(255,255,255,.3)}.kick.armed{background:#c4584a;color:#fff}#kicked{position:fixed;inset:0;z-index:99;display:grid;place-items:center;background:rgba(20,12,8,.88)}#kicked>div{padding:26px 24px;border-radius:22px;text-align:center;width:min(300px,84vw);color:var(--ink);line-height:1.7}#kicked b{display:block;font-size:17px}#kicked small{color:var(--ink2)}.frTop{display:flex;flex-direction:column;gap:8px;margin:4px 0 12px}.frRow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed rgba(140,96,60,.3)}.frRow img{width:44px;height:44px;border-radius:12px;background:radial-gradient(#fff8ec,#f2dfbf);flex:none}.frRow span{flex:1;min-width:0;font-size:14px}.frRow small{display:block;color:var(--ink2);font-size:12px}.frRow button{padding:7px 10px;font-size:13px;border-radius:10px;flex:none;width:auto!important;margin:0!important;white-space:nowrap}
 #callPop{position:fixed;left:50%;top:calc(80px + env(safe-area-inset-top));transform:translate(-50%,-20px);width:min(320px,88vw);padding:16px;border-radius:18px;z-index:45;opacity:0;pointer-events:none;transition:.3s;text-align:center;color:var(--ink);font-size:15px;line-height:1.6}#callPop.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}#callTxt b{font-family:'Nanum Myeongjo',serif}.cpBtns{display:flex;gap:8px;margin-top:12px}.cpBtns button{flex:1}.fpSec{flex-basis:100%;font-size:11px;font-weight:700;color:#9a6a3a;padding:4px 8px 0;letter-spacing:.04em}#facePop button{display:flex;flex-direction:column;align-items:center;font-size:10.5px;padding:5px 6px;border-radius:14px;gap:2px;color:var(--ink2)}#facePop button span{font-size:22px}#facePop button.on{background:#f7d9b0;color:var(--ink)}
 .calHead{display:flex;align-items:center;justify-content:center;gap:18px;font-family:'Nanum Myeongjo',serif;font-size:18px;margin:2px 0}.calHead button{font-size:24px;color:var(--ink2);width:36px}
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:12px}
@@ -175,6 +201,7 @@ body.seated #hint,body.seated #action{display:none!important}
   <div id="bigTitle"><small id="zEn"></small><h1 id="zTitle"></h1></div>
   <div id="chatWrap"><div id="chatLog"></div></div>
   <div id="mini" class="paper" aria-label="작은 지도"><canvas id="miniC" width="208" height="208"></canvas><b id="miniN"></b></div>
+  <button id="shotBtn" class="paper" aria-label="사진 찍기">📸</button>
   <div id="bottom">
     <button id="action" class="paper"><span id="aIco">🪑</span><b id="aTxt" style="font-weight:400"></b></button>
     <div id="hint">바닥을 톡 누르면 걸어가고, 끌면 시점이 돌아가요</div>
@@ -199,7 +226,8 @@ body.seated #hint,body.seated #action{display:none!important}
     <button data-open="board"><span>📌</span>게시판</button>
     <button data-open="playlist"><span>🎵</span>플레이리스트</button>
     <button data-open="wardrobe"><span>🧥</span>옷장</button>
-    <button data-open="friends"><span>📣</span>친구 부르기</button>
+    <button data-open="friends"><span>📣</span>친구 · 귓속말<i id="dmDot" class="tileDot" hidden></i></button>
+    <button data-open="games"><span>🎲</span>놀이마당</button>
     <button data-open="me"><span><svg viewBox="0 0 40 40" width="30" height="30"><ellipse cx="20" cy="25" rx="17" ry="4.5" fill="#2a2420" opacity=".85"/><path d="M13 24V14Q13 10 20 10Q27 10 27 14V24Z" fill="#2a2420"/><rect x="13" y="21" width="14" height="2.4" fill="#6a4a30"/><path d="M9 27Q20 39 31 27" stroke="#d9a050" stroke-width="1.8" fill="none" stroke-dasharray="1.6 2.2"/></svg></span>닉네임·캐릭터</button>
     <button id="sndTile"><span><svg viewBox="0 0 40 40" width="28" height="28"><line x1="20" y1="2" x2="20" y2="8" stroke="#3a2a20" stroke-width="1.5"/><path d="M12 22Q12 8 20 8Q28 8 28 22Z" fill="#6a7a6a"/><rect x="11" y="21" width="18" height="3" rx="1" fill="#4a5a4a"/><line x1="20" y1="24" x2="20" y2="30" stroke="#3a2a20" stroke-width="1.2"/><path d="M14 31Q20 28 25 31L23 33L26 36Q20 37.5 14 33Z" fill="#c9a65a"/></svg></span><em id="sndState" style="font-style:normal">소리</em></button>
     <button data-open="cam"><span>🔭</span>시점 조절</button>
@@ -238,10 +266,20 @@ body.seated #hint,body.seated #action{display:none!important}
   <div id="recBody"></div>
 </div></div>
 
+<div id="games" class="modal"><div class="sheet paper"><div class="grip"></div>
+  <div class="sh"><button class="back" data-back>‹ 설정</button><span>🎲 놀이마당</span><button class="x" data-close>×</button></div>
+  <div id="gList"></div><div id="gPick" hidden></div></div></div>
+<div id="gPlay" class="modal"><div class="sheet paper"><div class="grip"></div>
+  <div class="sh"><button class="back" id="gQuit">‹ 그만하기</button><span id="gPlayT"></span><span style="width:40px"></span></div>
+  <div id="gBody"></div></div></div>
+<div id="dm" class="modal"><div class="sheet paper"><div class="grip"></div>
+  <div class="sh"><button class="back" data-back>‹ 설정</button><span>🤫 <b id="dmName"></b>님과 귓속말</span><button class="x" data-close>×</button></div>
+  <div id="dmLog"></div><div class="dmBar"><input id="dmIn" maxlength="200" placeholder="둘만 보는 귓속말" enterkeyhint="send"><button id="dmSend" class="primary">보내기</button></div></div></div>
+<div id="gInv" class="paper"><div id="gInvTx"></div><div class="cpBtns"><button class="ghost" id="gInvNo">다음에</button><button class="primary" id="gInvOk">좋아!</button></div></div>
 <div id="friends" class="modal"><div class="sheet paper"><div class="grip"></div>
   <div class="sh"><button class="back" data-back>‹ 설정</button><span>📣 친구 부르기</span><button class="x" data-close>×</button></div>
   <div class="frTop"><button class="primary" id="frAll">📣 모두 내 곁으로 부르기</button><button class="ghost" id="frShare">🔗 학당 링크 보내기</button></div>
-  <div class="sec">지금 학당에 있는 친구</div><div id="frList"></div>
+  <div class="sec">지금 학당에 있는 친구</div><div id="frList"></div><div id="dmInbox"></div>
   <div class="empty" style="margin-top:10px">'부르기'를 누르면 친구 화면에 초대장이 떠요. 친구가 '가기'를 누르면 내 옆으로 와요.</div></div></div>
 <div id="callPop" class="paper"><div id="callTxt"></div><div class="cpBtns"><button class="ghost" id="callNo">나중에</button><button class="primary" id="callGo">가기</button></div></div>
 <div id="board" class="modal"><div class="sheet paper"><div class="grip"></div>
@@ -250,10 +288,15 @@ body.seated #hint,body.seated #action{display:none!important}
   <div id="bList"></div>
 </div></div>
 
+<div id="shotBox" class="modal"><div class="sheet paper"><div class="grip"></div>
+  <div class="sh"><span>📸 찰칵!</span><button class="x" data-close>×</button></div>
+  <img id="shotImg" alt="학당 사진"><div class="shotBtns"><button class="primary" id="shotShare">📲 사진 저장·공유</button><button class="ghost" id="shotDl">⬇️ 파일로 내려받기</button></div>
+  <div class="empty">아이폰은 '사진 저장·공유' → '이미지 저장'을 누르면 사진 앱에 저장돼요. 이미지를 꾹 눌러 저장해도 돼요.</div></div></div>
+<div id="flash"></div>
 <div id="cam" class="modal"><div class="sheet paper"><div class="grip"></div>
   <div class="sh"><button class="back" data-back>‹ 설정</button><button class="x" data-close>×</button></div>
   <div class="sec">시점 조절 · 화면을 끌면 돌아가고, 두 손가락으로 벌리면 확대돼요</div>
-  <div class="camGrid"><button id="zin">🔍 가까이</button><button id="zout">🔭 멀리</button><button id="lookFace">🪞 얼굴 보기</button><button id="rotL">⟲ 왼쪽으로</button><button id="rotR">⟳ 오른쪽으로</button><button id="pup">⤒ 위에서</button><button id="pdn">⤓ 낮게</button><button id="recenter">↺ 처음대로</button><button data-close>✓ 닫기</button></div>
+  <button class="primary" id="camShot" style="margin:0 0 10px">📸 지금 화면 사진 찍기</button><div class="camGrid"><button id="zin">🔍 가까이</button><button id="zout">🔭 멀리</button><button id="lookFace">🪞 얼굴 보기</button><button id="rotL">⟲ 왼쪽으로</button><button id="rotR">⟳ 오른쪽으로</button><button id="pup">⤒ 위에서</button><button id="pdn">⤓ 낮게</button><button id="recenter">↺ 처음대로</button><button data-close>✓ 닫기</button></div>
 </div></div>
 
 <div id="season" class="modal"><div class="sheet paper"><div class="grip"></div>
@@ -355,7 +398,7 @@ body.seated #hint,body.seated #action{display:none!important}
 <script>
 (async function(){
   try{await Promise.race([Promise.all([document.fonts.load('800 80px "Nanum Myeongjo"','雲書學堂閣基礎魔法靈藥溫和寮體力勅令符天地玄黃第一講藥草園天下大將軍地女'),document.fonts.load('30px "Gowun Batang"','가나다 마법')]),new Promise(r=>setTimeout(r,2500))]);}catch(e){}
-  try{for(const s of ['core.js','avatars.js','wardrobe.js','emotes.js','pets.js','spaces.js','sound.js','prologue.js','app.js']){await new Promise((res,rej)=>{const el=document.createElement('script');el.src=s;el.onload=res;el.onerror=()=>rej(new Error(s+' 불러오기 실패'));document.body.appendChild(el);});}}
+  try{for(const s of ['core.js','avatars.js','wardrobe.js','emotes.js','pets.js','spaces.js','sound.js','prologue.js','app.js','social.js']){await new Promise((res,rej)=>{const el=document.createElement('script');el.src=s;el.onload=res;el.onerror=()=>rej(new Error(s+' 불러오기 실패'));document.body.appendChild(el);});}}
   catch(e){document.getElementById('loadTxt').textContent='학당을 열지 못했어요: '+e.message;}
 })();
 window.addEventListener('error',e=>{const l=document.getElementById('loadTxt');if(l)l.textContent='오류: '+e.message;});

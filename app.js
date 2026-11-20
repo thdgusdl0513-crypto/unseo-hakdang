@@ -225,7 +225,7 @@ function renderTogether(){if($('#records').classList.contains('show')&&recTab===
 
 /* ---------- sheets ---------- */
 function openSheet(id){closeSheets();if(id==='books'){recTab='books';id='records';}const el=$('#'+id);if(!el)return;el.classList.add('show');
-  if(id==='records')renderRecords();if(id==='conn')renderAdmin();if(id==='wardrobe')renderWardrobe();if(id==='friends')renderFriends();if(id==='playlist'){LS.set('plSeen',Date.now());renderPlaylist();renderTicker();}if(id==='sound')renderSoundUI();if(id==='stamp'){calM=null;$('#stMemo').value='';renderStamp();}if(id==='board'){LS.set('bdSeen',Date.now());updateBdDot();renderBoard();$('#bWrite').style.display=(MODE==='shared'&&!CANWRITE)?'none':'';}if(id==='me'){$('#nickEdit').value=ST.nick||'';renderAvatars();}if(id==='map')$$('#mapList button').forEach(b=>b.classList.toggle('here',b.dataset.go===ST.space));if(id==='menu')updateMe();}
+  if(id==='records')renderRecords();if(id==='conn')renderAdmin();if(id==='wardrobe')renderWardrobe();if(id==='friends')renderFriends();if(window.__socialOpen)__socialOpen(id);if(id==='playlist'){LS.set('plSeen',Date.now());renderPlaylist();renderTicker();}if(id==='sound')renderSoundUI();if(id==='stamp'){calM=null;$('#stMemo').value='';renderStamp();}if(id==='board'){LS.set('bdSeen',Date.now());updateBdDot();renderBoard();$('#bWrite').style.display=(MODE==='shared'&&!CANWRITE)?'none':'';}if(id==='me'){$('#nickEdit').value=ST.nick||'';renderAvatars();}if(id==='map')$$('#mapList button').forEach(b=>b.classList.toggle('here',b.dataset.go===ST.space));if(id==='menu')updateMe();}
 function closeSheets(){$$('.modal').forEach(m=>m.classList.remove('show'));}
 $$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m||e.target.closest('[data-close]'))closeSheets();else if(e.target.closest('[data-back]'))openSheet('menu');}));
 $('#menuBtn').addEventListener('click',()=>openSheet('menu'));
@@ -250,7 +250,7 @@ var MY_EM='',MY_CL='';
 const spName=sp=>sp==='campus'?'학당 마당':(ROOMS[sp]?ROOMS[sp].name:'학당');
 function onlineFriends(){const seen=new Set();return Object.values(REMOTES).filter(r=>r.pr&&r.pr.sp&&r.by&&r.by!==MYID&&!seen.has(r.by)&&seen.add(r.by));}
 function renderFriends(){const el=$('#frList');if(!el)return;const fr=onlineFriends();
-  el.innerHTML=fr.length?fr.map(r=>{const im=thumbOf('av',AVMAP[r.pr.av]?r.pr.av:'girl');const here=r.pr.sp===ST.space;return `<div class="frRow">${im?`<img src="${im}" alt="">`:''}<span><b>${esc(nameOf(r.by,r.pr.nk))}</b><small>${esc(spName(r.pr.sp))}${here?' · 같은 곳':''}${r.pr.rd?' · 공부 중':''}</small></span><button class="ghost" data-go="${r.peer}">찾아가기</button><button class="primary" data-call="${r.by}">부르기</button></div>${canKick()?`<div class="kickRow"><button class="kick" data-kick="${r.by}" data-nk="${esc(nameOf(r.by,r.pr.nk))}">🚪 ${esc(nameOf(r.by,r.pr.nk))}님 내보내기</button></div>`:''}`;}).join(''):`<div class="empty">${MODE==='shared'?'지금 접속한 친구가 없어요. 아래 \'학당 링크 보내기\'로 불러 보세요!':'학당이 연결되지 않아 친구를 볼 수 없어요. 왼쪽 위 연결 상태를 확인해 주세요.'}</div>`;}
+  el.innerHTML=fr.length?fr.map(r=>{const im=thumbOf('av',AVMAP[r.pr.av]?r.pr.av:'girl');const here=r.pr.sp===ST.space;return `<div class="frRow">${im?`<img src="${im}" alt="">`:''}<span><b>${esc(nameOf(r.by,r.pr.nk))}</b><small>${esc(spName(r.pr.sp))}${here?' · 같은 곳':''}${r.pr.rd?' · 공부 중':''}</small></span><button class="ghost" data-go="${r.peer}">찾아가기</button><button class="primary" data-call="${r.by}">부르기</button></div><div class="frMore"><button class="ghost" data-dm="${r.by}">🤫 귓속말</button><button class="ghost" data-play="${r.by}">🎮 같이 놀기</button></div>${canKick()?`<div class="kickRow"><button class="kick" data-kick="${r.by}" data-nk="${esc(nameOf(r.by,r.pr.nk))}">🚪 ${esc(nameOf(r.by,r.pr.nk))}님 내보내기</button></div>`:''}`;}).join(''):`<div class="empty">${MODE==='shared'?'지금 접속한 친구가 없어요. 아래 \'학당 링크 보내기\'로 불러 보세요!':'학당이 연결되지 않아 친구를 볼 수 없어요. 왼쪽 위 연결 상태를 확인해 주세요.'}</div>`;}
 let callCool=0;
 function sendCall(to){if(MODE!=='shared'){toast('학당이 연결돼 있어야 친구를 부를 수 있어요');return;}if(Date.now()<callCool){toast('잠깐만요, 조금 뒤에 다시 불러 주세요');return;}callCool=Date.now()+8000;MY_CL=to+'|'+Date.now();pushPresence(true);
   toast(to==='*'?'모두에게 초대장을 보냈어요 📣':esc(nameOf(to))+'님에게 초대장을 보냈어요 📣');playEmote(me,'wave');}
@@ -461,3 +461,25 @@ window.__dbg={me,enterSpace,get SP(){return SP;},sitDown,ST,TM};
 
 setInterval(()=>{if(ADMIN_ON)watchBans();if(window.__rulesOld!==window.__rulesShown){window.__rulesShown=window.__rulesOld;updateConn();}},3000);
 $('#banList')&&$('#banList').addEventListener('click',async e=>{const b=e.target.closest('[data-unkick]');if(!b)return;try{await window.__cloudAdmin.unkick(b.dataset.unkick);toast('다시 들어올 수 있어요<small>친구가 암호를 한 번 더 적으면 돼요</small>');}catch(err){toast('바꾸지 못했어요');}});
+
+/* ---------- 키보드가 올라와도 화면이 밀리지 않게 ---------- */
+(function(){const vv=window.visualViewport;if(!vv)return;const st=document.getElementById('stage');let last='';
+  const fit=()=>{const open=vv.height<innerHeight-120&&document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName)&&!document.activeElement.closest('.modal');
+    const k=open?Math.round(vv.offsetTop)+'|'+Math.round(vv.height):'';if(k===last)return;last=k;
+    if(open){st.style.top=vv.offsetTop+'px';st.style.height=vv.height+'px';st.style.bottom='auto';}else{st.style.top='';st.style.height='';st.style.bottom='';window.scrollTo(0,0);}
+    document.body.classList.toggle('kbOpen',!!open);resize();};
+  vv.addEventListener('resize',fit);vv.addEventListener('scroll',fit);
+  document.addEventListener('focusin',()=>{setTimeout(fit,60);setTimeout(fit,350);});document.addEventListener('focusout',()=>setTimeout(fit,120));})();
+/* ---------- 사진 찍기 ---------- */
+let shotBlob=null,shotUrl='';
+async function takeShot(){closeSheets();$('#facePop').classList.remove('show');await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+  try{renderer.render(scene,camera);const src=renderer.domElement;const W=src.width,H=src.height;const c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');g.drawImage(src,0,0);
+    const s=Math.max(1,W/700);const d=new Date();const txt=`몽원학당 · ${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}`;g.font=`600 ${Math.round(15*s)}px 'Gowun Dodum',sans-serif`;const tw=g.measureText(txt).width;
+    const px=W-tw-26*s,py=H-22*s;g.fillStyle='rgba(251,243,226,.82)';g.beginPath();g.roundRect?g.roundRect(px-12*s,py-20*s,tw+24*s,30*s,15*s):g.rect(px-12*s,py-20*s,tw+24*s,30*s);g.fill();g.fillStyle='#5a3a22';g.fillText(txt,px,py);
+    const fl=$('#flash');fl.classList.add('on');setTimeout(()=>fl.classList.remove('on'),60);try{if(typeof chime==='function')chime();}catch(e){}
+    shotBlob=await new Promise(r=>c.toBlob(r,'image/jpeg',.92));if(shotUrl)URL.revokeObjectURL(shotUrl);shotUrl=URL.createObjectURL(shotBlob);$('#shotImg').src=shotUrl;setTimeout(()=>openSheet('shotBox'),250);
+  }catch(e){toast('사진을 찍지 못했어요');}}
+const shotName=()=>{const d=new Date();return `몽원학당_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}_${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}.jpg`;};
+$('#shotBtn').addEventListener('click',takeShot);$('#camShot').addEventListener('click',takeShot);
+$('#shotShare').addEventListener('click',async()=>{if(!shotBlob)return;const f=new File([shotBlob],shotName(),{type:'image/jpeg'});try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'몽원학당'});return;}}catch(e){if(e&&e.name==='AbortError')return;}$('#shotDl').click();});
+$('#shotDl').addEventListener('click',()=>{if(!shotUrl)return;const a=document.createElement('a');a.href=shotUrl;a.download=shotName();document.body.appendChild(a);a.click();a.remove();});
