@@ -67,7 +67,7 @@
       canSendToClaudeSession:async()=>'off'};}
 
   window.__cloudDM={ready:()=>!!(uid&&joined),
-    send(to,msg){const r=fdb.ref('dm/'+to).push();return r.set({by:uid,to,t:String(msg.t||'').slice(0,300),g:String(msg.g||'').slice(0,600),ts:Date.now()});},
+    send(to,msg){const r=fdb.ref('dm/'+to).push();return r.set({by:uid,to,t:String(msg.t||'').slice(0,300),g:String(msg.g||'').slice(0,2500),ts:Date.now()});},
     listen(cb){const t0=Date.now()-6*3600e3;fdb.ref('dm/'+uid).on('child_added',s=>{const v=s.val();const k=s.key;if(v&&v.by&&(v.ts||0)>t0){try{cb(v);}catch(e){}}fdb.ref('dm/'+uid+'/'+k).remove().catch(()=>{});},()=>{});}};
   window.__cloudAdmin={
     async kick(id,nick){await fdb.ref('bans/'+id).set({ts:Date.now(),nick:String(nick||'').slice(0,12)});
