@@ -120,7 +120,7 @@ $('#action').addEventListener('click',()=>gAct&&gAct());
 const DATA={board:LS.get('local.board',[]),logs:LS.get('local.logs',[]),books:LS.get('local.books',[]),playlist:LS.get('local.playlist',[])};
 let DB=null,USER=null,ROOM=null,MYID='me',CANWRITE=true,MODE='local',PEERS=[];const NAMES={};
 const LIM={board:150,logs:400,books:200,playlist:200};
-function onData(col){if(col==='playlist'){renderPlaylist();renderTicker();notifyNewSongs();}if(col==='board'){renderBoard();updateBoard3D();}if(col==='logs'||col==='books')renderRecords();resolveNames(DATA[col].map(d=>d.by));}
+function onData(col){if(col==='playlist'){renderPlaylist();renderTicker();notifyNewSongs();}if(col==='board'){renderBoard();updateBoard3D();updateBdDot();}if(col==='logs'||col==='books')renderRecords();resolveNames(DATA[col].map(d=>d.by));}
 async function initCloud(){const C=window.claude;if(!C||!C.use){updateConn();return;}
   let db=null,user=null,room=null;try{[db,user,room]=await Promise.all([C.use('db').catch(()=>null),C.use('user').catch(()=>null),C.use('room').catch(()=>null)]);}catch(e){}
   USER=user;if(user){try{MYID=(await user.id())||'me';}catch(e){}try{const c=await user.can('data.write');CANWRITE=c!==false;}catch(e){}}
@@ -197,7 +197,7 @@ function renderTogether(){if($('#records').classList.contains('show')&&recTab===
 
 /* ---------- sheets ---------- */
 function openSheet(id){closeSheets();if(id==='books'){recTab='books';id='records';}const el=$('#'+id);if(!el)return;el.classList.add('show');
-  if(id==='records')renderRecords();if(id==='conn')renderAdmin();if(id==='wardrobe')renderWardrobe();if(id==='playlist'){LS.set('plSeen',Date.now());renderPlaylist();renderTicker();}if(id==='sound')renderSoundUI();if(id==='stamp'){calM=null;$('#stMemo').value='';renderStamp();}if(id==='board'){renderBoard();$('#bWrite').style.display=(MODE==='shared'&&!CANWRITE)?'none':'';}if(id==='me'){$('#nickEdit').value=ST.nick||'';renderAvatars();}if(id==='map')$$('#mapList button').forEach(b=>b.classList.toggle('here',b.dataset.go===ST.space));if(id==='menu')updateMe();}
+  if(id==='records')renderRecords();if(id==='conn')renderAdmin();if(id==='wardrobe')renderWardrobe();if(id==='playlist'){LS.set('plSeen',Date.now());renderPlaylist();renderTicker();}if(id==='sound')renderSoundUI();if(id==='stamp'){calM=null;$('#stMemo').value='';renderStamp();}if(id==='board'){LS.set('bdSeen',Date.now());updateBdDot();renderBoard();$('#bWrite').style.display=(MODE==='shared'&&!CANWRITE)?'none':'';}if(id==='me'){$('#nickEdit').value=ST.nick||'';renderAvatars();}if(id==='map')$$('#mapList button').forEach(b=>b.classList.toggle('here',b.dataset.go===ST.space));if(id==='menu')updateMe();}
 function closeSheets(){$$('.modal').forEach(m=>m.classList.remove('show'));}
 $$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m||e.target.closest('[data-close]'))closeSheets();else if(e.target.closest('[data-back]'))openSheet('menu');}));
 $('#menuBtn').addEventListener('click',()=>openSheet('menu'));
@@ -218,6 +218,8 @@ let toastT;function toast(h){const t=$('#toast');t.innerHTML=h;t.classList.add('
 
 /* ---------- faces ---------- */
 function renderFaces(){$('#facePop').innerHTML='<button data-look="1"><span>🪞</span>얼굴 보기</button>'+FACES.map(f=>`<button data-fx="${f[0]}" class="${f[0]===ST.fx?'on':''}"><span>${f[1]}</span>${f[2]}</button>`).join('');$('#faceBtn').textContent=(FACES.find(f=>f[0]===ST.fx)||FACES[0])[1];}
+function updateBdDot(){const seen=LS.get('bdSeen',0);const n=(DATA.board||[]).some(d=>d.ts>seen&&d.by!==MYID);$('#bdDot').hidden=!n;}
+$('#boardBtn').addEventListener('click',()=>{$('#facePop').classList.remove('show');if(ST.space!=='dorm'){enterSpace('dorm',{x:-5.6,z:-0.8});setTimeout(()=>{me.root.rotation.y=Math.atan2(-1,-1);openSheet('board');},950);}else openSheet('board');});
 $('#faceBtn').addEventListener('click',()=>{renderFaces();$('#facePop').classList.toggle('show');});
 $('#facePop').addEventListener('click',e=>{if(e.target.closest('[data-look]')){showFace(6000);$('#facePop').classList.remove('show');return;}const b=e.target.closest('[data-fx]');if(!b)return;ST.fx=b.dataset.fx;showFace(4200);LS.set('fx',ST.fx);renderFaces();pushPresence(true);setTimeout(()=>$('#facePop').classList.remove('show'),250);});
 canvas.addEventListener('pointerdown',()=>$('#facePop').classList.remove('show'));renderFaces();
