@@ -29,7 +29,7 @@ function dmInbox(){const el=$('#dmInbox');if(!el)return;const ids=Object.keys(lo
 /* ====================== 놀이마당 ====================== */
 const GAMES=[
  {id:'rps',ico:'✊',name:'가위바위보',desc:'해태랑은 세 판 두 승. 다같이 하면 지는 사람이 탈락, 끝까지 남으면 승리!',ai:true,pvp:true},
- {id:'yut',ico:'🎋',name:'윷놀이',desc:'말 두 개를 먼저 다 들여보내면 승리. 윷·모·잡기는 한 번 더! 여럿이 차례대로 던져요.',ai:true,pvp:true},
+ {id:'yut',ico:'🎋',name:'윷놀이',desc:'말 4개를 먼저 다 완주하면 승리! 윷·모·잡기는 한 번 더, 모서리에 딱 멈추면 지름길. 다같이 하면 개인전·팀전(청팀/홍팀)을 골라요.',ai:true,pvp:true},
  {id:'cham',ico:'👉',name:'참참참',desc:'해태 손가락과 다른 쪽으로 피해요. 다섯 판, 적게 맞으면 승리!',ai:true,pvp:true},
  {id:'omok',ico:'⚫',name:'오목',desc:'돌 다섯 개를 한 줄로 먼저 놓으면 승리! 3·3은 금지. 다같이 하면 여러 색 돌로 차례대로 둬요.',ai:true,pvp:true},
  {id:'rumi',ico:'🔢',name:'숫자패 놀이',desc:'루미큐브 방식! 같은 색 연속 숫자나 같은 숫자 다른 색으로 3장 이상 묶어 내려놓고, 손패를 먼저 다 털면 승리. (2~4명)',pvp:true},
@@ -56,7 +56,7 @@ function hostInvite(game,ids){if(!ids.length){toast('함께할 친구를 골라 
   openSheet('gPlay');$('#gPlayT').textContent=(GAMES.find(g=>g.id===game)||{}).name;lobby();}
 function lobby(){if(!N)return;const g=GAMES.find(x=>x.id===N.game);
   if(N.isHost){const rows=[MYID,...N.invited].map(id=>{const st=id===MYID||N.joined.includes(id)?'✅ 참가':N.no.includes(id)?'🙅 다음에':'⏳ 기다리는 중';return `<div class="frRow"><span><b>${E(id===MYID?(ST.nick||'나')+' (방장)':NM(id))}</b></span><small>${st}</small></div>`;}).join('');
-    PB().innerHTML=`<div class="gMsg">${g.ico} ${g.name} 대기실</div>${rows}<button class="primary" id="gStart" ${N.joined.length<2?'disabled':''} style="margin-top:12px">${N.joined.length<2?'친구가 들어오길 기다려요…':`🎉 ${N.joined.length}명이서 시작하기`}</button>`;}
+    PB().innerHTML=`<div class="gMsg">${g.ico} ${g.name} 대기실</div>${N.game==='yut'?yLobby():rows}<button class="primary" id="gStart" ${N.joined.length<2?'disabled':''} style="margin-top:12px">${N.joined.length<2?'친구가 들어오길 기다려요…':`🎉 ${N.joined.length}명이서 시작하기`}</button>`;}
   else PB().innerHTML=`<div class="gMsg">${g.ico} ${g.name}</div><div class="empty" style="text-align:center">✅ 참가했어요!<br><b>${E(NM(N.host))}</b>님이 시작하면 바로 놀이가 열려요.</div>`;}
 function announce(){const v=N&&N.isHost&&!N.local&&N.s&&!N.s.win?`${N.gid}|${N.game}|${N.s.pl.length}`:'';if(window.__myGame!==v){window.__myGame=v;try{pushPresence(true);}catch(e){}}}
 function bcast(){if(!N||!N.isHost)return;N.s.v=(N.s.v||0)+1;N.s.pl.forEach(id=>{if(id===MYID||id==='AI')return;const msg={k:'st',gid:N.gid,game:N.game,s:N.s};if(N.priv)msg.hand=N.priv.hands[id]||[];sendG(id,msg);});(N.watchers||[]).forEach(id=>sendG(id,{k:'st',gid:N.gid,game:N.game,s:N.s,spec:1}));if(N.priv)N.hand=N.priv.hands[MYID]||[];nRender();announce();if(N.local)aiTurn();if(N.game==='rumi'&&!N.s.win){clearTimeout(rumiT);const s=N.s,v=s.v,cur=s.pl[s.turn];rumiT=setTimeout(()=>{if(N&&N.s===s&&s.v===v&&!s.win){s.msg=`${nm2(cur)} 시간 초과 · 자동으로 한 장`;hostAct(cur,{k:'draw'});}},150000);}}
@@ -80,7 +80,7 @@ const COL=['#c4384a','#2a5a9a','#3f8a5a','#c88a2a','#8a5ab8','#3a8a9a'];
 /* --- 방장: 판 만들기 --- */
 function newState(game,pl){const s={pl,win:null,msg:''};
   if(game==='rps')Object.assign(s,{r:1,alive:pl.slice(),pick:{},last:null});
-  if(game==='yut')Object.assign(s,{P:Object.fromEntries(pl.map(id=>[id,[0,0]])),turn:0,phase:'throw',n:null,f:[0,0,0,0]});
+  if(game==='yut')yNew(s,pl);
   if(game==='cham')Object.assign(s,{r:1,max:5,pick:{},hits:Object.fromEntries(pl.map(id=>[id,0])),last:null});
   if(game==='clock')Object.assign(s,{tg:[10,20,30],rd:0,phase:'ready',go:0,sub:{},tot:Object.fromEntries(pl.map(id=>[id,0])),hist:[]});
   if(game==='omok')Object.assign(s,{n:15,b:'.'.repeat(225),turn:0,last:-1});
@@ -93,8 +93,7 @@ let hostT=null;
 function hostAct(u,a){const s=N.s;if(!s||s.win)return;const g=N.game;
   if(g==='rps'){if(!s.alive.includes(u)||s.pick[u]!=null)return;s.pick[u]=a.c;rpsCheck();return;}
   if(g==='cham'){if(s.pick[u]!=null)return;s.pick[u]=a.c;chamCheck();return;}
-  if(g==='yut'){if(s.pl[s.turn]!==u)return;if(a.k==='throw'&&s.phase==='throw'){const t=throwYut();s.n=t.n;s.f=t.f;s.roll=(s.roll||0)+1;const mv=movableN(s,u,t.n);if(!mv.length){yutApplyN(s,u,t.n,-1);}else if(mv.length===1){yutApplyN(s,u,t.n,mv[0]);}else{s.phase='pick';s.msg=`${nm2(u)} · ${YN[t.n]}! 말을 골라요`;}bcast();return;}
-    if(a.k==='pick'&&s.phase==='pick'){yutApplyN(s,u,s.n,a.pc);bcast();return;}return;}
+  if(g==='yut'){yAct(u,a);return;}
   if(g==='clock'){if(a.k==='start'&&u===MYID&&s.phase!=='run'){clockGo(s);return;}if(a.k==='stop'&&s.phase==='run'&&a.go===s.go&&s.sub[u]==null){s.sub[u]=Math.max(0,+a.t||0);clockCheck(s);}return;}
   if(g==='omok'){if(s.pl[s.turn]!==u)return;const i=a.i;if(!(i>=0&&i<225)||s.b[i]!=='.')return;const me=String(s.turn);if(isDoubleThree(s.b,i,me)){if(u===MYID)toast('3·3은 둘 수 없어요 🙅');else if(u!=='AI')sendG(u,{k:'err',gid:N.gid,t:'3·3은 둘 수 없어요 🙅'});return;}s.b=s.b.slice(0,i)+me+s.b.slice(i+1);s.last=i;
     if(five(s.b,i,me)){s.win=[u];s.msg=`${nm2(u)} 오목 완성! 🎉`;}else if(!s.b.includes('.')){s.win=[];s.msg='무승부!';}else{s.turn=(s.turn+1)%s.pl.length;s.msg=`${nm2(s.pl[s.turn])} 차례`;}bcast();return;}
@@ -126,8 +125,8 @@ function lineAt(b,i,dx,dy,me){const n=15,x=i%n,y=Math.floor(i/n);let s='';for(le
 function openThree(line){const pats=['..XXX.','.XXX..','.XX.X.','.X.XX.'];for(const p of pats){for(let st=0;st+p.length<=11;st++){if(st>5||st+p.length<=5)continue;if(line.slice(st,st+p.length)!==p)continue;if(p[5-st]==='X')return true;}}return false;}
 function isDoubleThree(b,i,me){const nb=b.slice(0,i)+me+b.slice(i+1);if(five(nb,i,me))return false;let c=0;[[1,0],[0,1],[1,1],[1,-1]].forEach(([dx,dy])=>{if(openThree(lineAt(b,i,dx,dy,me)))c++;});return c>=2;}
 let clk=null;
-function aiTurn(){const s=N&&N.s;if(!s||s.win||s.pl[s.turn]!=='AI')return;setTimeout(()=>{if(!N||N.s!==s||s.win)return;if(N.game==='omok')hostAct('AI',{i:omokAI(s.b,String(s.turn))});if(N.game==='yeop')ypAI();},N.game==='yeop'?900:700);}
-function startLocalN(game){G=null;N={gid:'local'+Date.now(),game,host:MYID,isHost:true,local:true,joined:[MYID,'AI'],invited:[],no:[]};N.s=newState(game,[MYID,'AI']);N.celebrated=false;if(game!=='yeop')N.s.msg=game==='omok'?'내 차례 · 칸을 두 번 누르면 돌을 놓아요':'';openSheet('gPlay');bcast();}
+function aiTurn(){const s=N&&N.s;if(!s||s.win||s.pl[s.turn]!=='AI')return;setTimeout(()=>{if(!N||N.s!==s||s.win)return;if(N.game==='omok')hostAct('AI',{i:omokAI(s.b,String(s.turn))});if(N.game==='yeop')ypAI();if(N.game==='yut'){if(s.phase==='throw')hostAct('AI',{k:'throw'});else if(s.phase==='pick')hostAct('AI',{k:'pick',pc:yAIpick(s,'AI')});}},N.game==='yeop'?900:N.game==='yut'?900:700);}
+function startLocalN(game){G=null;N={gid:'local'+Date.now(),game,host:MYID,isHost:true,local:true,joined:[MYID,'AI'],invited:[],no:[]};N.s=newState(game,[MYID,'AI']);N.celebrated=false;if(game!=='yeop'&&game!=='yut')N.s.msg=game==='omok'?'내 차례 · 칸을 두 번 누르면 돌을 놓아요':'';openSheet('gPlay');bcast();}
 /* ====================== 엽전 거상 (스플렌더 방식) ====================== */
 const YPC=['#1f5fa8','#c8322c','#e3b021','#f2eee2','#2a2a2f','#d4a62a'];
 const YPN=['청','적','황','백','흑','금'];
@@ -273,14 +272,67 @@ function rpsCheck(){const s=N.s;const wait=s.alive.filter(u=>s.pick[u]==null);if
 function chamCheck(){const s=N.s;const wait=s.pl.filter(u=>s.pick[u]==null);if(wait.length){bcast();armTimer(()=>{if(!N||N.s!==s)return;wait.forEach(u=>{if(s.pick[u]==null)s.pick[u]=Math.random()<.5?'L':'R';});chamCheck();});return;}
   clearTimeout(hostT);const d=Math.random()<.5?'L':'R';const hit=s.pl.filter(u=>s.pick[u]===d);hit.forEach(u=>s.hits[u]++);s.last={d,pick:Object.assign({},s.pick),hit};s.pick={};s.r++;
   if(s.r>s.max){const mn=Math.min(...Object.values(s.hits));s.win=Object.keys(s.hits).filter(k=>s.hits[k]===mn);}bcast();}
-function movableN(s,u,n){const P=s.P[u];const r=[],seen=new Set();P.forEach((p,i)=>{if(p>=YEND)return;if(n===-1&&p===0)return;if(seen.has(p))return;seen.add(p);r.push(i);});return r;}
-function yutApplyN(s,u,n,pc){let extra=n===4||n===5;let msg=`${nm2(u)} · ${YN[n]}!`;
-  if(pc>=0){const P=s.P[u],from=P[pc];const to=yMove(from,n);P.forEach((p,i)=>{if(p===from&&(from>0||i===pc))P[i]=to;});
-    if(to>0&&to<YEND){const caught=s.pl.filter(o=>o!==u&&s.P[o].some(p=>p===to));if(caught.length){caught.forEach(o=>s.P[o]=s.P[o].map(p=>p===to?0:p));extra=true;msg+=` ${caught.map(nm2).join(', ')} 잡았다! 🎉`;}}
-    if(to>=YEND)msg+=' 골인! 🏁';else if(to===22)msg+=' 방에 쏙! 🎯';}else msg+=' 움직일 말이 없어요';
-  if(s.P[u].every(p=>p>=YEND)){s.win=[u];s.msg=msg;return;}
-  if(!extra)s.turn=(s.turn+1)%s.pl.length;else msg+=' 한 번 더!';s.phase='throw';s.msg=msg+(extra?'':` → ${nm2(s.pl[s.turn])} 차례`);}
-function hostLeft(u){const s=N.s;if(!s)return;toast(`${E(NM(u))}님이 나갔어요`);const ti=s.pl.indexOf(u);const cur=s.pl[s.turn];s.pl=s.pl.filter(x=>x!==u);if(s.Y&&ti>=0)s.Y.splice(ti,1);
+const YA={'-1':'🔙',1:'🐷',2:'🐶',3:'🐑',4:'🐮',5:'🐴'};
+const YTN=['청팀','홍팀'],YTC=['#2a62a8','#c8392f'];
+function yNew(s,pl){const o=N.opt||{};const team=!!o.team&&pl.length>=3;let sides;
+  if(team){const tm=o.tm||{};let a=pl.filter((id,i)=>(tm[id]!=null?tm[id]:i%2)===0),b=pl.filter((id,i)=>(tm[id]!=null?tm[id]:i%2)===1);if(!a.length||!b.length){a=pl.filter((x,i)=>i%2===0);b=pl.filter((x,i)=>i%2===1);}sides=[a,b];}
+  else sides=pl.map(id=>[id]);
+  Object.assign(s,{team,sides,P:sides.map(()=>[0,0,0,0]),Q:sides.map(()=>[0,0,0,0]),side:0,ptr:sides.map(()=>0),turn:pl.indexOf(sides[0][0]),phase:'throw',n:null,f:[0,0,0,0],roll:0,fx:'',fxk:0,mv:-1,mvk:0,msg:`${nm2(sides[0][0])} 차례 · 윷을 던져요!`});}
+const ySide=(s,u)=>s.sides.findIndex(t=>t.includes(u));
+const yName=(s,sd)=>s.team?YTN[sd]:nm2(s.sides[sd][0]);
+const yCol=(s,sd)=>s.team?YTC[sd]:COL[sd%COL.length];
+function yCurFix(s){const t=s.sides[s.side];if(!t||!t.length)return;s.ptr[s.side]%=t.length;s.turn=s.pl.indexOf(t[s.ptr[s.side]]);}
+function yNext(s){const t=s.sides[s.side];if(t&&t.length)s.ptr[s.side]=(s.ptr[s.side]+1)%t.length;const n=s.sides.length;for(let k=1;k<=n;k++){const sd=(s.side+k)%n;if(s.sides[sd].length&&s.P[sd].some(p=>p<YEND)){s.side=sd;break;}}yCurFix(s);}
+function yMovable(s,sd,n){const P=s.P[sd];const r=[],seen=new Set();P.forEach((p,i)=>{if(p>=YEND)return;if(n===-1&&p===0)return;if(seen.has(p))return;seen.add(p);r.push(i);});return r;}
+function yAct(u,a){const s=N.s;if(s.pl[s.turn]!==u)return;const sd=ySide(s,u);if(sd<0)return;
+  if(a.k==='throw'&&s.phase==='throw'){const t=throwYut();s.n=t.n;s.f=t.f;s.roll=(s.roll||0)+1;s.phase='toss';s.fx='';s.msg=`${nm2(u)} 윷을 던졌어요!`;bcast();const r=s.roll;
+    clearTimeout(hostT);hostT=setTimeout(()=>{if(!N||N.s!==s||s.roll!==r||s.win||s.phase!=='toss')return;const mv=yMovable(s,sd,s.n);if(mv.length<=1)yApply(s,u,mv.length?mv[0]:-1);else{s.phase='pick';s.msg=`${nm2(u)} · ${YN[s.n]}! 움직일 말을 골라요`;}bcast();},1250);return;}
+  if(a.k==='pick'&&s.phase==='pick'){const i=+a.pc;if(!yMovable(s,sd,s.n).some(k=>s.P[sd][k]===s.P[sd][i]))return;yApply(s,u,i);bcast();}}
+function yApply(s,u,pc){const sd=ySide(s,u),n=s.n;let extra=n===4||n===5;let msg=`${nm2(u)} · ${YN[n]}!`;s.fx=n===5?'mo':n===4?'yut':n===-1?'back':'';
+  if(pc>=0){const P=s.P[sd],Q=s.Q[sd],from=P[pc];const m=yMv(from,n,Q[pc]);const grp=[];P.forEach((p,i)=>{if(i===pc||(from>0&&p===from))grp.push(i);});grp.forEach(i=>{P[i]=m.to;Q[i]=m.prev;});s.mv=m.to;s.mvk=(s.mvk||0)+1;
+    if(m.to>0&&m.to<YEND){const caught=new Set();let cn=0;s.P.forEach((OP,os)=>{if(os===sd)return;OP.forEach((p,i)=>{if(p===m.to){OP[i]=0;s.Q[os][i]=0;caught.add(os);cn++;}});});
+      if(caught.size){extra=true;s.fx='catch';msg+=` ${[...caught].map(os=>yName(s,os)).join(', ')} 말 ${cn}개를 잡았다! 🎉`;}
+      else{const st=P.filter(p=>p===m.to).length;if(st>1)msg+=` 업었다! 🐎×${st}`;}
+      if(m.to===22)msg+=' · 방에 쏙! 🎯';else if((m.to===5||m.to===10)&&n!==-1)msg+=' · 모서리에 딱! 다음엔 지름길';else if(m.to===YJ)msg+=' · 참먹이! 한 번만 더 가면 골인';}
+    if(m.to>=YEND){msg+=` ${grp.length>1?grp.length+'개 ':''}골인! 🏁`;if(s.fx!=='catch')s.fx=extra?s.fx:'goal';}}
+  else msg+=n===-1?' 판 위에 말이 없어서 그냥 넘어가요':' 움직일 말이 없어요';
+  s.fxk=(s.fxk||0)+1;
+  if(s.P[sd].every(p=>p>=YEND)){s.win=s.sides[sd].slice();s.phase='end';s.msg=msg+` · ${s.team?YTN[sd]+' ':''}말 4개 모두 완주!`;return;}
+  if(extra)msg+=' 한 번 더!';else yNext(s);
+  s.phase='throw';s.msg=msg+(extra?'':` → ${nm2(s.pl[s.turn])} 차례`);}
+function yAIpick(s,u){const sd=ySide(s,u),P=s.P[sd],Q=s.Q[sd];let best=-1,bs=-1e9;
+  yMovable(s,sd,s.n).forEach(i=>{const from=P[i];const to=yMv(from,s.n,Q[i]).to;let v=yLeft(from)-yLeft(to);
+    if(to>0&&to<YEND&&s.P.some((OP,os)=>os!==sd&&OP.includes(to)))v+=40;if(to>=YEND)v+=25;if(to===22||to===5||to===10)v+=6;if(to>0&&to<YEND&&P.some((q,k)=>k!==i&&q===to))v+=3;
+    if(to>0&&to<YEND&&s.P.some((OP,os)=>os!==sd&&OP.some((q,k)=>q>0&&q<YEND&&[1,2,3,4,5].some(t=>yMv(q,t,s.Q[os][k]).to===to))))v-=8;
+    if(v>bs){bs=v;best=i;}});return best;}
+function yLeftOut(u){const s=N.s;s.sides.forEach(t=>{const k=t.indexOf(u);if(k>=0)t.splice(k,1);});const alive=s.sides.map((t,i)=>t.length?i:-1).filter(i=>i>=0);
+  if(alive.length<2&&!s.win){s.win=alive.length?s.sides[alive[0]].slice():[];s.msg='상대가 모두 나가서 놀이가 끝났어요';return;}
+  if(!s.sides[s.side].length){yNext(s);if(s.phase!=='throw'&&s.phase!=='end'){s.phase='throw';}}else yCurFix(s);}
+function yTeamOf(id){const tm=(N.opt&&N.opt.tm)||{};if(tm[id]!=null)return tm[id];const i=N.joined.indexOf(id);return i<0?-1:i%2;}
+function yLobby(){const o=N.opt||{};const can=N.joined.length>=3;const team=!!o.team&&can;const ids=[MYID,...N.invited];
+  let h=`<div class="yMode"><button class="${team?'':'on'}" data-ymode="solo">🙋 개인전</button><button class="${team?'on':''}" data-ymode="team" ${can?'':'disabled'}>🤝 팀전${can?'':' · 3명부터'}</button></div>`;
+  if(team)h+=`<div class="yTeams">${[0,1].map(k=>`<div class="yTeamCol" style="--c:${YTC[k]}"><b>${YTN[k]}</b>${N.joined.filter(id=>yTeamOf(id)===k).map(id=>`<button class="yTm" data-ytm="${id}">${E(id===MYID?(ST.nick||'나'):NM(id))} ⇄</button>`).join('')||'<small>비었어요</small>'}</div>`).join('')}</div><div class="gMsg sm">이름을 누르면 팀을 바꿔요 · 팀끼리 말 4개를 함께 써요</div>`;
+  return h+ids.map(id=>`<div class="frRow"><span><b>${E(id===MYID?(ST.nick||'나')+' (방장)':NM(id))}</b></span><small>${id===MYID||N.joined.includes(id)?'✅ 참가':N.no.includes(id)?'🙅 다음에':'⏳ 기다리는 중'}</small></div>`).join('');}
+function yStickH(s,toss){const k=s.roll||0;const sticks=(s.f||[0,0,0,0]).map((v,i)=>{const r=((k*37+i*71)%9-4)*7;const x=((k*13+i*29)%7-3)*5;return `<i class="${v?'f':'b'} ${i===0?'mk':''}" style="--d:${(i*.07).toFixed(2)}s;--r:${r+(i%2?1080:-1080)}deg;--rf:${r}deg;--x:${x}px;--h:${150+((k+i*3)%4)*25}px"></i>`;}).join('');
+  const showRes=s.n!=null&&s.phase!=='toss';const pop=showRes&&N.yRes!==s.roll;
+  return `<div class="yThrowRow"><div class="ySticks ${toss?'toss':''} ${s.n==null?'idle':''}">${sticks}</div><div class="yRes ${s.n===-1?'bk':''} ${s.n>=4?'big':''} ${pop?'pop':''} ${showRes?'':'dim'}">${showRes?`<span class="yAni">${YA[s.n]}</span>${YN[s.n]}!`:'　'}</div></div>`;}
+function yView(s){const msd=ySide(s,MYID);const my=s.pl[s.turn]===MYID&&!N.spec&&!s.win;const pick=my&&s.phase==='pick';const mv=pick?yMovable(s,msd,s.n):[];
+  if(!pick||N.ysel==null||!mv.some(k=>s.P[msd][k]===s.P[msd][N.ysel]))N.ysel=pick&&N.ysel!=null&&mv.some(k=>s.P[msd][k]===s.P[msd][N.ysel])?N.ysel:null;
+  const hop=N.yHop!==s.mvk;const selP=N.ysel!=null?s.P[msd][N.ysel]:null;
+  const tk=[];s.P.forEach((P,sd)=>{const grp={};P.forEach((p,i)=>{if(p>0&&p<YEND)(grp[p]=grp[p]||[]).push(i);});Object.entries(grp).forEach(([p,ids])=>{p=+p;const [x,y]=yXY(p);const can=pick&&sd===msd&&mv.some(k=>s.P[sd][k]===p);const off=(sd-(s.P.length-1)/2)*7;
+    tk.push(`<b class="yt ${can?'can':''} ${sd===msd&&selP===p?'sel':''} ${hop&&p===s.mv?'hop':''}" ${can?`data-ysel="${ids[0]}"`:''} style="background:${yCol(s,sd)};left:calc(${8+x*84}% + ${off}px);top:calc(${8+y*84}% + ${off}px)">${s.team?YTN[sd][0]:E(nm2(s.sides[sd][0]||'').slice(0,1))}${ids.length>1?`<sup>×${ids.length}</sup>`:''}</b>`);});});
+  let dest='';if(pick&&N.ysel!=null){const m=yMv(selP,s.n,s.Q[msd][N.ysel]);const [x,y]=m.to>=YEND?cellXY(0):yXY(m.to);dest=`<i class="ydest" data-ydest="1" style="left:${8+x*84}%;top:${8+y*84}%">${m.to>=YEND?'골인':m.to===0?'출발':'여기'}</i>`;}
+  const sidesH=s.sides.map((t,sd)=>{const P=s.P[sd];const home=P.map((p,i)=>({p,i})).filter(o=>o.p===0);const done=P.filter(p=>p>=YEND).length;const on=P.filter(p=>p>0&&p<YEND).length;const canHome=pick&&sd===msd&&s.n!==-1&&home.length>0;
+    return `<div class="ySide ${sd===s.side&&!s.win?'cur':''} ${!t.length?'gone':''}" style="--c:${yCol(s,sd)}"><div class="ySideH"><b>${s.team?YTN[sd]:E(nm2(t[0]||''))}${sd===msd?' (나)':''}</b>${s.team?`<small>${t.map(id=>E(nm2(id))).join(' · ')}</small>`:''}</div><div class="ySideP">${home.map((o,k)=>`<b class="yp ${canHome&&k===0?'can':''} ${canHome&&k===0&&N.ysel===o.i?'sel':''}" ${canHome&&k===0?`data-ysel="${o.i}"`:''}></b>`).join('')}${'<b class="yp on"></b>'.repeat(on)}${'<b class="yp done">✓</b>'.repeat(done)}</div></div>`;}).join('');
+  const cur=s.pl[s.turn];const tossNow=s.phase==='toss'&&N.yToss!==s.roll;const fxNow=!!s.fx&&s.phase!=='toss'&&N.yFx!==s.fxk;
+  const fxT={mo:'모다! 🐴',yut:'윷이야! 🐮',catch:'잡았다! 💥',goal:'골인! 🏁',back:'빽도! 🔙'}[s.fx]||'';
+  const btn=s.win?winLine(s):`<button class="primary" id="nThrow" ${my&&s.phase==='throw'?'':'disabled'}>${my?(s.phase==='pick'?(N.ysel!=null?'👆 한 번 더 누르면 움직여요':'👆 움직일 말을 눌러요'):s.phase==='toss'?'🎋 휘리릭…':'🎋 윷 던지기'):`${E(nm2(cur))}${s.team?` (${YTN[ySide(s,cur)]})`:''} 차례`}</button>`;
+  return `<div class="ySides">${sidesH}</div><div class="yBoard ${fxNow&&['mo','yut','catch'].includes(s.fx)?'shake':''}">${yCells()}${tk.join('')}${dest}${fxNow?`<div class="yFx f-${s.fx}">${fxT}</div>`:''}</div>`
+    +yStickH(s,tossNow)+`<div class="gMsg sm">${E(s.msg||'')}</div>`+btn+`<div class="yRule">윷·모·잡기는 한 번 더 · 모서리나 방에 딱 멈추면 지름길 · 참먹이를 지나야 골인 · 빽도는 지나온 길로 한 칸 (판에 말이 없으면 넘어가요)</div>`;}
+function yClack(){if(typeof actx==='undefined'||!actx||!SND.on)return;const t=actx.currentTime;tinkle(520,t,.04,master,.12);[.78,.86,.93,1.01].forEach((d,i)=>tinkle(260+i*55,t+d,.06,master,.09));}
+function yAfterRender(s){if(s.phase==='toss'&&N.yToss!==s.roll){N.yToss=s.roll;try{yClack();}catch(e){}}if(s.n!=null&&s.phase!=='toss')N.yRes=s.roll;
+  if(s.fx&&s.phase!=='toss'&&N.yFx!==s.fxk){N.yFx=s.fxk;if(['mo','yut','catch','goal'].includes(s.fx)){try{chime();}catch(e){}try{navigator.vibrate&&navigator.vibrate(s.fx==='catch'?[60,40,60]:70);}catch(e){}}}N.yHop=s.mvk;}
+function hostLeft(u){const s=N.s;if(!s)return;toast(`${E(NM(u))}님이 나갔어요`);if(N.game==='yut'&&s.sides){s.pl=s.pl.filter(x=>x!==u);yLeftOut(u);bcast();return;}const ti=s.pl.indexOf(u);const cur=s.pl[s.turn];s.pl=s.pl.filter(x=>x!==u);if(s.Y&&ti>=0)s.Y.splice(ti,1);
   if(s.alive)s.alive=s.alive.filter(x=>x!==u);if(s.P)delete s.P[u];if(s.pick)delete s.pick[u];if(s.hits)delete s.hits[u];if(s.sc)delete s.sc[u];
   if(s.turn!=null){const ni=s.pl.indexOf(cur);s.turn=ni>=0?ni:(ti%Math.max(1,s.pl.length));}
   if(s.pl.length<2&&!s.win)s.win=s.pl.slice();else if(N.game==='rps'){if(s.alive.length===1)s.win=[s.alive[0]];else rpsCheck();return;}else if(N.game==='cham'){chamCheck();return;}
@@ -298,12 +350,7 @@ function nRender(){if(!N||!N.s)return;const s=N.s;const el=PB();if(!$('#gPlay').
     el.innerHTML=chips(s,id=>s.pick[id]!=null?'done':'')+`<div class="nScore">${s.pl.map(id=>`<span>${E(nm2(id))} <b>${s.hits[id]}</b>대</span>`).join('')}</div>`
       +(s.last?`<div class="chamStage"><div class="chamHand ${s.last.d}">${s.last.d==='L'?'👈':'👉'}</div></div><div class="gMsg">${s.last.hit.length?`${s.last.hit.map(nm2).join(', ')} 걸렸다! 😵`:'모두 피했어요! 😆'}</div>`:'<div class="chamStage"><div class="chamHand">☝️</div></div><div class="gMsg">해태 손가락을 피해요! 적게 맞은 사람이 승리</div>')
       +(s.win?winLine(s):N.spec?`<div class="gMsg sm">${Math.min(s.r,s.max)}/${s.max}판 · 👀 구경 중</div>`:`<div class="gMsg sm">${Math.min(s.r,s.max)}/${s.max}판 · ${picked?'다른 친구들 기다리는 중…':'어느 쪽으로 피할까?'}</div><div class="rpsBtns two"><button data-ncham="L" ${picked?'disabled':''}>⬅️<small>왼쪽</small></button><button data-ncham="R" ${picked?'disabled':''}>➡️<small>오른쪽</small></button></div>`);}
-  if(N.game==='yut'){const my=s.pl[s.turn]===MYID;const cells=yCells();
-    const tk=[];s.pl.forEach((id,pi)=>{const grp={};(s.P[id]||[]).forEach((p,i)=>{if(p>0&&p<YEND)(grp[p]=grp[p]||[]).push(i);});Object.entries(grp).forEach(([p,ids])=>{const [x,y]=yXY(+p);const can=my&&s.phase==='pick'&&id===MYID;const off=(pi-(s.pl.length-1)/2)*22;
-      tk.push(`<b class="yt ${can?'can':''}" ${can?`data-npc="${ids[0]}"`:''} style="background:${COL[pi%COL.length]};left:calc(${8+x*84}% + ${off}px);top:${8+y*84}%;transform:translate(-50%,-50%)">${E(nm2(id).slice(0,1))}${ids.length>1?'<sup>×2</sup>':''}</b>`);});});
-    const homes=s.pl.map((id,pi)=>`<span class="nChip ${pi===s.turn?'cur':''}" style="--c:${COL[pi%COL.length]}">${E(nm2(id))} ${(s.P[id]||[]).map((p,i)=>p===0?`<b class="dotp ${my&&s.phase==='pick'&&id===MYID?'can':''}" ${my&&s.phase==='pick'&&id===MYID?`data-npc="${i}"`:''}>●</b>`:p>=YEND?'✓':'○').join('')}</span>`).join('');
-    el.innerHTML=`<div class="nPl">${homes}</div><div class="yBoard">${cells}${tk.join('')}</div>${ySticksH(s.f,false,s.n,s.roll)}<div class="gMsg sm">${E(s.msg||'')}</div>`
-      +(s.win?winLine(s):`<button class="primary" id="nThrow" ${my&&s.phase==='throw'?'':'disabled'}>${my?(s.phase==='pick'?'👆 움직일 말을 눌러요':'🎋 윷 던지기'):`${E(nm2(s.pl[s.turn]))} 차례`}</button>`);}
+  if(N.game==='yut'){el.innerHTML=yView(s);yAfterRender(s);return;}
   if(N.game==='clock'){const inP=s.pl.includes(MYID)&&!N.spec;const tg=s.tg[Math.min(s.rd,s.tg.length-1)];
     if(s.phase==='run'&&(!clk||clk.go!==s.go||clk.gid!==N.gid)){if(clk)clearInterval(clk.iv);clk={go:s.go,gid:N.gid,t0:performance.now(),stopped:null};}
     const sec=v=>v<0?'시간초과':(v/1000).toFixed(2)+'초';let body='';
@@ -362,15 +409,18 @@ const YN={'-1':'빽도',1:'도',2:'개',3:'걸',4:'윷',5:'모'};
 const YEND=30;
 function throwYut(){const r=Math.random();const W=[[-1,.12],[1,.2],[2,.25],[3,.21],[4,.12],[5,.1]];let a=0,n=2;for(const [k,w] of W){a+=w;if(r<a){n=k;break;}}
   let f;if(n===-1)f=[1,0,0,0];else if(n===5)f=[0,0,0,0];else if(n===4)f=[1,1,1,1];else{const pos=n===1?[1,2,3]:[0,1,2,3];f=[0,0,0,0];ypShuf(pos).slice(0,n).forEach(i=>f[i]=1);}return {n,f};}
-function yRoute(f){const O=k=>{const r=[];for(let x=k;x<=19;x++)r.push(x);r.push(YEND);return r;};
-  if(f===5)return [20,21,22,23,24,...O(15)];if(f===10)return [25,26,22,27,28,YEND];if(f===22)return [27,28,YEND];
+const YJ=29;
+function yRoute(f){const O=k=>{const r=[];for(let x=k;x<=19;x++)r.push(x);r.push(YJ,YEND);return r;};const IN=[27,28,YJ,YEND];
+  if(f===YJ)return [YEND];if(f===5)return [20,21,22,23,24,...O(15)];if(f===10)return [25,26,22,...IN];if(f===22)return IN.slice();
   if(f===20)return [21,22,23,24,...O(15)];if(f===21)return [22,23,24,...O(15)];if(f===23)return [24,...O(15)];if(f===24)return O(15);
-  if(f===25)return [26,22,27,28,YEND];if(f===26)return [22,27,28,YEND];if(f===27)return [28,YEND];if(f===28)return [YEND];
+  if(f===25)return [26,22,...IN];if(f===26)return [22,...IN];if(f===27)return [28,YJ,YEND];if(f===28)return [YJ,YEND];
   return O(f+1);}
-const YBACK={1:0,20:5,21:20,22:21,23:22,24:23,25:10,26:25,27:22,28:27};
-function yMove(from,n){if(n===-1)return from in YBACK?YBACK[from]:Math.max(0,from-1);const r=yRoute(from);return n-1<r.length?r[n-1]:YEND;}
-function yLeft(p){return p>=YEND?0:yRoute(p).length;}
-function yXY(p){if(p<20)return cellXY(p);const L=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];const C=[.5,.5];
+const YBACK={1:YJ,20:5,21:20,22:21,23:22,24:23,25:10,26:25,27:22,28:27,[YJ]:19};
+function yMv(from,n,prev){if(n===-1){const to=prev>0&&prev<YEND?prev:(from in YBACK?YBACK[from]:Math.max(0,from-1));return {to,prev:0};}
+  const r=yRoute(from);const to=n-1<r.length?r[n-1]:YEND;const pv=n>=2?r[n-2]:(from>0?from:0);return {to,prev:pv};}
+function yMove(from,n){return yMv(from,n).to;}
+function yLeft(p){return p>=YEND?0:p===0?31:yRoute(p).length;}
+function yXY(p){if(p===YJ)return cellXY(0);if(p<20)return cellXY(p);const L=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];const C=[.5,.5];
   return {20:L([1,0],C,1/3),21:L([1,0],C,2/3),22:C,23:L(C,[0,1],1/3),24:L(C,[0,1],2/3),25:L([0,0],C,1/3),26:L([0,0],C,2/3),27:L(C,[1,1],1/3),28:L(C,[1,1],2/3)}[p];}
 function yCells(){let c=`<svg class="yLines" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M8 8H92V92H8Z M8 8L92 92 M92 8L8 92" stroke="#b8946a" stroke-width=".8" fill="none" stroke-dasharray="2 1.5"/></svg>`;
   for(let p=0;p<29;p++){const [x,y]=yXY(p);const big=p%5===0&&p<20||p===22;c+=`<i class="yc ${big?'big':''}" style="left:${8+x*84}%;top:${8+y*84}%">${p===0?'출':p===22?'방':''}</i>`;}return c;}
@@ -427,13 +477,16 @@ function memoPick(i){const c=G.deck[i];if(G.lock||c.o||c.m||G.over)return;c.o=tr
 
 /* ---------- 이벤트 ---------- */
 document.addEventListener('click',e=>{const t=e.target;
-  const g=t.closest('[data-g]');if(g){const vs=g.dataset.vs;if(vs==='pick')pickFriend(g.dataset.g);else if(g.dataset.g==='omok'||g.dataset.g==='clock'||g.dataset.g==='yeop'){startLocalN(g.dataset.g);}else{N=null;startGame(g.dataset.g,vs,'local',0);}return;}
+  const g=t.closest('[data-g]');if(g){const vs=g.dataset.vs;if(vs==='pick')pickFriend(g.dataset.g);else if(g.dataset.g==='omok'||g.dataset.g==='clock'||g.dataset.g==='yeop'||g.dataset.g==='yut'){startLocalN(g.dataset.g);}else{N=null;startGame(g.dataset.g,vs,'local',0);}return;}
   if(t.closest('#gAll')){const on=t.closest('#gAll').checked;$$('#gPick [data-who]').forEach(c=>c.checked=on);return;}
   const si=t.closest('#gSendInv');if(si){const ids=$$('#gPick [data-who]').filter(c=>c.checked).map(c=>c.dataset.who);G=null;hostInvite(si.dataset.game,ids);return;}
-  if(t.closest('#gStart')&&N&&N.isHost&&N.joined.length>=2){N.s=newState(N.game,N.joined.slice());N.celebrated=false;if(N.game!=='yeop')N.s.msg=N.game==='yut'||N.game==='memo'?`${nm2(N.s.pl[0])} 차례`:'';bcast();return;}
-  if(t.closest('#nAgain')&&N&&N.isHost){N.s=newState(N.game,N.s.pl.slice());N.celebrated=false;N.s.v=0;if(N.game!=='yeop')N.s.msg=N.game==='yut'||N.game==='memo'?`${nm2(N.s.pl[0])} 차례`:'';bcast();return;}
+  if(t.closest('#gStart')&&N&&N.isHost&&N.joined.length>=2){N.s=newState(N.game,N.joined.slice());N.celebrated=false;if(N.game!=='yeop'&&N.game!=='yut')N.s.msg=N.game==='memo'?`${nm2(N.s.pl[0])} 차례`:'';bcast();return;}
+  if(t.closest('#nAgain')&&N&&N.isHost){N.s=newState(N.game,N.s.pl.slice());N.celebrated=false;N.s.v=0;if(N.game!=='yeop'&&N.game!=='yut')N.s.msg=N.game==='memo'?`${nm2(N.s.pl[0])} 차례`:'';bcast();return;}
   if(N&&N.s&&N.game==='clock'){if(t.closest('#clkGo')){act({k:'start'});return;}if(t.closest('#clkStop')&&clk&&clk.stopped==null){clk.stopped=Math.round(performance.now()-clk.t0);act({k:'stop',go:N.s.go,t:clk.stopped});nRender();return;}}
   if(N&&N.s&&N.game==='omok'){const o=t.closest('[data-nomok]');if(o){const i=+o.dataset.nomok;const s=N.s;if(s.win||s.pl[s.turn]!==MYID||s.b[i]!=='.')return;if(isDoubleThree(s.b,i,String(s.turn))){toast('3·3은 둘 수 없어요 🙅');return;}if(N.ghost===i){N.ghost=null;act({i});}else{N.ghost=i;nRender();}return;}}
+  if(N&&N.game==='yut'&&N.isHost&&!N.s){const md=t.closest('[data-ymode]');if(md){N.opt=N.opt||{};N.opt.team=md.dataset.ymode==='team';lobby();return;}const tm=t.closest('[data-ytm]');if(tm){N.opt=N.opt||{team:true};N.opt.tm=N.opt.tm||{};const id=tm.dataset.ytm;const cur=yTeamOf(id);N.opt.tm[id]=1-cur;lobby();return;}}
+  if(N&&N.s&&N.game==='yut'){const ys=t.closest('[data-ysel]');if(ys){const s=N.s;if(s.phase!=='pick'||s.pl[s.turn]!==MYID)return;const i=+ys.dataset.ysel;if(N.ysel===i){N.ysel=null;act({k:'pick',pc:i});}else{N.ysel=i;nRender();}return;}
+    const yd=t.closest('[data-ydest]');if(yd&&N.ysel!=null){const i=N.ysel;N.ysel=null;act({k:'pick',pc:i});return;}}
   if(N&&N.s&&N.game==='yeop'&&ypClick(t))return;
   if(N&&N.s&&N.game==='rumi'&&RS){const s=N.s;const my=s.pl[s.turn]===MYID&&!s.win&&!N.spec;const op=!!s.opened[MYID];
     if(t.closest('#rSort')){RS.sort=RS.sort==='c'?'n':'c';nRender();return;}
