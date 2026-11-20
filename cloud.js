@@ -4,19 +4,19 @@
 (function(){
   const CFG=window.FIREBASE_CONFIG;
   if(window.claude||!window.firebase||!CFG||!CFG.apiKey||!CFG.databaseURL)return;
-  let app,auth,fdb;
-  try{app=firebase.initializeApp(CFG);auth=firebase.auth();fdb=firebase.database();}catch(e){console.warn('Firebase 초기화 실패',e);return;}
+  let app,auth,fdb;const CS=window.__cloudState={stage:'start',err:''};
+  try{app=firebase.initializeApp(CFG);auth=firebase.auth();fdb=firebase.database();}catch(e){CS.stage='fail';CS.err='init';console.warn('Firebase 초기화 실패',e);return;}
   const TS=firebase.database.ServerValue.TIMESTAMP;
   const lsGet=k=>{try{const v=localStorage.getItem('unseo.'+k);return v==null?null:JSON.parse(v);}catch(e){return null;}};
   let uid=null,joined=false,joinWaiters=[];
   const readyP=new Promise(res=>joinWaiters.push(res));
-  const markJoined=()=>{if(joined)return;joined=true;joinWaiters.forEach(f=>f());joinWaiters=[];};
-  async function join(pw){if(!uid)await authP;await fdb.ref('members/'+uid).update({key:pw,ts:Date.now()});markJoined();}
+  const markJoined=()=>{if(joined)return;joined=true;CS.stage='ok';CS.err='';joinWaiters.forEach(f=>f());joinWaiters=[];};
+  async function join(pw){if(!uid)await authP;if(!uid)throw new Error('no-auth');CS.stage='join';try{await fdb.ref('members/'+uid).update({key:pw,ts:Date.now()});}catch(e){CS.err='join';CS.msg=String(e&&e.message||e);throw e;}markJoined();}
   window.__cloudJoin=pw=>join(pw).catch(e=>{console.warn('입장 기록 실패',e);});
-  const authP=auth.signInAnonymously().then(async c=>{uid=c.user.uid;
+  CS.stage='auth';const authP=auth.signInAnonymously().then(async c=>{uid=c.user.uid;CS.stage='member';
     try{const s=await fdb.ref('members/'+uid+'/key').get();if(s.exists()){markJoined();return;}}catch(e){}
-    const saved=lsGet('pwk');if(saved){try{await join(saved);}catch(e){}}
-  }).catch(e=>console.warn('익명 로그인 실패 — Firebase 콘솔에서 익명 로그인을 켰는지 확인해 주세요',e));
+    const saved=lsGet('pwk');if(saved){try{await join(saved);}catch(e){}}else CS.stage='needpw';
+  }).catch(e=>{CS.err='auth';CS.msg=String(e&&(e.code||e.message)||e);console.warn('익명 로그인 실패 — Firebase 콘솔에서 익명 로그인을 켰는지 확인해 주세요',e);});
 
   /* ---------- db (Firestore 비슷한 모양으로 감싸기) ---------- */
   const ROOTS={members:'members',stamps:'stamps',likes:'likes'};

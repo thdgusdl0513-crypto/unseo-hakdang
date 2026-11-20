@@ -139,9 +139,12 @@ let memSaving=false,memAgain=false;async function saveMember(){if(!DB||MYID==='m
 async function resolveNames(ids){if(!USER)return;const need=[...new Set(ids)].filter(i=>i&&i!=='me'&&!(i in NAMES));if(!need.length)return;need.forEach(i=>NAMES[i]='');try{const ps=await USER.profiles(need);need.forEach(i=>NAMES[i]=(ps&&ps[i]&&ps[i].name)||'');renderBoard();renderRecords();Object.values(REMOTES).forEach(r=>r.lastLabel='');}catch(e){}}
 const nameOf=(id,fb)=>id===MYID||id==='me'?(ST.nick||'나'):((MEMBERS[id]&&MEMBERS[id].nick)||fb||NAMES[id]||'친구');
 const CONN={slow:false,err:null};
+const T0=Date.now();
+function cloudProblem(){const S=window.__cloudState;if(!S)return '';if(S.err==='auth')return '연결 실패 · 익명 로그인이 꺼져 있어요';if(S.err==='join')return '연결 실패 · 데이터베이스 규칙을 확인해 주세요';if(S.err==='init')return '연결 실패 · firebase-config.js를 확인해 주세요';if(Date.now()-T0>12000)return S.stage==='needpw'?'암호를 다시 적으면 연결돼요':'연결이 늦어요 · 새로고침해 보세요';return '';}
+setInterval(()=>{if(MODE!=='shared'&&!CLOUD_DONE)updateConn();},3000);
 function updateConn(){const n=new Set(PEERS.filter(p=>p.kind==='viewer').map(p=>p.by||p.peer)).size;
-  $('#online').textContent=ROOM&&n>1?`지금 학당에 ${n}명`:ROOM&&n===1?'접속한 친구 없음 · 나만 있어요':MODE==='shared'?'친구를 기다리는 중':CLOUD_DONE?'오프라인 · 이 기기에만 저장돼요':'학당에 연결하는 중…';$('#onDot').classList.toggle('off',!(ROOM&&n>0));
-  const s=MODE==='shared'?(CONN.err?'공유 저장소에 연결하지 못했어요 ('+CONN.err+')':CONN.slow?'공유 기록을 불러오는 중이에요…':CANWRITE?'공유 저장 · 게시판과 기록이 친구들과 함께 보여요':'읽기 전용 · 만든 사람에게 편집 권한을 받아야 글을 남길 수 있어요'):'혼자 모드 · 이 기기에만 저장돼요';
+  $('#online').textContent=ROOM&&n>1?`지금 학당에 ${n}명`:ROOM&&n===1?'접속한 친구 없음 · 나만 있어요':MODE==='shared'?'친구를 기다리는 중':CLOUD_DONE?'오프라인 · 이 기기에만 저장돼요':cloudProblem()||'학당에 연결하는 중…';$('#onDot').classList.toggle('off',!(ROOM&&n>0));
+  const s=MODE==='shared'?(CONN.err?'공유 저장소에 연결하지 못했어요 ('+CONN.err+')':CONN.slow?'공유 기록을 불러오는 중이에요…':CANWRITE?'공유 저장 · 게시판과 기록이 친구들과 함께 보여요':'읽기 전용 · 만든 사람에게 편집 권한을 받아야 글을 남길 수 있어요'):(cloudProblem()?cloudProblem()+((window.__cloudState||{}).msg?' ('+window.__cloudState.msg.slice(0,80)+')':''):CLOUD_DONE?'오프라인 · 이 기기에만 저장돼요':'학당에 연결하는 중…');
   $('#connState').textContent=s+(ROOM?' · 실시간 접속 켜짐':' · 실시간 접속 꺼짐');}
 
 /* ---------- room: presence, chat ---------- */
