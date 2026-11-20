@@ -1,6 +1,6 @@
 /* 운서학당 · app: state, data, room, UI, loop */
 const STUDY=['basics','potion','herbs','training','library'];
-const ST={space:'campus',fx:LS.get('fx','base'),nick:LS.get('nick',''),avatar:LS.get('avatar',null),seasonPick:LS.get('seasonPick','auto'),todPick:LS.get('todPick','auto'),sitting:-1};
+const ST={space:'campus',pet:LS.get('pet','none'),fx:LS.get('fx','base'),nick:LS.get('nick',''),avatar:LS.get('avatar',null),seasonPick:LS.get('seasonPick','auto'),todPick:LS.get('todPick','auto'),sitting:-1};
 function curMonth(){return ST.seasonPick==='auto'?new Date().getMonth()+1:+ST.seasonPick;}
 function curTod(){return ST.todPick==='auto'?autoTod():ST.todPick;}
 if(ST.avatar==='shiba'){ST.avatar='sapsal';LS.set('avatar','sapsal');}
@@ -8,6 +8,8 @@ SEASON=makeSeason(curMonth(),curTod());
 
 /* ---------- player ---------- */
 let me=makeAvatar(ST.avatar||'girl');scene.add(me.root);
+let myPet=null;function setPet(id,quiet){if(myPet){scene.remove(myPet.root);myPet=null;}ST.pet=PETMAP[id]?id:'none';LS.set('pet',ST.pet);myPet=makePet(ST.pet);if(myPet){const p=me.root.position;myPet.root.position.set(p.x+1,0,p.z+.7);scene.add(myPet.root);}if(!quiet){saveMember();pushPresence(true);}}
+setPet(ST.pet,true);
 const myLabel=makeLabel('나',{bg:'rgba(255,226,180,.95)',line:'rgba(200,120,60,.9)',fg:'#6a3010'});scene.add(myLabel.sprite);
 const myBubble=makeBubble();scene.add(myBubble.sprite);
 function setAvatar(id){const p=me.root.position.clone(),r=me.root.rotation.y;scene.remove(me.root);me=makeAvatar(id);me.root.position.copy(p);me.root.rotation.y=r;scene.add(me.root);ST.avatar=id;LS.set('avatar',id);saveMember();updateMe();pushPresence(true);if(ST.sitting>=0)placeOnSeat();}
@@ -18,7 +20,7 @@ function getSpace(id){if(!cache[id])cache[id]=id==='campus'?buildCampus(SEASON):
 function applyEnv(){const indoor=ST.space!=='campus';const c=indoor?(ST.space==='herbs'?new THREE.Color(SEASON.sky).lerp(new THREE.Color(0x3a5a3a),.5).getHex():0x1c1612):SEASON.sky;scene.background=new THREE.Color(c);scene.fog.color.set(c);scene.fog.density=indoor?.012:SEASON.fogD;
   hemi.intensity=indoor?.62:SEASON.hemi;hemi.color.set(indoor?0xffe6c8:0x8aa6c0);sun.intensity=indoor?.35:SEASON.sun;sun.color.set(indoor?0xffe0c0:SEASON.sunColor);}
 let doorCool=0;
-function enterSpace(id,at,instant){const go=()=>{if(SP)scene.remove(SP.G);standUp(true);ST.space=id;SP=getSpace(id);scene.add(SP.G);const p=at||SP.spawn;me.root.position.set(p.x,0,p.z);me.root.rotation.y=0;path=[];doorCool=1.2;applyEnv();updateZone();refreshRemotes();updateBoard3D();pushPresence(true);updateCam(0,true);setFooter();soundForSpace();};
+function enterSpace(id,at,instant){const go=()=>{if(SP)scene.remove(SP.G);standUp(true);ST.space=id;SP=getSpace(id);scene.add(SP.G);const p=at||SP.spawn;me.root.position.set(p.x,0,p.z);me.root.rotation.y=0;if(myPet)myPet.root.position.set(p.x+1,0,p.z+.7);path=[];doorCool=1.2;applyEnv();updateZone();refreshRemotes();updateBoard3D();pushPresence(true);updateCam(0,true);setFooter();soundForSpace();};
   if(instant){go();return;}const f=$('#fade');f.classList.add('on');setTimeout(()=>{go();setTimeout(()=>f.classList.remove('on'),60);},380);}
 function rebuildSeason(){SEASON=makeSeason(curMonth(),curTod());Object.keys(cache).forEach(k=>delete cache[k]);const p=me.root.position;enterSpace(ST.space,{x:p.x,z:p.z},true);updateSeasonChip();}
 
@@ -108,10 +110,10 @@ async function addDoc(col,obj){obj=Object.assign({},obj,{by:MYID,ts:Date.now()})
   if(DB&&CANWRITE){try{await DB.collection(col).add(obj);return true;}catch(e){if(e.code==='invalid_argument'){CANWRITE=false;updateConn();toast('이 계정은 읽기만 할 수 있어요<small>만든 사람에게 편집 권한을 받아야 기록할 수 있어요</small>');}else if(e.code==='quota_exceeded')toast('저장 공간이 가득 찼어요<small>오래된 기록을 지워 주세요</small>');else toast('저장하지 못했어요<small>잠시 뒤 다시 시도해 주세요</small>');return false;}}
   if(DB&&!CANWRITE){toast('읽기 전용이라 저장할 수 없어요');return false;}
   obj.id='l'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);DATA[col].unshift(obj);DATA[col]=DATA[col].slice(0,LIM[col]);LS.set('local.'+col,DATA[col]);onData(col);return true;}
-async function delDoc(col,id){if(DB){try{await DB.collection(col).doc(id).delete();}catch(e){toast('지우지 못했어요');}return;}DATA[col]=DATA[col].filter(d=>d.id!==id);LS.set('local.'+col,DATA[col]);onData(col);}
+async function delDoc(col,id){if(DB){try{await DB.collection(col).doc(id).delete();return true;}catch(e){toast('지우지 못했어요<small>'+(ADMIN_ON?'관리자 암호가 맞는지 확인해 주세요':'내가 올린 것만 지울 수 있어요')+'</small>');return false;}}DATA[col]=DATA[col].filter(d=>d.id!==id);LS.set('local.'+col,DATA[col]);onData(col);}
 const MEMBERS={};let membersReady=false;
-function subMembers(){let done=false;const fin=()=>{if(!done){done=true;membersReady=true;}};setTimeout(fin,6000);DB.collection('members').limit(200).onSnapshot(s=>{s.docs.forEach(d=>{MEMBERS[d.id]=d.data();});if(!s.metadata.fromCache){const mine=MEMBERS[MYID];if(!done){if(mine){if(mine.nick){ST.nick=String(mine.nick).slice(0,12);LS.set('nick',ST.nick);pushPresence(true);}if(mine.av&&AVMAP[mine.av]&&mine.av!==ST.avatar){setAvatar(mine.av);}}else if(ST.nick)saveMember();}fin();}renderBoard();renderRecords();Object.values(REMOTES).forEach(r=>r.lastLabel='');updateMe();},()=>fin());}
-let memSaving=false,memAgain=false;async function saveMember(){if(!DB||MYID==='me')return;if(memSaving){memAgain=true;return;}memSaving=true;try{await DB.doc('members/'+MYID).set({nick:ST.nick||'',av:ST.avatar||'girl',ts:Date.now()});}catch(e){}memSaving=false;if(memAgain){memAgain=false;saveMember();}}
+function subMembers(){let done=false;const fin=()=>{if(!done){done=true;membersReady=true;}};setTimeout(fin,6000);DB.collection('members').limit(200).onSnapshot(s=>{s.docs.forEach(d=>{MEMBERS[d.id]=d.data();});if(!s.metadata.fromCache){const mine=MEMBERS[MYID];if(!done){if(mine){if(mine.nick){ST.nick=String(mine.nick).slice(0,12);LS.set('nick',ST.nick);pushPresence(true);}if(mine.av&&AVMAP[mine.av]&&mine.av!==ST.avatar){setAvatar(mine.av);}if(mine.pet&&PETMAP[mine.pet]&&mine.pet!==ST.pet)setPet(mine.pet,true);}else if(ST.nick)saveMember();}fin();}renderBoard();renderRecords();Object.values(REMOTES).forEach(r=>r.lastLabel='');updateMe();},()=>fin());}
+let memSaving=false,memAgain=false;async function saveMember(){if(!DB||MYID==='me')return;if(memSaving){memAgain=true;return;}memSaving=true;try{await DB.doc('members/'+MYID).set({nick:ST.nick||'',av:ST.avatar||'girl',pet:ST.pet||'none',ts:Date.now()});}catch(e){}memSaving=false;if(memAgain){memAgain=false;saveMember();}}
 async function resolveNames(ids){if(!USER)return;const need=[...new Set(ids)].filter(i=>i&&i!=='me'&&!(i in NAMES));if(!need.length)return;need.forEach(i=>NAMES[i]='');try{const ps=await USER.profiles(need);need.forEach(i=>NAMES[i]=(ps&&ps[i]&&ps[i].name)||'');renderBoard();renderRecords();Object.values(REMOTES).forEach(r=>r.lastLabel='');}catch(e){}}
 const nameOf=(id,fb)=>id===MYID||id==='me'?(ST.nick||'나'):((MEMBERS[id]&&MEMBERS[id].nick)||fb||NAMES[id]||'친구');
 const CONN={slow:false,err:null};
@@ -122,17 +124,18 @@ function updateConn(){const n=new Set(PEERS.filter(p=>p.kind==='viewer').map(p=>
 
 /* ---------- room: presence, chat ---------- */
 const REMOTES={};let presT=0,presDirty=false;
-function myPresence(){const p=me.root.position;return {sp:ST.space,x:+p.x.toFixed(2),z:+p.z.toFixed(2),ry:+me.root.rotation.y.toFixed(2),av:ST.avatar||'girl',st:ST.sitting,rd:TM.run?Date.now()-elapsed():0,bk:($('#tmBook').value||'').slice(0,24),nk:(ST.nick||'').slice(0,12),fx:ST.fx};}
+function myPresence(){const p=me.root.position;return {sp:ST.space,x:+p.x.toFixed(2),z:+p.z.toFixed(2),ry:+me.root.rotation.y.toFixed(2),av:ST.avatar||'girl',st:ST.sitting,rd:TM.run?Date.now()-elapsed():0,bk:($('#tmBook').value||'').slice(0,24),pt:ST.pet||'none',nk:(ST.nick||'').slice(0,12),fx:ST.fx};}
 function pushPresence(now){presDirty=true;if(now)flushPresence();}
 function flushPresence(){if(!ROOM||!presDirty)return;presDirty=false;presT=performance.now();ROOM.presence(myPresence()).catch(()=>{});}
 function setupRoom(){ROOM.onPeers(ch=>{PEERS=ch.peers.slice();ch.left.forEach(p=>dropRemote(p.peer));ch.peers.forEach(p=>{if(!p.sameTab&&p.kind==='viewer')upsertRemote(p);});resolveNames(PEERS.map(p=>p.by));updateConn();renderTogether();},()=>{PEERS=[];updateConn();});
   ROOM.on('chat',m=>{if(m.isMe&&m.sameTab)return;const d=m.data||{};if(typeof d.t!=='string')return;const r=REMOTES[m.peer];addChat(m.by,d.t.slice(0,200),m.peer,false,r&&r.pr&&typeof r.pr.nk==='string'?r.pr.nk.slice(0,12):'');});
   ROOM.onConnection(c=>{if(c)pushPresence(true);});pushPresence(true);renderChat();}
-function dropRemote(peer){const r=REMOTES[peer];if(!r)return;scene.remove(r.A.root,r.L.sprite,r.B.sprite);delete REMOTES[peer];}
+function dropRemote(peer){const r=REMOTES[peer];if(!r)return;scene.remove(r.A.root,r.L.sprite,r.B.sprite);if(r.pet)scene.remove(r.pet.root);delete REMOTES[peer];}
 function upsertRemote(p){const pr=p.presence||{};let r=REMOTES[p.peer];if(!pr.sp){if(r)r.A.root.visible=false;return;}
   if(!r||r.av!==pr.av){if(r)scene.remove(r.A.root);const A=makeAvatar(AVMAP[pr.av]||pr.av==='shiba'?pr.av:'girl');scene.add(A.root);A.root.position.set(+pr.x||0,0,+pr.z||0);if(!r){r={L:makeLabel('친구'),B:makeBubble(),ph:0,amt:0};scene.add(r.L.sprite,r.B.sprite);}r.A=A;r.av=pr.av;}
-  r.pr=pr;r.by=p.by;r.peer=p.peer;r.A.root.visible=r.L.sprite.visible=pr.sp===ST.space;REMOTES[p.peer]=r;}
-function refreshRemotes(){Object.values(REMOTES).forEach(r=>{const v=r.pr&&r.pr.sp===ST.space;r.A.root.visible=r.L.sprite.visible=v;if(!v)r.B.sprite.visible=false;else if(r.pr){r.A.root.position.set(+r.pr.x||0,0,+r.pr.z||0);}});}
+  const pid=PETMAP[pr.pt]?pr.pt:'none';if(r.petId!==pid){if(r.pet)scene.remove(r.pet.root);r.pet=makePet(pid);r.petId=pid;if(r.pet){r.pet.root.position.copy(r.A.root.position);scene.add(r.pet.root);}}
+  r.pr=pr;r.by=p.by;r.peer=p.peer;r.A.root.visible=r.L.sprite.visible=pr.sp===ST.space;if(r.pet)r.pet.root.visible=r.A.root.visible;REMOTES[p.peer]=r;}
+function refreshRemotes(){Object.values(REMOTES).forEach(r=>{const v=r.pr&&r.pr.sp===ST.space;r.A.root.visible=r.L.sprite.visible=v;if(r.pet)r.pet.root.visible=v;if(!v)r.B.sprite.visible=false;else if(r.pr){r.A.root.position.set(+r.pr.x||0,0,+r.pr.z||0);}});}
 const CHAT=[];
 function addChat(by,text,peer,mine,nk){CHAT.push({by,text,mine,nk,ts:Date.now()});if(CHAT.length>60)CHAT.shift();renderChat();if(mine){myBubble.set(text);}else{const r=REMOTES[peer];if(r&&r.A.root.visible)r.B.set(text);}}
 function renderChat(){const el=$('#chatLog');el.innerHTML=CHAT.length?CHAT.map(c=>`<div class="${c.mine?'me':''}"><b>${esc(c.mine?(ST.nick||'나'):nameOf(c.by,c.nk))}</b>${esc(c.text)}</div>`).join(''):`<div class="sys">${ROOM?'기숙사 대화방이에요. 지금 접속한 친구들과 실시간으로 이야기해요. (대화는 저장되지 않아요 · 남길 말은 게시판에)':'혼자 모드예요. 친구들과 함께 쓰는 학당에서는 여기 대화가 실시간으로 오가요.'}</div>`;el.scrollTop=el.scrollHeight;}
@@ -142,7 +145,7 @@ function setFooter(){$('#chatBar').classList.toggle('show',ST.space==='dorm');}
 
 /* ---------- board ---------- */
 const NOTE_COLORS=['#f6e08a','#f6b8c4','#b8e0c8','#bcd4f2','#f2c89a'];let noteColor=0;
-function renderBoard(){const el=$('#bList');if(!el)return;const L=DATA.board;el.innerHTML=L.length?L.map(n=>`<div class="note" style="background:${NOTE_COLORS[n.c|0]||NOTE_COLORS[0]};transform:rotate(${((n.ts||0)%7-3)*.6}deg)"><p>${esc(n.text)}</p><span>${esc(nameOf(n.by))} · ${ago(n.ts)}</span>${n.by===MYID?`<button data-del="${esc(n.id)}" aria-label="삭제">×</button>`:''}</div>`).join(''):'<div class="empty">아직 쪽지가 없어요. 첫 쪽지를 붙여 보세요!</div>';}
+function renderBoard(){const el=$('#bList');if(!el)return;const L=DATA.board;el.innerHTML=L.length?L.map(n=>`<div class="note" style="background:${NOTE_COLORS[n.c|0]||NOTE_COLORS[0]};transform:rotate(${((n.ts||0)%7-3)*.6}deg)"><p>${esc(n.text)}</p><span>${esc(nameOf(n.by))} · ${ago(n.ts)}</span>${n.by===MYID||ADMIN_ON?`<button data-del="${esc(n.id)}" aria-label="삭제">×</button>`:''}</div>`).join(''):'<div class="empty">아직 쪽지가 없어요. 첫 쪽지를 붙여 보세요!</div>';}
 $('#bList').addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(b)delDoc('board',b.dataset.del);});
 $$('#bColors button').forEach((b,i)=>{b.style.background=NOTE_COLORS[i];b.addEventListener('click',()=>{noteColor=i;$$('#bColors button').forEach(x=>x.classList.toggle('on',x===b));});});
 $('#bSave').addEventListener('click',async()=>{const t=$('#bText').value.trim().slice(0,300);if(!t){$('#bText').focus();return;}if(await addDoc('board',{text:t,c:noteColor})){$('#bText').value='';toast('게시판에 쪽지를 붙였어요');}});
@@ -172,15 +175,16 @@ function renderTogether(){if($('#records').classList.contains('show')&&recTab===
 
 /* ---------- sheets ---------- */
 function openSheet(id){closeSheets();if(id==='books'){recTab='books';id='records';}const el=$('#'+id);if(!el)return;el.classList.add('show');
-  if(id==='records')renderRecords();if(id==='playlist'){LS.set('plSeen',Date.now());renderPlaylist();renderTicker();}if(id==='sound')renderSoundUI();if(id==='stamp'){calM=null;$('#stMemo').value='';renderStamp();}if(id==='board'){renderBoard();$('#bWrite').style.display=(MODE==='shared'&&!CANWRITE)?'none':'';}if(id==='me'){$('#nickEdit').value=ST.nick||'';renderAvatars();}if(id==='map')$$('#mapList button').forEach(b=>b.classList.toggle('here',b.dataset.go===ST.space));if(id==='menu')updateMe();}
+  if(id==='records')renderRecords();if(id==='conn')renderAdmin();if(id==='playlist'){LS.set('plSeen',Date.now());renderPlaylist();renderTicker();}if(id==='sound')renderSoundUI();if(id==='stamp'){calM=null;$('#stMemo').value='';renderStamp();}if(id==='board'){renderBoard();$('#bWrite').style.display=(MODE==='shared'&&!CANWRITE)?'none':'';}if(id==='me'){$('#nickEdit').value=ST.nick||'';renderAvatars();}if(id==='map')$$('#mapList button').forEach(b=>b.classList.toggle('here',b.dataset.go===ST.space));if(id==='menu')updateMe();}
 function closeSheets(){$$('.modal').forEach(m=>m.classList.remove('show'));}
 $$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m||e.target.closest('[data-close]'))closeSheets();else if(e.target.closest('[data-back]'))openSheet('menu');}));
 $('#menuBtn').addEventListener('click',()=>openSheet('menu'));
 $$('#menuGrid [data-open]').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.open==='records')recTab='me';openSheet(b.dataset.open);}));
 function updateMe(){const a=AVMAP[ST.avatar||'girl'];$('#meEmo').textContent=a.emo;$('#meNick').textContent=ST.nick||'이름 없는 학생';$('#meAv').textContent=a.name+' · 갓 착용';}
-function renderAvatars(){const html=AVATARS.map(a=>`<button data-av="${a.id}" class="${a.id===(ST.avatar||'girl')?'on':''}"><span>${a.emo}</span>${a.name}</button>`).join('');$('#avGrid').innerHTML=html;const ia=$('#introAv');if(ia)ia.innerHTML=html;}
+function renderAvatars(){const html=AVATARS.map(a=>{const im=thumbOf('av',a.id);return `<button data-av="${a.id}" class="${a.id===(ST.avatar||'girl')?'on':''}${a.god?' god':''}">${im?`<img src="${im}" alt="">`:`<span>${a.emo}</span>`}${a.name}</button>`;}).join('');const pg=$('#petGrid');if(pg)pg.innerHTML=PETS.map(p=>{const im=p.id==='none'?'':thumbOf('pet',p.id);return `<button data-pet="${p.id}" class="${p.id===(ST.pet||'none')?'on':''}">${im?`<img src="${im}" alt="">`:'<span>🚶</span>'}${p.name}${p.desc?`<small>${p.desc}</small>`:''}</button>`;}).join('');$('#avGrid').innerHTML=html;const ia=$('#introAv');if(ia)ia.innerHTML=html;}
 $('#nickSave').addEventListener('click',()=>{const v=$('#nickEdit').value.trim().slice(0,12);if(!v){$('#nickEdit').focus();return;}ST.nick=v;LS.set('nick',v);saveMember();pushPresence(true);updateMe();toast('닉네임을 「'+esc(v)+'」(으)로 바꿨어요');});
 $('#avGrid').addEventListener('click',e=>{const b=e.target.closest('[data-av]');if(!b)return;setAvatar(b.dataset.av);renderAvatars();toast(AVMAP[b.dataset.av].name+'(으)로 변신했어요');});
+$('#petGrid').addEventListener('click',e=>{const b=e.target.closest('[data-pet]');if(!b)return;setPet(b.dataset.pet);renderAvatars();toast(b.dataset.pet==='none'?'혼자 다니기로 했어요':PETMAP[b.dataset.pet].name+'이(가) 졸졸 따라와요');});
 $('#introAv').addEventListener('click',e=>{const b=e.target.closest('[data-av]');if(!b)return;ST.avatar=b.dataset.av;setAvatar(b.dataset.av);renderAvatars();});
 $('#mapList').addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(!b)return;closeSheets();const id=b.dataset.go;if(id===ST.space)return;enterSpace(id);});
 const mSel=$('#seasonSel');mSel.innerHTML='<option value="auto">자동 (오늘 날짜)</option>'+Object.entries(MONTHS).map(([m,v])=>`<option value="${m}">${m}월 · ${v[1]}</option>`).join('');mSel.value=ST.seasonPick;
@@ -196,15 +200,26 @@ $('#facePop').addEventListener('click',e=>{if(e.target.closest('[data-look]')){s
 canvas.addEventListener('pointerdown',()=>$('#facePop').classList.remove('show'));renderFaces();
 
 /* ---------- playlist ---------- */
-let LIKES=LS.get('local.likes',{}),plSort='hot',plOpen=null;
+let LIKES=LS.get('local.likes',{}),plSort='hot',plOpen=null,armed=null,armT=null;let ADMIN_ON=!!LS.get('adminOn',false);
 const MUSIC_APPS=[['멜론',q=>'https://www.melon.com/search/total/index.htm?q='+q],['지니',q=>'https://www.genie.co.kr/search/searchMain?query='+q],['Spotify',q=>'https://open.spotify.com/search/'+q],['Apple Music',q=>'https://music.apple.com/kr/search?term='+q],['YouTube Music',q=>'https://music.youtube.com/search?q='+q]];
-function appLinks(p){const q=encodeURIComponent((p.title+' '+(p.artist||'')).trim());return `<div class="apps">${MUSIC_APPS.map(a=>`<a href="${esc(a[1](q))}" target="_blank" rel="noopener noreferrer">${a[0]}</a>`).join('')}<em>음악 앱에서 찾아 들으면 화면을 꺼도 계속 들을 수 있어요</em></div>`;}
-function subLikes(){DB.collection('likes').limit(1000).onSnapshot(s=>{const o={};s.docs.forEach(d=>{o[d.id]=d.data()||{};});LIKES=o;renderPlaylist();},()=>{});}
+const IS_IOS=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const AM=Object.assign({},LS.get('amCache',{}));
+function amLookup(p){const q=(p.title+' '+(p.artist||'')).trim();if(AM[q])return;if(AM[q]===null)return;AM[q]=null;
+  const cb='__am'+Math.random().toString(36).slice(2);let s=null;const done=v=>{if(AM[q]!==null)return;AM[q]=v;if(v){const c=LS.get('amCache',{});c[q]=v;LS.set('amCache',c);}try{delete window[cb];}catch(e){}if(s)s.remove();renderPlaylist();};
+  window[cb]=d=>{const r=d&&d.results&&d.results.find(x=>x.trackViewUrl);done(r?r.trackViewUrl:'');};
+  s=document.createElement('script');s.src='https://itunes.apple.com/search?term='+encodeURIComponent(q)+'&country=kr&entity=song&limit=3&callback='+cb;s.onerror=()=>done('');document.head.appendChild(s);setTimeout(()=>done(''),7000);}
+function appleLink(p){const q=(p.title+' '+(p.artist||'')).trim();const d=AM[q];
+  if(d){const href=IS_IOS?d.replace(/^https:/,'music:'):d;return `<a class="am" href="${esc(href)}"${IS_IOS?'':' target="_blank" rel="noopener noreferrer"'}>Apple Music ▶ 바로 재생</a>`;}
+  if(d===null)return `<a class="am wait">Apple Music · 곡 찾는 중…</a>`;
+  return `<a href="${esc('https://music.apple.com/kr/search?term='+encodeURIComponent(q))}" target="_blank" rel="noopener noreferrer">Apple Music</a>`;}
+function appLinks(p){const q=encodeURIComponent((p.title+' '+(p.artist||'')).trim());return `<div class="apps">${appleLink(p)}${MUSIC_APPS.filter(a=>a[0]!=='Apple Music').map(a=>`<a href="${esc(a[1](q))}" target="_blank" rel="noopener noreferrer">${a[0]}</a>`).join('')}<em>음악 앱에서 찾아 들으면 화면을 꺼도 계속 들을 수 있어요</em></div>`;}
+const FB=()=>window.__cloudKind==='firebase';
+function subLikes(){DB.collection('likes').limit(1000).onSnapshot(s=>{const o={};s.docs.forEach(d=>{if(FB())o[d.id]=d.data()||{};else{const [it,u]=d.id.split('~');if(it&&u){(o[it]=o[it]||{})[u]={v:1};}}});LIKES=o;renderPlaylist();},()=>{});}
 const likeN=id=>Object.keys(LIKES[id]||{}).length,iLike=id=>!!(LIKES[id]&&LIKES[id][MYID]);
 const safeUrl=u=>{try{const x=new URL(u);return /^https?:$/.test(x.protocol)?x.href:'';}catch(e){return '';}};
 function renderPlaylist(){const el=$('#plList');if(!el||!$('#playlist').classList.contains('show'))return;$$('#plSort button').forEach(b=>b.classList.toggle('on',b.dataset.s===plSort));
   let L=DATA.playlist.slice();if(plSort==='hot')L.sort((a,b)=>likeN(b.id)-likeN(a.id)||b.ts-a.ts);
-  $('#plCount').textContent=L.length?`모두 ${L.length}곡`:'';el.innerHTML=L.length?L.map(p=>{const u=safeUrl(p.url||'');return `<div class="pl"><div class="plMain"><b>${esc(p.title)}</b><span>${esc(p.artist||'')}</span>${p.note?`<p>“${esc(p.note)}”</p>`:''}<small>${esc(nameOf(p.by))} 추천 · ${ago(p.ts)}</small>${plOpen===p.id?appLinks(p):''}</div><div class="plSide">${u?`<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">링크 ↗</a>`:''}<button data-apps="${esc(p.id)}" class="app">🎧 앱으로</button><button data-like="${esc(p.id)}" class="${iLike(p.id)?'on':''}">♥ ${likeN(p.id)}</button>${p.by===MYID?`<button data-pdel="${esc(p.id)}" class="del">×</button>`:''}</div></div>`;}).join(''):'<div class="empty">아직 추천곡이 없어요. 첫 곡을 올려 보세요 🎶</div>';}
+  $('#plCount').textContent=L.length?`모두 ${L.length}곡`:'';el.innerHTML=L.length?L.map(p=>{const u=safeUrl(p.url||'');return `<div class="pl"><div class="plMain"><b>${esc(p.title)}</b><span>${esc(p.artist||'')}</span>${p.note?`<p>“${esc(p.note)}”</p>`:''}<small>${esc(nameOf(p.by))} 추천 · ${ago(p.ts)}</small>${plOpen===p.id?appLinks(p):''}</div><div class="plSide">${u?`<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">링크 ↗</a>`:''}<button data-apps="${esc(p.id)}" class="app">🎧 앱으로</button><button data-like="${esc(p.id)}" class="${iLike(p.id)?'on':''}">♥ ${likeN(p.id)}</button>${p.by===MYID||ADMIN_ON?`<button data-pdel="${esc(p.id)}" class="del${armed===p.id?' armed':''}">${armed===p.id?'정말 삭제':'삭제'}</button>`:''}</div></div>`;}).join(''):'<div class="empty">아직 추천곡이 없어요. 첫 곡을 올려 보세요 🎶</div>';}
 /* ticker at the top + new-song alerts */
 let tkI=0,tkTimer=null;const plSeen=()=>LS.get('plSeen',0);const knownSongs=new Set();let songsPrimed=false;
 function renderTicker(){const L=DATA.playlist.slice().sort((a,b)=>b.ts-a.ts).slice(0,6);const b=$('#plTk');document.body.classList.toggle('hasTk',!!L.length);if(!L.length){b.hidden=true;return;}b.hidden=false;
@@ -216,10 +231,10 @@ $('#plTk').addEventListener('click',e=>{e.stopPropagation();openSheet('playlist'
 $('#plAdd').addEventListener('click',()=>{const f=$('#plFormBox');f.hidden=!f.hidden;$('#plAdd').textContent=f.hidden?'＋ 곡 추천하기':'접기';if(!f.hidden)$('#plTitle').focus();});
 $('#plSort').addEventListener('click',e=>{const b=e.target.closest('[data-s]');if(!b)return;plSort=b.dataset.s;renderPlaylist();});
 $('#plList').addEventListener('click',async e=>{const lk=e.target.closest('[data-like]'),dl=e.target.closest('[data-pdel]');
-  const ap=e.target.closest('[data-apps]');if(ap){plOpen=plOpen===ap.dataset.apps?null:ap.dataset.apps;renderPlaylist();return;}
-  if(dl){delDoc('playlist',dl.dataset.pdel);return;}
+  const ap=e.target.closest('[data-apps]');if(ap){plOpen=plOpen===ap.dataset.apps?null:ap.dataset.apps;const it=DATA.playlist.find(x=>x.id===plOpen);if(it)amLookup(it);renderPlaylist();return;}
+  if(dl){const id=dl.dataset.pdel;if(armed!==id){armed=id;renderPlaylist();clearTimeout(armT);armT=setTimeout(()=>{armed=null;renderPlaylist();},3500);return;}armed=null;const ok=await delDoc('playlist',id);if(ok!==false)toast('곡을 삭제했어요');return;}
   if(lk){const id=lk.dataset.like,on=!iLike(id);LIKES[id]=Object.assign({},LIKES[id]);if(on)LIKES[id][MYID]={v:1};else delete LIKES[id][MYID];renderPlaylist();
-    if(DB&&MYID!=='me'){try{const r=DB.doc('likes/'+id+'/'+MYID);await(on?r.set({v:1}):r.delete());}catch(err){toast('좋아요를 남기지 못했어요');}}else LS.set('local.likes',LIKES);}});
+    if(DB&&MYID!=='me'){try{const r=FB()?DB.doc('likes/'+id+'/'+MYID):DB.doc('likes/'+id+'~'+MYID);await(on?r.set({v:1}):r.delete());}catch(err){toast('좋아요를 남기지 못했어요');}}else LS.set('local.likes',LIKES);}});
 $('#plSave').addEventListener('click',async()=>{const title=$('#plTitle').value.trim();if(!title){$('#plTitle').focus();return;}const url=$('#plUrl').value.trim();if(url&&!safeUrl(url)){toast('링크는 https:// 로 시작하는 주소만 넣을 수 있어요');return;}
   if(await addDoc('playlist',{title:title.slice(0,60),artist:$('#plArtist').value.trim().slice(0,40),url:url.slice(0,300),note:$('#plNote').value.trim().slice(0,80)})){['#plTitle','#plArtist','#plUrl','#plNote'].forEach(s=>$(s).value='');plSort='new';toast('🎵 추천곡을 올렸어요');chime();$('#plFormBox').hidden=true;$('#plAdd').textContent='＋ 곡 추천하기';}});
 
@@ -247,6 +262,9 @@ $('#calPrev').addEventListener('click',()=>{calM.setMonth(calM.getMonth()-1);ren
 $('#stampGo').addEventListener('click',async()=>{const k=dkey(new Date());myDays[k]={g:pick.g,s:pick.s,c:pick.c,m:$('#stMemo').value.trim().slice(0,30)};const ks=Object.keys(myDays).sort();while(ks.length>800)delete myDays[ks.shift()];LS.set('local.stamps',myDays);calM=new Date(new Date().getFullYear(),new Date().getMonth(),1);renderStamp.pop=true;renderStamp();chime();toast(`출석 완료! 연속 ${streak()}일째예요 🔖`);
   if(DB&&CANWRITE&&MYID!=='me'){try{await DB.doc('stamps/'+MYID).set({days:myDays,ts:Date.now()});}catch(e){toast('도장을 공유 저장소에 남기지 못했어요<small>이 기기에는 저장됐어요</small>');}}});
 function askStamp(){const k=dkey(new Date());if(myDays[k]||LS.get('stampAsked','')===k)return;LS.set('stampAsked',k);setTimeout(()=>{if(!$$('.modal.show').length)openSheet('stamp');},1600);}
+function renderAdmin(){const on=ADMIN_ON;$('#adminState').textContent=on?'관리자 모드 켜짐 · 모든 추천곡과 쪽지에 삭제 버튼이 보여요':'꺼짐';$('#adminOff').hidden=!on;$('#adminIn').parentElement.hidden=on;}
+$('#adminGo').addEventListener('click',async()=>{const v=$('#adminIn').value.trim();if(!v)return;if(DB&&MYID!=='me'){try{await DB.doc('members/'+MYID).set({admin:v});}catch(e){toast('저장하지 못했어요');return;}}ADMIN_ON=true;LS.set('adminOn',true);$('#adminIn').value='';renderAdmin();renderPlaylist();renderBoard();toast('관리자 모드를 켰어요<small>암호가 틀리면 삭제할 때 막혀요</small>');});
+$('#adminOff').addEventListener('click',async()=>{ADMIN_ON=false;LS.set('adminOn',false);if(DB&&MYID!=='me'){try{await DB.doc('members/'+MYID).set({admin:''});}catch(e){}}renderAdmin();renderPlaylist();renderBoard();});
 $('#logoutBtn').addEventListener('click',()=>{LS.set('pwok','');LS.set('pwk','');toast('자동 입장을 해제했어요<small>다음에는 암호를 다시 적어요</small>');});
 
 $('#sndTile').addEventListener('click',()=>openSheet('sound'));renderSoundUI();
@@ -279,7 +297,7 @@ function frame(){requestAnimationFrame(frame);const dt=Math.min(clock.getDelta()
     const ang=Math.atan2(-vx,-vz);let da=ang-me.root.rotation.y;da=Math.atan2(Math.sin(da),Math.cos(da));me.root.rotation.y+=da*Math.min(1,dt*12);pushPresence();
     doorCool-=dt;if(doorCool<=0)for(const d of SP.doors){if(Math.hypot(d.x-P.x,d.z-P.z)<(ST.space==='campus'?1.1:.8)){if(d.to==='campus')enterSpace('campus',DOORS[ST.space].back);else enterSpace(d.to);doorCool=9;break;}}}
   else{doorCool-=dt;if(performance.now()<poseUntil&&ST.sitting<0){let da=yawCur+PI-me.root.rotation.y;da=Math.atan2(Math.sin(da),Math.cos(da));me.root.rotation.y+=da*Math.min(1,dt*6);}}
-  speedNow+=((len>.001&&ST.sitting<0?1:0)-speedNow)*Math.min(1,dt*10);walkPh+=dt*12*speedNow;animateAvatar(me,walkPh,speedNow,t,ST.sitting>=0);const nowP=performance.now();faceTick(me,nowP,ST.fx==='base'&&TM.run?'focus':ST.fx);
+  speedNow+=((len>.001&&ST.sitting<0?1:0)-speedNow)*Math.min(1,dt*10);walkPh+=dt*12*speedNow;animateAvatar(me,walkPh,speedNow,t,ST.sitting>=0);const nowP=performance.now();faceTick(me,nowP,ST.fx==='base'&&TM.run?'focus':ST.fx);if(myPet){petFollow(myPet,me.root,dt,t,SP.bounds);faceTick(myPet,nowP,'base');}
   myLabel.sprite.position.set(P.x,P.y+me.h+.2,P.z);myBubble.sprite.position.set(P.x,P.y+me.h+.75,P.z);if(myBubble.sprite.visible&&performance.now()>myBubble.until)myBubble.sprite.visible=false;
   // remotes
   Object.values(REMOTES).forEach(r=>{if(!r.A.root.visible||!r.pr)return;const R0=r.A.root,pr=r.pr;const sit=pr.st>=0&&SP.seats[pr.st];const tx=sit?sit.x:+pr.x,tz=sit?sit.z:+pr.z,ty=sit?sit.h:0;const dx=tx-R0.position.x,dz=tz-R0.position.z,d=Math.hypot(dx,dz);
@@ -287,6 +305,7 @@ function frame(){requestAnimationFrame(frame);const dt=Math.min(clock.getDelta()
     let tr=sit?sit.ry:+pr.ry||0;let da=tr-R0.rotation.y;da=Math.atan2(Math.sin(da),Math.cos(da));R0.rotation.y+=da*Math.min(1,dt*10);
     r.amt+=((d>.05&&!sit?1:0)-r.amt)*Math.min(1,dt*8);r.ph+=dt*12*r.amt;animateAvatar(r.A,r.ph,r.amt,t,!!sit);const fx=FACES.some(f=>f[0]===pr.fx)?pr.fx:'base';faceTick(r.A,nowP,fx==='base'&&pr.rd?'focus':fx);if(r.A.book)r.A.book.visible=!!sit&&!!ROOMS[pr.sp]&&ROOMS[pr.sp].study;
     const lab=pr.rd?`📖 ${Math.floor((Date.now()-pr.rd)/60000)}분`:'';const nm=nameOf(r.by,typeof pr.nk==='string'?pr.nk.slice(0,12):'');if(r.lastLabel!==nm+lab){r.L.set(nm,lab);r.lastLabel=nm+lab;}
+    if(r.pet){petFollow(r.pet,R0,dt,t,SP.bounds);faceTick(r.pet,nowP,'base');}
     r.L.sprite.position.set(R0.position.x,R0.position.y+r.A.h+.2,R0.position.z);r.B.sprite.position.set(R0.position.x,R0.position.y+r.A.h+.75,R0.position.z);if(r.B.sprite.visible&&performance.now()>r.B.until)r.B.sprite.visible=false;});
   SP.tick.forEach(f=>f(t,dt));
   if(tapT>0){tapT=Math.max(0,tapT-dt*1.4);tapRing.material.opacity=tapT*.9;tapRing.scale.setScalar(1+(1-tapT)*1.2);}

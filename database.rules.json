@@ -9,6 +9,9 @@
         ".write": "auth != null && auth.uid === $uid",
         "nick": {
           ".validate": "newData.isString() && newData.val().length <= 12"
+        },
+        "admin": {
+          ".validate": "newData.isString() && newData.val().length <= 40"
         }
       }
     },
@@ -25,7 +28,7 @@
           "ts"
         ],
         "$id": {
-          ".write": "auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading' && ((!data.exists() && newData.child('by').val() === auth.uid) || (data.exists() && data.child('by').val() === auth.uid))"
+          ".write": "(auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading' && ((!data.exists() && newData.child('by').val() === auth.uid) || (data.exists() && data.child('by').val() === auth.uid))) || (auth != null && !newData.exists() && root.child('members').child(auth.uid).child('admin').val() === 'unseo-sajang')"
         }
       }
     },
