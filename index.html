@@ -102,6 +102,11 @@ body.seated #hint,body.seated #action{display:none!important}
 #toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}#toast small{display:block;color:var(--ink2);font-size:12px;margin-top:5px}
 #intro{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;background:radial-gradient(ellipse at 50% 30%,#f2c88a 0%,#c0784a 32%,#4a2a1c 72%,#24160e 100%);transition:opacity .9s;color:#fff4e2}
 #intro.hide{opacity:0;pointer-events:none}
+#intro{overflow-y:auto;-webkit-overflow-scrolling:touch;justify-content:safe center;padding-top:max(24px,env(safe-area-inset-top));padding-bottom:max(24px,env(safe-area-inset-bottom))}
+#stepNick{display:flex;flex-direction:column;max-height:calc(100dvh - 48px);flex-shrink:0}#stepNick[hidden]{display:none}
+#introAv{flex:1 1 auto;min-height:150px;max-height:42vh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:2px;border-radius:14px;box-shadow:inset 0 -14px 12px -12px rgba(90,60,30,.25)}
+#nickGo{flex-shrink:0}
+@media (max-height:820px){#intro:has(#stepNick:not([hidden])) p,#intro:has(#stepNick:not([hidden])) .seal{display:none}#intro:has(#stepNick:not([hidden])) h2{font-size:28px;margin-top:0}#intro:has(#stepNick:not([hidden])) .hj{margin-bottom:14px}}
 #intro .seal{width:84px;height:84px;border-radius:50%;background:rgba(255,240,215,.16);border:1.5px solid rgba(255,230,190,.6);display:grid;place-items:center;font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:30px;box-shadow:0 0 40px rgba(255,190,110,.4)}
 #intro h2{font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:36px;letter-spacing:.3em;margin:20px 0 4px;padding-left:.3em;text-shadow:0 2px 12px rgba(60,20,0,.6)}
 #intro .hj{font-family:'Nanum Myeongjo',serif;letter-spacing:.45em;font-size:13px;opacity:.85;padding-left:.45em}
