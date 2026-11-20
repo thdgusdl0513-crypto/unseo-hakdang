@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<meta name="apple-mobile-web-app-title" content="운서학당"><meta name="application-name" content="운서학당">
-<title>운서학당 · 동양풍 마법사 학교</title>
+<meta name="apple-mobile-web-app-title" content="몽원학당"><meta name="application-name" content="몽원학당">
+<title>몽원학당 · 동양풍 마법사 학교</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Nanum+Myeongjo:wght@400;700;800&display=swap" rel="stylesheet">
@@ -105,7 +105,7 @@ body.seated #hint,body.seated #action{display:none!important}
 #connState{font-size:13px;line-height:1.6;color:var(--teal);padding:10px 12px;border-radius:12px;background:rgba(63,127,122,.1)}
 #toast{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%) scale(.96);max-width:84vw;padding:16px 20px;border-radius:16px;text-align:center;font-size:15px;line-height:1.6;opacity:0;pointer-events:none;transition:.3s;z-index:40}
 #toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}#toast small{display:block;color:var(--ink2);font-size:12px;margin-top:5px}
-#intro{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;background:radial-gradient(ellipse at 50% 30%,#f2c88a 0%,#c0784a 32%,#4a2a1c 72%,#24160e 100%);transition:opacity .9s;color:#fff4e2}
+#intro{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;background:radial-gradient(ellipse at 50% 30%,#e6b8ff 0%,#9400d3 34%,#3c0a5c 72%,#16061f 100%);transition:opacity .9s;color:#fff4e2}
 #intro.hide{opacity:0;pointer-events:none}
 #intro{overflow-y:auto;-webkit-overflow-scrolling:touch;justify-content:safe center;padding-top:max(24px,env(safe-area-inset-top));padding-bottom:max(24px,env(safe-area-inset-bottom))}
 #stepNick{display:flex;flex-direction:column;max-height:calc(100dvh - 48px);flex-shrink:0}#stepNick[hidden]{display:none}
@@ -227,7 +227,7 @@ body.seated #hint,body.seated #action{display:none!important}
     <button data-go="potion"><span class="ic">⚗</span><span><b>마법약 수업</b><small>영약당 · 부글부글 끓는 솥 앞 자리</small></span><em class="req">전공 필수</em></button>
     <button data-go="herbs"><span class="ic">🌿</span><span><b>약초학 수업</b><small>유리 온실 · 약초 화단과 나비</small></span><em>전공 선택</em></button>
     <button data-go="training"><span class="ic">🥋</span><span><b>기초체력훈련</b><small>수련장 · 매트 위 집중 타이머</small></span><em>전공 선택</em></button>
-    <button data-go="library"><span class="ic">📚</span><span><b>도서관 · 운서각</b><small>함께 읽기 · 읽은 책과 독후감 기록</small></span><em>자유 독서</em></button>
+    <button data-go="library"><span class="ic">📚</span><span><b>도서관 · 몽원각</b><small>함께 읽기 · 읽은 책과 독후감 기록</small></span><em>자유 독서</em></button>
     <button data-go="dorm"><span class="ic"><svg viewBox="0 0 40 40" width="24" height="24"><line x1="20" y1="2" x2="20" y2="8" stroke="#3a2a20" stroke-width="1.5"/><rect x="11" y="8" width="18" height="3" rx="1" fill="#c9a65a"/><path d="M11 11h18v10H11z" fill="#d23a33"/><path d="M11 21h18v10H11z" fill="#2c55a8"/><rect x="11" y="31" width="18" height="3" rx="1" fill="#c9a65a"/><line x1="20" y1="34" x2="20" y2="39" stroke="#d23a33" stroke-width="2"/></svg></span><span><b>기숙사 · 온화료</b><small>노을 창가, 좌식 탁자, 게시판과 대화</small></span><em>자유 대화</em></button>
   </div>
 </div></div>
@@ -267,7 +267,7 @@ body.seated #hint,body.seated #action{display:none!important}
 <div id="conn" class="modal"><div class="sheet paper"><div class="grip"></div>
   <div class="sh"><button class="back" data-back>‹ 설정</button><button class="x" data-close>×</button></div>
   <div class="sec">연결 상태</div><div id="connState"></div>
-  <div class="sec">관리자 모드</div><div class="empty" id="adminState"></div><div style="display:flex;gap:8px"><input id="adminIn" type="password" autocomplete="off" placeholder="관리자 암호" style="margin:0"><button class="ghost" id="adminGo" style="white-space:nowrap">켜기</button></div><div id="adminMsg" class="adminMsg"></div><div id="banList"></div><button class="ghost" id="adminOff" hidden>관리자 모드 끄기</button>
+  <div class="sec">관리자 모드</div><div class="empty" id="adminState"></div><div style="display:flex;gap:8px"><input id="adminIn" type="password" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="관리자 암호" style="margin:0"><button class="ghost" id="adminGo" style="white-space:nowrap">켜기</button></div><div id="adminMsg" class="adminMsg"></div><div id="banList"></div><button class="ghost" id="adminOff" hidden>관리자 모드 끄기</button>
   <div class="sec">자동 입장</div><div class="empty">이 기기에 암호가 저장돼 있어 다음부터 바로 들어와요.</div><button class="ghost" id="logoutBtn">이 기기에서 자동 입장 해제</button>
 </div></div>
 
@@ -318,8 +318,8 @@ body.seated #hint,body.seated #action{display:none!important}
 
 <div id="intro">
   <div class="seal">學</div>
-  <h2>운서학당</h2>
-  <div class="hj">雲 書 學 堂</div>
+  <h2>몽원학당</h2>
+  <div class="hj">M O N G W O N</div>
   <p>등불 아래 마법사를 길러내는 동양풍 학당.<br>함께 읽고, 함께 기록해요.</p>
   <div class="card paper" id="stepPw">
     <label>입장 암호</label>

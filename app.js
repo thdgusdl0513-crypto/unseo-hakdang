@@ -1,4 +1,4 @@
-/* 운서학당 · app: state, data, room, UI, loop */
+/* 몽원학당 · app: state, data, room, UI, loop */
 const STUDY=['basics','potion','herbs','training','library'];
 const ST={look:lookParse(LS.get('look','')),space:'campus',pet:LS.get('pet','none'),fx:LS.get('fx','base'),nick:LS.get('nick',''),avatar:LS.get('avatar',null),seasonPick:LS.get('seasonPick','auto'),todPick:LS.get('todPick','auto'),sitting:-1};
 function curMonth(){return ST.seasonPick==='auto'?new Date().getMonth()+1:+ST.seasonPick;}
@@ -32,6 +32,21 @@ SEASON=curSeason();
 let me=makeAvatar(ST.avatar||'girl',ST.look);scene.add(me.root);
 let myPet=null;function setPet(id,quiet){if(myPet){scene.remove(myPet.root);myPet=null;}ST.pet=PETMAP[id]?id:'none';LS.set('pet',ST.pet);myPet=makePet(ST.pet);if(myPet){const p=me.root.position;myPet.root.position.set(p.x+1,0,p.z+.7);scene.add(myPet.root);}if(!quiet){saveMember();pushPresence(true);}}
 setPet(ST.pet,true);
+/* ---------- 유리 시계 (집중 시간, 초 단위) ---------- */
+const GC_FONT='600 150px ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", "Apple SD Gothic Neo", system-ui, sans-serif';
+function makeGlassClock(){const c=document.createElement('canvas');c.width=640;c.height=300;const t=new THREE.CanvasTexture(c);
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthTest:false,fog:false}));s.renderOrder=12;s.scale.set(1.45,.68,1);s.visible=false;
+  const G={sprite:s,key:null,set(tx,sub){const k=tx+'|'+sub;if(k===G.key)return;G.key=k;const g=c.getContext('2d');const W=c.width,H=c.height;g.clearRect(0,0,W,H);
+    // 숫자 (세로로 길쭉하게)
+    const sx=.78;g.save();g.translate(W/2,150);sub='';g.scale(sx,1.08);g.font=GC_FONT;g.textAlign='center';g.textBaseline='middle';
+    g.shadowColor='rgba(40,20,8,.55)';g.shadowBlur=18;g.shadowOffsetY=6;g.fillStyle='rgba(255,255,255,.6)';g.fillText(tx,0,0);g.shadowColor='transparent';
+    const fg=g.createLinearGradient(0,-70,0,70);fg.addColorStop(0,'rgba(255,255,255,.98)');fg.addColorStop(.42,'rgba(255,250,240,.72)');fg.addColorStop(.58,'rgba(240,236,232,.55)');fg.addColorStop(1,'rgba(255,255,255,.92)');g.fillStyle=fg;g.fillText(tx,0,0);
+    g.globalCompositeOperation='source-atop';const ir=g.createLinearGradient(-260,0,260,0);ir.addColorStop(0,'rgba(255,170,190,.30)');ir.addColorStop(.35,'rgba(255,220,140,.30)');ir.addColorStop(.65,'rgba(160,230,255,.28)');ir.addColorStop(1,'rgba(220,180,255,.30)');g.fillStyle=ir;g.fillRect(-400,-120,800,240);
+    g.globalCompositeOperation='source-over';g.lineWidth=3.2;g.strokeStyle='rgba(255,255,255,.95)';g.strokeText(tx,0,0);g.lineWidth=1.4;g.strokeStyle='rgba(120,90,70,.35)';g.strokeText(tx,1.5,2.5);g.restore();
+    if(sub){g.font='600 34px '+FS;g.textAlign='center';g.textBaseline='middle';g.fillStyle='rgba(70,40,20,.75)';g.shadowColor='rgba(255,255,255,.8)';g.shadowBlur=6;g.fillText(sub,W/2,252);}
+    t.needsUpdate=true;}};return G;}
+const fmtClock=ms=>{const s=Math.max(0,Math.floor(ms/1000)),h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return h?`${h}:${String(m).padStart(2,'0')}:${String(x).padStart(2,'0')}`:`${m}:${String(x).padStart(2,'0')}`;};
+const myClock=makeGlassClock();scene.add(myClock.sprite);
 const myLabel=makeLabel('나',{bg:'rgba(255,226,180,.95)',line:'rgba(200,120,60,.9)',fg:'#6a3010'});scene.add(myLabel.sprite);
 const myBubble=makeBubble();scene.add(myBubble.sprite);
 function setAvatar(id){const p=me.root.position.clone(),r=me.root.rotation.y;scene.remove(me.root);me=makeAvatar(id,ST.look);me.root.position.copy(p);me.root.rotation.y=r;scene.add(me.root);ST.avatar=id;LS.set('avatar',id);saveMember();updateMe();pushPresence(true);if(ST.sitting>=0)placeOnSeat();}
@@ -72,6 +87,11 @@ function placeOnSeat(){const s=SP.seats[ST.sitting];me.root.position.set(s.x,s.h
 function sitDown(i){if(i<0)return;ST.sitting=i;path=[];placeOnSeat();me.book&&(me.book.visible=ROOMS[ST.space]&&ROOMS[ST.space].study);pushPresence(true);if(ROOMS[ST.space]&&ROOMS[ST.space].study)showTimer(true);setGuide(true);}
 function standUp(force){if(ST.sitting<0)return;if(!force&&TM.run){toast('타이머가 돌아가는 중이에요<small>일시정지하거나 기록한 뒤 일어나 주세요</small>');return;}const s=SP&&SP.seats[ST.sitting];ST.sitting=-1;if(s){me.root.position.set(s.x-Math.sin(s.ry)*-.0,0,s.z);}me.root.position.y=0;if(me.book)me.book.visible=false;if(force){TM.run=false;TM.acc=0;TM.done=false;}showTimer(false);pushPresence(true);setGuide(true);}
 const TM={mode:0,run:false,start:0,acc:0,done:false};
+/* 오늘 집중 시간 (캐릭터 이름표) */
+let TODAY_MIN={},todayAt=0;
+function calcToday(){const t0=new Date();t0.setHours(0,0,0,0);const o={};(DATA.logs||[]).forEach(l=>{if(l.ts>=t0.getTime()&&l.by)o[l.by]=(o[l.by]||0)+(+l.sec||0);});Object.keys(o).forEach(k=>o[k]=Math.round(o[k]/60));TODAY_MIN=o;todayAt=Date.now();}
+function focusSub(id,live){if(Date.now()-todayAt>30000)calcToday();const tot=(TODAY_MIN[id]||0)+(live>0?live:0);if(live>=0)return '';return tot?`📖 오늘 ${tot}분`:'';}
+function todayTot(id,live){if(Date.now()-todayAt>30000)calcToday();return (TODAY_MIN[id]||0)+(live>0?live:0);}
 const elapsed=()=>TM.acc+(TM.run?Date.now()-TM.start:0);
 const fmt=ms=>{const s=Math.max(0,Math.floor(ms/1000));const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return (h?h+':':'')+String(m).padStart(h?2:1,'0')+':'+String(x).padStart(2,'0');};
 function showTimer(on){$('#timer').classList.toggle('show',on);document.body.classList.toggle('seated',on);if(on){const R0=ROOMS[ST.space];$('#tmSub').textContent=R0.name;$('#tmTag').textContent=R0.tag;$('#tmBook').value=LS.get('lastBook','');renderTimer();}}
@@ -101,7 +121,7 @@ function updateCam(dt,snap){const p=me.root.position;const pose=performance.now(
   if(snap){camera.position.copy(want);camT.copy(lookW);}else{const k=pose?1-Math.pow(.02,dt):1-Math.pow(.002,dt);camera.position.lerp(want,k);camT.lerp(lookW,1-Math.pow(.0008,dt));}camera.lookAt(camT);}
 
 /* ---------- zone & guide ---------- */
-function updateZone(){const info=ST.space==='campus'?{en:'THE COURTYARD · 雲書學堂',title:SEASON.key==='xmas'?'눈 내리는 마당,<br>트리 아래 모여요.':SEASON.key==='halloween'?'호박등 켜진 밤,<br>학당 마당으로.':SEASON.key==='birthday'?'생일 축하의 달,<br>케이크 앞에서.':SEASON.blossom?'벚꽃 흩날리는<br>학당 마당.':SEASON.key==='autumn'?'단풍 물든<br>학당 마당.':SEASON.rain?'장맛비 내리는<br>학당 마당.':SEASON.snow?'눈 쌓인<br>학당 마당.':'햇살 머무는<br>학당 마당.',loc:'운서학당 · 강의동, 도서관, 기숙사'}:{en:ROOMS[ST.space].en,title:ROOMS[ST.space].title,loc:ROOMS[ST.space].name+' · '+ROOMS[ST.space].tag};
+function updateZone(){const info=ST.space==='campus'?{en:'THE COURTYARD · MONGWON',title:SEASON.key==='xmas'?'눈 내리는 마당,<br>트리 아래 모여요.':SEASON.key==='halloween'?'호박등 켜진 밤,<br>학당 마당으로.':SEASON.key==='birthday'?'생일 축하의 달,<br>케이크 앞에서.':SEASON.blossom?'벚꽃 흩날리는<br>학당 마당.':SEASON.key==='autumn'?'단풍 물든<br>학당 마당.':SEASON.rain?'장맛비 내리는<br>학당 마당.':SEASON.snow?'눈 쌓인<br>학당 마당.':'햇살 머무는<br>학당 마당.',loc:'몽원학당 · 강의동, 도서관, 기숙사'}:{en:ROOMS[ST.space].en,title:ROOMS[ST.space].title,loc:ROOMS[ST.space].name+' · '+ROOMS[ST.space].tag};
   $('#zName').textContent=ST.space==='campus'?`학당 마당 · ${SEASON.ico} ${SEASON.month}월`+(SEASON.wx?` · ${WX_LABEL[SEASON.wx][0]} ${SEASON.temp}°`:''):ROOMS[ST.space].name;$('#zEn').textContent=info.en;$('#zTitle').innerHTML=info.title;const bt=$('#bigTitle');bt.classList.add('show');clearTimeout(updateZone.t);updateZone.t=setTimeout(()=>bt.classList.remove('show'),3600);$('#chatWrap').classList.toggle('show',ST.space==='dorm');}
 function updateSeasonChip(){if(ST.space==='campus')$('#zName').textContent=`학당 마당 · ${SEASON.ico} ${SEASON.month}월`+(SEASON.wx?` · ${WX_LABEL[SEASON.wx][0]} ${SEASON.temp}°`:'');}
 const NAMEOF={library:'도서관',basics:'마법학 기초 강의동',potion:'마법약 강의동',herbs:'약초학 온실',training:'기초체력 수련장',dorm:'기숙사'};
@@ -120,7 +140,7 @@ $('#action').addEventListener('click',()=>gAct&&gAct());
 const DATA={board:LS.get('local.board',[]),logs:LS.get('local.logs',[]),books:LS.get('local.books',[]),playlist:LS.get('local.playlist',[])};
 let CLOUD_DONE=false;let DB=null,USER=null,ROOM=null,MYID='me',CANWRITE=true,MODE='local',PEERS=[];const NAMES={};
 const LIM={board:150,logs:400,books:200,playlist:200};
-function onData(col){if(col==='playlist'){renderPlaylist();renderTicker();notifyNewSongs();}if(col==='board'){renderBoard();updateBoard3D();updateBdDot();}if(col==='logs'||col==='books')renderRecords();resolveNames(DATA[col].map(d=>d.by));}
+function onData(col){if(col==='playlist'){renderPlaylist();renderTicker();notifyNewSongs();}if(col==='board'){renderBoard();updateBoard3D();updateBdDot();}if(col==='logs'||col==='books')renderRecords();if(col==='logs')todayAt=0;resolveNames(DATA[col].map(d=>d.by));}
 async function initCloud(){const C=window.claude;if(!C||!C.use){updateConn();return;}
   let db=null,user=null,room=null;try{[db,user,room]=await Promise.all([C.use('db').catch(()=>null),C.use('user').catch(()=>null),C.use('room').catch(()=>null)]);}catch(e){}
   USER=user;if(user){try{MYID=(await user.id())||'me';}catch(e){}try{const c=await user.can('data.write');CANWRITE=c!==false;}catch(e){}}
@@ -155,14 +175,14 @@ function flushPresence(){if(!ROOM||!presDirty)return;presDirty=false;presT=perfo
 function setupRoom(){ROOM.onPeers(ch=>{PEERS=ch.peers.slice();ch.left.forEach(p=>dropRemote(p.peer));ch.peers.forEach(p=>{if(!p.sameTab&&p.kind==='viewer')upsertRemote(p);});resolveNames(PEERS.map(p=>p.by));updateConn();renderTogether();const sig=onlineFriends().map(r=>r.by+r.pr.sp+(r.pr.rd?1:0)).join();if(sig!==window.__frSig){window.__frSig=sig;if($('#friends').classList.contains('show'))renderFriends();}},()=>{PEERS=[];updateConn();});
   ROOM.on('chat',m=>{if(m.isMe&&m.sameTab)return;const d=m.data||{};if(typeof d.t!=='string')return;const r=REMOTES[m.peer];addChat(m.by,d.t.slice(0,200),m.peer,false,r&&r.pr&&typeof r.pr.nk==='string'?r.pr.nk.slice(0,12):'');});
   ROOM.onConnection(c=>{if(c)pushPresence(true);});pushPresence(true);renderChat();}
-function dropRemote(peer){const r=REMOTES[peer];if(!r)return;scene.remove(r.A.root,r.L.sprite,r.B.sprite);if(r.pet)scene.remove(r.pet.root);delete REMOTES[peer];}
+function dropRemote(peer){const r=REMOTES[peer];if(!r)return;scene.remove(r.A.root,r.L.sprite,r.B.sprite);if(r.C)scene.remove(r.C.sprite);if(r.pet)scene.remove(r.pet.root);delete REMOTES[peer];}
 function upsertRemote(p){const pr=p.presence||{};let r=REMOTES[p.peer];if(!pr.sp){if(r)r.A.root.visible=false;return;}
   const lk=typeof pr.lk==='string'?pr.lk.slice(0,240):'';if(!r||r.av!==pr.av||r.lk!==lk){if(r)scene.remove(r.A.root);const A=makeAvatar(AVMAP[pr.av]||pr.av==='shiba'?pr.av:'girl',lookParse(lk));if(r)r.lk=lk;scene.add(A.root);A.root.position.set(+pr.x||0,0,+pr.z||0);if(!r){r={L:makeLabel('친구'),B:makeBubble(),ph:0,amt:0,lk};scene.add(r.L.sprite,r.B.sprite);}r.A=A;r.av=pr.av;}
   const pid=PETMAP[pr.pt]?pr.pt:'none';if(r.petId!==pid){if(r.pet)scene.remove(r.pet.root);r.pet=makePet(pid);r.petId=pid;if(r.pet){r.pet.root.position.copy(r.A.root.position);scene.add(r.pet.root);}}
   if(typeof pr.em==='string'&&pr.em!==r.emSeen){const first=r.emSeen===undefined;r.emSeen=pr.em;const k=pr.em.split(':')[0];if(!first&&pr.sp===ST.space){playEmote(r.A,k);if(k==='heart'||k==='wave'){const nm=nameOf(p.by,pr.nk);toast(k==='heart'?`${esc(nm)}님이 하트를 보냈어요 💗`:`${esc(nm)}님이 인사해요 👋`);}}}else if(r.emSeen===undefined)r.emSeen=pr.em||'';
   if(typeof pr.cl==='string'&&pr.cl!==r.clSeen){const first=r.clSeen===undefined;r.clSeen=pr.cl;const [to,ts]=pr.cl.split('|');if(!first&&(to===MYID||to==='*')&&p.by!==MYID&&Date.now()-(+ts||0)<120000)gotCall(p.by,pr);}else if(r.clSeen===undefined)r.clSeen=pr.cl||'';
-  r.pr=pr;r.by=p.by;r.peer=p.peer;r.A.root.visible=r.L.sprite.visible=pr.sp===ST.space;if(r.pet)r.pet.root.visible=r.A.root.visible;REMOTES[p.peer]=r;}
-function refreshRemotes(){Object.values(REMOTES).forEach(r=>{const v=r.pr&&r.pr.sp===ST.space;r.A.root.visible=r.L.sprite.visible=v;if(r.pet)r.pet.root.visible=v;if(!v)r.B.sprite.visible=false;else if(r.pr){r.A.root.position.set(+r.pr.x||0,0,+r.pr.z||0);}});}
+  r.pr=pr;r.by=p.by;r.peer=p.peer;r.A.root.visible=r.L.sprite.visible=pr.sp===ST.space;if(r.C&&pr.sp!==ST.space)r.C.sprite.visible=false;if(r.pet)r.pet.root.visible=r.A.root.visible;REMOTES[p.peer]=r;}
+function refreshRemotes(){Object.values(REMOTES).forEach(r=>{const v=r.pr&&r.pr.sp===ST.space;r.A.root.visible=r.L.sprite.visible=v;if(r.pet)r.pet.root.visible=v;if(!v){r.B.sprite.visible=false;if(r.C)r.C.sprite.visible=false;}else if(r.pr){r.A.root.position.set(+r.pr.x||0,0,+r.pr.z||0);}});}
 const CHAT=[];
 function addChat(by,text,peer,mine,nk){CHAT.push({by,text,mine,nk,ts:Date.now()});if(CHAT.length>60)CHAT.shift();renderChat();if(mine){myBubble.set(text);}else{const r=REMOTES[peer];if(r&&r.A.root.visible)r.B.set(text);}}
 function renderChat(){const el=$('#chatLog');el.innerHTML=CHAT.length?CHAT.map(c=>`<div class="${c.mine?'me':''}"><b>${esc(c.mine?(ST.nick||'나'):nameOf(c.by,c.nk))}</b>${esc(c.text)}</div>`).join(''):`<div class="sys">${ROOM?'기숙사 대화방이에요. 지금 접속한 친구들과 실시간으로 이야기해요. (대화는 저장되지 않아요 · 남길 말은 게시판에)':'혼자 모드예요. 친구들과 함께 쓰는 학당에서는 여기 대화가 실시간으로 오가요.'}</div>`;el.scrollTop=el.scrollHeight;}
@@ -237,7 +257,7 @@ function goNear(sp,x,z){const a=Math.random()*Math.PI*2;const at={x:x+Math.cos(a
 $('#callGo').addEventListener('click',()=>{$('#callPop').classList.remove('show');if(callFrom){goNear(callFrom.sp,callFrom.x,callFrom.z);const by=callFrom.by;setTimeout(()=>{doEmote('wave');},1100);toast(esc(nameOf(by))+'님 곁으로 왔어요');}});
 $('#callNo').addEventListener('click',()=>$('#callPop').classList.remove('show'));
 $('#frAll').addEventListener('click',()=>{sendCall('*');closeSheets();});
-$('#frShare').addEventListener('click',async()=>{const url=location.href.split('#')[0];const text='운서학당에 놀러 와! 같이 책 읽자 📚';try{if(navigator.share){await navigator.share({title:'운서학당',text,url});return;}}catch(e){if(e&&e.name==='AbortError')return;}try{await navigator.clipboard.writeText(text+'\n'+url);toast('링크를 복사했어요<small>카톡에 붙여 넣어 보내 주세요</small>');}catch(e){toast(esc(url));}});
+$('#frShare').addEventListener('click',async()=>{const url=location.href.split('#')[0];const text='몽원학당에 놀러 와! 같이 책 읽자 📚';try{if(navigator.share){await navigator.share({title:'몽원학당',text,url});return;}}catch(e){if(e&&e.name==='AbortError')return;}try{await navigator.clipboard.writeText(text+'\n'+url);toast('링크를 복사했어요<small>카톡에 붙여 넣어 보내 주세요</small>');}catch(e){toast(esc(url));}});
 $('#frList').addEventListener('click',e=>{const k=e.target.closest('[data-kick]');if(k){const id=k.dataset.kick;if(kickArm!==id){kickArm=id;k.textContent='정말 내보내기';k.classList.add('armed');clearTimeout(kickT);kickT=setTimeout(()=>{kickArm=null;renderFriends();},3000);return;}kickArm=null;kickFriend(id,k.dataset.nk||'친구');return;}const c=e.target.closest('[data-call]');if(c){sendCall(c.dataset.call);return;}const g=e.target.closest('[data-go]');if(g){const r=REMOTES[g.dataset.go];if(r&&r.pr){goNear(r.pr.sp,+r.pr.x||0,+r.pr.z||0);toast(esc(nameOf(r.by,r.pr.nk))+'님을 찾아왔어요');}}});
 $('#chip').addEventListener('click',e=>{if(e.target.closest('#plTk'))return;openSheet('friends');});
 function doEmote(k){MY_EM=k+':'+Date.now();playEmote(me,k);showFace((EM_DUR[k]||2)*1000+400);pushPresence(true);}
@@ -344,7 +364,7 @@ function watchBans(){if(bansOff||!canKick())return;bansOff=window.__cloudAdmin.w
 function renderBans(){const el=$('#banList');if(!el)return;const ids=Object.keys(BANS);el.innerHTML=!ADMIN_ON?'':ids.length?'<div class="sec">내보낸 친구</div>'+ids.map(id=>`<div class="frRow"><span><b>${esc((MEMBERS[id]&&MEMBERS[id].nick)||BANS[id].nick||'친구')}</b><small>${ago(BANS[id].ts||0)} 내보냄</small></span><button class="ghost" data-unkick="${id}">다시 들이기</button></div>`).join(''):'';}
 async function kickFriend(id,nick){try{await window.__cloudAdmin.kick(id,nick);Object.values(REMOTES).forEach(r=>{if(r.by===id)dropRemote(r.peer);});toast(esc(nick)+'님을 학당에서 내보냈어요<small>설정 → 연결에서 다시 들일 수 있어요</small>');renderFriends();}catch(e){toast('내보내지 못했어요<small>관리자 코드가 맞는지 확인해 주세요</small>');}}
 function renderAdmin(){watchBans();renderBans();const on=ADMIN_ON;$('#adminState').textContent=on?'관리자 모드 켜짐 · 모든 추천곡과 쪽지에 삭제 버튼이 보여요':'꺼짐';$('#adminOff').hidden=!on;$('#adminIn').parentElement.hidden=on;}
-$('#adminGo').addEventListener('click',async()=>{const v=$('#adminIn').value.trim();if(!v)return;const btn=$('#adminGo');btn.disabled=true;btn.textContent='확인 중…';const done=()=>{btn.disabled=false;btn.textContent='켜기';};
+$('#adminGo').addEventListener('click',async()=>{const v=$('#adminIn').value.trim().toLowerCase();if(!v)return;const btn=$('#adminGo');btn.disabled=true;btn.textContent='확인 중…';const done=()=>{btn.disabled=false;btn.textContent='켜기';};
   if(DB&&MYID!=='me'){try{await DB.doc('members/'+MYID).set({admin:v});}catch(e){done();toast('저장하지 못했어요<small>연결 상태를 확인해 주세요</small>');return;}
     if(window.__cloudAdmin&&window.__cloudAdmin.verify){await new Promise(r=>setTimeout(r,400));const ok=await window.__cloudAdmin.verify();
       if(ok===false){done();try{await DB.doc('members/'+MYID).set({admin:''});}catch(e){}$('#adminMsg').textContent=window.__rulesOld?'❌ Firebase 규칙이 예전 것이에요. 규칙을 다시 붙여 넣고 게시해 주세요.':'❌ 코드가 맞지 않아요. 다시 확인해 주세요.';$('#adminMsg').className='adminMsg bad';$('#adminIn').select();return;}}}
@@ -383,7 +403,7 @@ function frame(){requestAnimationFrame(frame);const dt=Math.min(clock.getDelta()
     doorCool-=dt;if(doorCool<=0)for(const d of SP.doors){if(Math.hypot(d.x-P.x,d.z-P.z)<(ST.space==='campus'?1.1:.8)){if(d.to==='campus')enterSpace('campus',DOORS[ST.space].back);else enterSpace(d.to);doorCool=9;break;}}}
   else{doorCool-=dt;if(performance.now()<poseUntil&&ST.sitting<0){let da=yawCur+PI-me.root.rotation.y;da=Math.atan2(Math.sin(da),Math.cos(da));me.root.rotation.y+=da*Math.min(1,dt*6);}}
   speedNow+=((len>.001&&ST.sitting<0?1:0)-speedNow)*Math.min(1,dt*10);walkPh+=dt*12*speedNow;animateAvatar(me,walkPh,speedNow,t,ST.sitting>=0);emoteTick(me,dt);emoteFxTick(dt);const nowP=performance.now();faceTick(me,nowP,emoteFace(me)||(ST.fx==='base'&&TM.run?'focus':ST.fx));if(myPet){petFollow(myPet,me.root,dt,t,SP.bounds);faceTick(myPet,nowP,'base');}
-  myLabel.sprite.position.set(P.x,P.y+me.h+.2,P.z);myBubble.sprite.position.set(P.x,P.y+me.h+.75,P.z);if(myBubble.sprite.visible&&performance.now()>myBubble.until)myBubble.sprite.visible=false;
+  myLabel.sprite.position.set(P.x,P.y+me.h+.2,P.z);{const run=TM.run||(TM.acc>0&&ST.sitting>=0);myClock.sprite.visible=run;if(run){const e=elapsed();myClock.set(fmtClock(e),TM.run?`오늘 ${todayTot(MYID,Math.floor(e/60000))}분`:'일시정지');myClock.sprite.position.set(P.x,P.y+me.h+.74,P.z);}myBubble.sprite.position.set(P.x,P.y+me.h+(run?1.45:.75),P.z);}if(myBubble.sprite.visible&&performance.now()>myBubble.until)myBubble.sprite.visible=false;
   // remotes
   const seatUsed=new Set();if(ST.sitting>=0)seatUsed.add(ST.sitting);let bumpN=0;
   Object.values(REMOTES).sort((a,b)=>String(a.peer).localeCompare(String(b.peer))).forEach(r=>{if(!r.A.root.visible||!r.pr)return;const R0=r.A.root,pr=r.pr;let sit=pr.st>=0&&SP.seats[pr.st];let tx=sit?sit.x:+pr.x,tz=sit?sit.z:+pr.z,ty=sit?sit.h:0;
@@ -391,13 +411,13 @@ function frame(){requestAnimationFrame(frame);const dt=Math.min(clock.getDelta()
     if(d>6){R0.position.set(tx,ty,tz);}else{R0.position.x+=dx*Math.min(1,dt*8);R0.position.z+=dz*Math.min(1,dt*8);R0.position.y+=(ty-R0.position.y)*Math.min(1,dt*8);}
     let tr=sit?sit.ry:+pr.ry||0;let da=tr-R0.rotation.y;da=Math.atan2(Math.sin(da),Math.cos(da));R0.rotation.y+=da*Math.min(1,dt*10);
     r.amt+=((d>.05&&!sit?1:0)-r.amt)*Math.min(1,dt*8);r.ph+=dt*12*r.amt;animateAvatar(r.A,r.ph,r.amt,t,!!sit);emoteTick(r.A,dt);const fx=FACES.some(f=>f[0]===pr.fx)?pr.fx:'base';faceTick(r.A,nowP,emoteFace(r.A)||(fx==='base'&&pr.rd?'focus':fx));if(r.A.book)r.A.book.visible=!!sit&&!!ROOMS[pr.sp]&&ROOMS[pr.sp].study;
-    const lab=pr.rd?`📖 ${Math.floor((Date.now()-pr.rd)/60000)}분`:'';const nm=nameOf(r.by,typeof pr.nk==='string'?pr.nk.slice(0,12):'');if(r.lastLabel!==nm+lab){r.L.set(nm,lab);r.lastLabel=nm+lab;}
+    const lab=focusSub(r.by,pr.rd?Math.max(0,Math.floor((Date.now()-pr.rd)/60000)):-1);const nm=nameOf(r.by,typeof pr.nk==='string'?pr.nk.slice(0,12):'');if(r.lastLabel!==nm+lab){r.L.set(nm,lab);r.lastLabel=nm+lab;}
     if(r.pet){petFollow(r.pet,R0,dt,t,SP.bounds);faceTick(r.pet,nowP,'base');}
-    r.L.sprite.position.set(R0.position.x,R0.position.y+r.A.h+.2,R0.position.z);r.B.sprite.position.set(R0.position.x,R0.position.y+r.A.h+.75,R0.position.z);if(r.B.sprite.visible&&performance.now()>r.B.until)r.B.sprite.visible=false;});
+    r.L.sprite.position.set(R0.position.x,R0.position.y+r.A.h+.2,R0.position.z);{if(!r.C){r.C=makeGlassClock();scene.add(r.C.sprite);}const run=!!pr.rd;r.C.sprite.visible=run;if(run){const e=Date.now()-pr.rd;r.C.set(fmtClock(e),`오늘 ${todayTot(r.by,Math.floor(e/60000))}분`);r.C.sprite.position.set(R0.position.x,R0.position.y+r.A.h+.74,R0.position.z);}r.B.sprite.position.set(R0.position.x,R0.position.y+r.A.h+(run?1.45:.75),R0.position.z);}if(r.B.sprite.visible&&performance.now()>r.B.until)r.B.sprite.visible=false;});
   SP.tick.forEach(f=>f(t,dt));
   if(tapT>0){tapT=Math.max(0,tapT-dt*1.4);tapRing.material.opacity=tapT*.9;tapRing.scale.setScalar(1+(1-tapT)*1.2);}
   if(performance.now()-presT>150)flushPresence();
-  const sec=Math.floor(Date.now()/1000);if(sec!==lastSec){lastSec=sec;if(ST.sitting>=0&&$('#timer').classList.contains('show')){if(TM.run&&TM.mode&&elapsed()>=TM.mode*60000){TM.acc=TM.mode*60000;TM.run=false;TM.done=true;chime();toast('집중 완료! 🎉<small>기록하고 일어나기를 눌러 남겨 두세요</small>');pushPresence(true);}renderTimer();}myLabel.set(ST.nick||'나',TM.run?`📖 ${Math.floor(elapsed()/60000)}분`:'');}
+  const sec=Math.floor(Date.now()/1000);if(sec!==lastSec){lastSec=sec;if(ST.sitting>=0&&$('#timer').classList.contains('show')){if(TM.run&&TM.mode&&elapsed()>=TM.mode*60000){TM.acc=TM.mode*60000;TM.run=false;TM.done=true;chime();toast('집중 완료! 🎉<small>기록하고 일어나기를 눌러 남겨 두세요</small>');pushPresence(true);}renderTimer();}myLabel.set(ST.nick||'나',focusSub(MYID,TM.run?Math.floor(elapsed()/60000):-1));}
   setGuide();updateCam(dt,false);renderer.render(scene,camera);}
 frame();
 /* ---------- 작은 지도 ---------- */

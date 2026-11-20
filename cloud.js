@@ -1,4 +1,4 @@
-/* 운서학당 · Firebase 연결 (claude.ai 밖에서 친구들과 함께 쓰기)
+/* 몽원학당 · Firebase 연결 (claude.ai 밖에서 친구들과 함께 쓰기)
    Firebase Realtime Database + 익명 로그인으로 학당의 공유 저장소·실시간 접속을 대신합니다.
    firebase-config.js 가 비어 있으면 아무것도 하지 않고, 학당은 혼자 모드(이 기기 저장)로 동작합니다. */
 (function(){
