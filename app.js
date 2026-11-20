@@ -164,7 +164,7 @@ const CONN={slow:false,err:null};
 const T0=Date.now();
 function cloudProblem(){const S=window.__cloudState;if(!S)return '';if(S.err==='auth')return '연결 실패 · 익명 로그인이 꺼져 있어요';if(S.err==='join')return '연결 실패 · 데이터베이스 규칙을 확인해 주세요';if(S.err==='init')return '연결 실패 · firebase-config.js를 확인해 주세요';if(Date.now()-T0>12000)return S.stage==='needpw'?'암호를 다시 적으면 연결돼요':'연결이 늦어요 · 새로고침해 보세요';return '';}
 setInterval(()=>{if(MODE!=='shared'&&!CLOUD_DONE)updateConn();},3000);
-function updateConn(){const n=new Set(PEERS.filter(p=>p.kind==='viewer').map(p=>p.by||p.peer)).size;
+function updateConn(){const n=1+new Set(PEERS.filter(p=>p.kind==='viewer'&&!p.isMe&&p.presence&&p.presence.sp&&p.presence.nk&&p.presence.nk!==(ST.nick||'')).map(p=>p.presence.nk||p.by)).size;
   $('#online').textContent=window.__rulesOld?'⚠️ Firebase 규칙을 다시 붙여 넣어 주세요':ROOM&&n>1?`지금 학당에 ${n}명`:ROOM&&n===1?'접속한 친구 없음 · 나만 있어요':MODE==='shared'?'친구를 기다리는 중':CLOUD_DONE?'오프라인 · 이 기기에만 저장돼요':cloudProblem()||'학당에 연결하는 중…';$('#onDot').classList.toggle('off',!(ROOM&&n>0));
   const s=window.__rulesOld?'Firebase 규칙이 예전 버전이라 기록을 저장하지 못해요. 콘솔 → Realtime Database → 규칙에 database.rules.json을 다시 붙여 넣고 게시해 주세요.':MODE==='shared'?(CONN.err?'공유 저장소에 연결하지 못했어요 ('+CONN.err+')':CONN.slow?'공유 기록을 불러오는 중이에요…':CANWRITE?'공유 저장 · 게시판과 기록이 친구들과 함께 보여요':'읽기 전용 · 만든 사람에게 편집 권한을 받아야 글을 남길 수 있어요'):(cloudProblem()?cloudProblem()+((window.__cloudState||{}).msg?' ('+window.__cloudState.msg.slice(0,80)+')':''):CLOUD_DONE?'오프라인 · 이 기기에만 저장돼요':'학당에 연결하는 중…');
   $('#connState').textContent=s+(ROOM?' · 실시간 접속 켜짐':' · 실시간 접속 꺼짐');}
@@ -248,7 +248,7 @@ let toastT;function toast(h){const t=$('#toast');t.innerHTML=h;t.classList.add('
 var MY_EM='',MY_CL='';
 /* ---------- 친구 부르기 ---------- */
 const spName=sp=>sp==='campus'?'학당 마당':(ROOMS[sp]?ROOMS[sp].name:'학당');
-function onlineFriends(){const seen=new Set();return Object.values(REMOTES).filter(r=>r.pr&&r.pr.sp&&r.by&&r.by!==MYID&&!seen.has(r.by)&&seen.add(r.by));}
+function onlineFriends(){const seen=new Set([ST.nick||'']);return Object.values(REMOTES).filter(r=>{if(!r.pr||!r.pr.sp||!r.pr.nk||!r.by||r.by===MYID)return false;const k=r.pr.nk;if(seen.has(k))return false;seen.add(k);return true;});}
 function renderFriends(){const el=$('#frList');if(!el)return;const fr=onlineFriends();
   el.innerHTML=fr.length?fr.map(r=>{const im=thumbOf('av',AVMAP[r.pr.av]?r.pr.av:'girl');const here=r.pr.sp===ST.space;return `<div class="frRow">${im?`<img src="${im}" alt="">`:''}<span><b>${esc(nameOf(r.by,r.pr.nk))}</b><small>${esc(spName(r.pr.sp))}${here?' · 같은 곳':''}${r.pr.rd?' · 공부 중':''}</small></span><button class="ghost" data-go="${r.peer}">찾아가기</button><button class="primary" data-call="${r.by}">부르기</button></div><div class="frMore"><button class="ghost" data-dm="${r.by}">🤫 귓속말</button><button class="ghost" data-play="${r.by}">🎮 같이 놀기</button></div>${canKick()?`<div class="kickRow"><button class="kick" data-kick="${r.by}" data-nk="${esc(nameOf(r.by,r.pr.nk))}">🚪 ${esc(nameOf(r.by,r.pr.nk))}님 내보내기</button></div>`:''}`;}).join(''):`<div class="empty">${MODE==='shared'?'지금 접속한 친구가 없어요. 아래 \'학당 링크 보내기\'로 불러 보세요!':'학당이 연결되지 않아 친구를 볼 수 없어요. 왼쪽 위 연결 상태를 확인해 주세요.'}</div>`;}
 let callCool=0;
