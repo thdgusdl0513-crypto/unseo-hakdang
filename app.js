@@ -358,11 +358,11 @@ $('#stampGo').addEventListener('click',async()=>{const k=dkey(new Date());myDays
 function askStamp(){const k=dkey(new Date());if(myDays[k]||LS.get('stampAsked','')===k)return;LS.set('stampAsked',k);setTimeout(()=>{if(!$$('.modal.show').length)openSheet('stamp');},1600);}
 /* ---------- 친구 내보내기 (관리자) ---------- */
 let BANS={},bansOff=null,kickArm=null,kickT;
-window.__onKicked=()=>{if(window.__kicked)return;window.__kicked=true;LS.set('pwok','');LS.set('pwk','');const el=document.createElement('div');el.id='kicked';el.innerHTML='<div class="paper"><div style="font-size:40px">🚪</div><b>학당에서 내보내졌어요</b><small>관리자에게 문의해 주세요</small></div>';document.body.appendChild(el);try{if(ROOM&&ROOM.presence)ROOM.presence({sp:null});}catch(e){}};
+window.__onKicked=(v)=>{const ts=+(v&&v.ts)||1;if(ts<=+LS.get('kickAck',0)||window.__kicked)return;window.__kicked=true;try{if(ROOM&&ROOM.presence)ROOM.presence({sp:null});}catch(e){}const el=document.createElement('div');el.id='kicked';el.innerHTML='<div class="paper"><div style="font-size:40px">🚪</div><b>잠시 학당 밖으로 나왔어요</b><small>관리자이 내보냈어요 · 언제든 다시 들어올 수 있어요</small><button class="primary" id="kickBack" style="margin-top:14px">다시 들어가기</button></div>';document.body.appendChild(el);el.querySelector('#kickBack').addEventListener('click',()=>{LS.set('kickAck',ts);location.reload();});};
 function canKick(){return ADMIN_ON&&!!window.__cloudAdmin&&MODE==='shared';}
 function watchBans(){if(bansOff||!canKick())return;bansOff=window.__cloudAdmin.watchBans(b=>{BANS=b||{};renderBans();});}
 function renderBans(){const el=$('#banList');if(!el)return;const ids=Object.keys(BANS);el.innerHTML=!ADMIN_ON?'':ids.length?'<div class="sec">내보낸 친구</div>'+ids.map(id=>`<div class="frRow"><span><b>${esc((MEMBERS[id]&&MEMBERS[id].nick)||BANS[id].nick||'친구')}</b><small>${ago(BANS[id].ts||0)} 내보냄</small></span><button class="ghost" data-unkick="${id}">다시 들이기</button></div>`).join(''):'';}
-async function kickFriend(id,nick){try{await window.__cloudAdmin.kick(id,nick);Object.values(REMOTES).forEach(r=>{if(r.by===id)dropRemote(r.peer);});toast(esc(nick)+'님을 학당에서 내보냈어요<small>설정 → 연결에서 다시 들일 수 있어요</small>');renderFriends();}catch(e){toast('내보내지 못했어요<small>관리자 코드가 맞는지 확인해 주세요</small>');}}
+async function kickFriend(id,nick){try{await window.__cloudAdmin.kick(id,nick);Object.values(REMOTES).forEach(r=>{if(r.by===id)dropRemote(r.peer);});toast(esc(nick)+'님을 학당 밖으로 내보냈어요<small>원하면 언제든 다시 들어올 수 있어요</small>');setTimeout(()=>{try{window.__cloudAdmin.unkick(id);}catch(e){}},20000);renderFriends();}catch(e){toast('내보내지 못했어요<small>관리자 코드가 맞는지 확인해 주세요</small>');}}
 function renderAdmin(){watchBans();renderBans();const on=ADMIN_ON;$('#adminState').textContent=on?'관리자 모드 켜짐 · 모든 추천곡과 쪽지에 삭제 버튼이 보여요':'꺼짐';$('#adminOff').hidden=!on;$('#adminIn').parentElement.hidden=on;}
 $('#adminGo').addEventListener('click',async()=>{const v=$('#adminIn').value.trim().toLowerCase();if(!v)return;const btn=$('#adminGo');btn.disabled=true;btn.textContent='확인 중…';const done=()=>{btn.disabled=false;btn.textContent='켜기';};
   if(DB&&MYID!=='me'){try{await DB.doc('members/'+MYID).set({admin:v});}catch(e){done();toast('저장하지 못했어요<small>연결 상태를 확인해 주세요</small>');return;}
@@ -370,7 +370,7 @@ $('#adminGo').addEventListener('click',async()=>{const v=$('#adminIn').value.tri
       if(ok===false){done();try{await DB.doc('members/'+MYID).set({admin:''});}catch(e){}$('#adminMsg').textContent=window.__rulesOld?'❌ Firebase 규칙이 예전 것이에요. 규칙을 다시 붙여 넣고 게시해 주세요.':'❌ 코드가 맞지 않아요. 다시 확인해 주세요.';$('#adminMsg').className='adminMsg bad';$('#adminIn').select();return;}}}
   done();ADMIN_ON=true;LS.set('adminOn',true);$('#adminIn').value='';$('#adminMsg').textContent='✅ 코드가 맞아요! 관리자 모드가 켜졌어요.';$('#adminMsg').className='adminMsg ok';renderAdmin();renderPlaylist();renderBoard();});
 $('#adminOff').addEventListener('click',async()=>{ADMIN_ON=false;LS.set('adminOn',false);if(DB&&MYID!=='me'){try{await DB.doc('members/'+MYID).set({admin:''});}catch(e){}}renderAdmin();renderPlaylist();renderBoard();});
-$('#logoutBtn').addEventListener('click',()=>{LS.set('pwok','');LS.set('pwk','');toast('자동 입장을 해제했어요<small>다음에는 암호를 다시 적어요</small>');});
+$('#logoutBtn').addEventListener('click',()=>{if(!confirm('이 기기에서 닉네임과 캐릭터를 지우고 처음부터 다시 정할까요?'))return;['nick','avatar','look','pet','pwok','pwk','prologue'].forEach(k=>LS.set(k,''));location.reload();});
 
 $('#sndTile').addEventListener('click',()=>openSheet('sound'));renderSoundUI();
 
@@ -383,12 +383,12 @@ async function tryPw(){const v=$('#pwIn').value.trim().toLowerCase().replace(/\s
   if(await sha(v)!==PWH){$('#pwMsg').textContent='암호가 맞지 않아요. 다시 적어 주세요.';$('#pwGo').disabled=false;$('#pwIn').select();return;}
   LS.set('pwok',PWH);LS.set('pwk',v);$('#pwMsg').textContent='';$('#pwGo').textContent='문이 열리는 중…';if(window.__cloudJoin)await Promise.race([window.__cloudJoin(v),new Promise(r=>setTimeout(r,5000))]);await afterGate();}
 async function afterGate(){const t0=Date.now();while(MODE==='shared'&&!membersReady&&Date.now()-t0<6000)await new Promise(r=>setTimeout(r,150));if(cloudPending&&Date.now()-t0<4000)await Promise.race([cloudPending,new Promise(r=>setTimeout(r,4000-(Date.now()-t0)))]);while(MODE==='shared'&&!membersReady&&Date.now()-t0<6000)await new Promise(r=>setTimeout(r,150));
-  if(ST.nick&&LS.get('pwok','')===PWH&&afterGate.auto){enter(false);toast(esc(ST.nick)+'님, 어서 오세요 🌙<small>자동으로 들어왔어요 · 소리는 설정에서 켜요</small>');return;}
+  if(ST.nick&&afterGate.auto){enter(false);toast(esc(ST.nick)+'님, 어서 오세요 🌙<small>자동으로 들어왔어요 · 소리는 설정에서 켜요</small>');return;}
   if(ST.nick){$('#welcome').textContent=ST.nick+'님, 다시 오셨네요!';show('stepIn');}else{renderAvatars();show('stepNick');setTimeout(()=>$('#nickIn').focus(),100);}}
 $('#pwGo').addEventListener('click',tryPw);$('#pwIn').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing)tryPw();});
-$('#nickGo').addEventListener('click',()=>{const v=$('#nickIn').value.trim().slice(0,12);if(!v){$('#nickMsg').textContent='닉네임을 적어 주세요.';$('#nickIn').focus();return;}ST.nick=v;LS.set('nick',v);if(!ST.avatar){ST.avatar='girl';LS.set('avatar','girl');}saveMember();pushPresence(true);updateMe();$('#welcome').textContent=v+'님, 입학을 환영해요!';$('#welcomeSub').textContent='닉네임은 다음에 와도 그대로예요. 설정에서 바꿀 수 있어요.';show('stepIn');});
-const enter=s=>{$('#intro').classList.add('hide');if(s)setSound(true);setTimeout(()=>{$('#intro').remove();updateZone();askStamp();},900);setTimeout(()=>{const hn=$('#hint');if(hn)hn.style.opacity=0;},9000);};
-$('#goSound').addEventListener('click',()=>enter(true));$('#goQuiet').addEventListener('click',()=>enter(false));
+$('#nickGo').addEventListener('click',()=>{const v=$('#nickIn').value.trim().slice(0,12);if(!v){$('#nickMsg').textContent='닉네임을 적어 주세요.';$('#nickIn').focus();return;}ST.nick=v;LS.set('nick',v);{const old=Object.entries(MEMBERS).find(([id,m])=>id!==MYID&&m&&typeof m.nick==='string'&&m.nick.trim().toLowerCase()===v.toLowerCase());if(old){const m=old[1];if(m.look){ST.look=lookParse(m.look);LS.set('look',m.look);}if(m.pet&&PETMAP[m.pet]){ST.pet=m.pet;LS.set('pet',m.pet);try{setPet(m.pet);}catch(e){}}if(m.av&&AVMAP[m.av]){ST.avatar=m.av;LS.set('avatar',m.av);}try{setAvatar(ST.avatar||'girl');}catch(e){}toast('예전 캐릭터를 불러왔어요 🎉<small>'+esc(v)+'님, 다시 만나서 반가워요</small>');}}if(!ST.avatar){ST.avatar='girl';LS.set('avatar','girl');}saveMember();pushPresence(true);updateMe();$('#welcome').textContent=v+'님, 입학을 환영해요!';$('#welcomeSub').textContent='닉네임은 다음에 와도 그대로예요. 설정에서 바꿀 수 있어요.';show('stepIn');});
+const enter=s=>{$('#intro').classList.add('hide');if(s)setSound(true);setTimeout(()=>{$('#intro').remove();updateZone();if(!LS.get('prologue',0)&&window.showPrologue)showPrologue(askStamp);else askStamp();},900);setTimeout(()=>{const hn=$('#hint');if(hn)hn.style.opacity=0;},9000);};
+$('#goSound').addEventListener('click',()=>enter(true));$('#proAgain').addEventListener('click',()=>{closeSheets();if(window.showPrologue)showPrologue();});$('#goQuiet').addEventListener('click',()=>enter(false));
 let cloudPending=null;enterSpace('campus',null,true);updateSeasonChip();renderChat();setGuide(true);updateConn();updateMe();cloudPending=initCloud();Promise.resolve(cloudPending).finally(()=>setTimeout(()=>{CLOUD_DONE=true;updateConn();},1500));fetchWx();setInterval(()=>fetchWx(),30*60e3);renderTicker();notifyNewSongs();
 
 const clock=new THREE.Clock();let walkPh=0,speedNow=0,lastSec=0;const SPEED=4.4;
@@ -454,7 +454,7 @@ function liftMini(){const mm=$('#mini');if(!mm)return;const r0=mm.getBoundingCli
 setInterval(()=>{if(document.hidden)return;try{drawMini();liftMini();}catch(e){}},120);
 $('#mini').addEventListener('click',()=>openSheet('map'));
 window.__dbg={me,enterSpace,get SP(){return SP;},sitDown,ST,TM};
-if(LS.get('pwok','')===PWH){afterGate.auto=true;$('#stepPw').hidden=true;$('#loadTxt').textContent='자동으로 대문을 여는 중…';afterGate().then(()=>{$('#loadTxt').textContent='';});}
+{afterGate.auto=true;$('#stepPw').hidden=true;$('#loadTxt').textContent=ST.nick?'학당 문을 여는 중…':'';afterGate().then(()=>{$('#loadTxt').textContent='';});}
 
 setInterval(()=>{if(ADMIN_ON)watchBans();if(window.__rulesOld!==window.__rulesShown){window.__rulesShown=window.__rulesOld;updateConn();}},3000);
 $('#banList')&&$('#banList').addEventListener('click',async e=>{const b=e.target.closest('[data-unkick]');if(!b)return;try{await window.__cloudAdmin.unkick(b.dataset.unkick);toast('다시 들어올 수 있어요<small>친구가 암호를 한 번 더 적으면 돼요</small>');}catch(err){toast('바꾸지 못했어요');}});

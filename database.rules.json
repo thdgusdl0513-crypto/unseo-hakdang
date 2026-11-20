@@ -3,7 +3,7 @@
     ".read": false,
     ".write": false,
     "members": {
-      ".read": "auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading' && !root.child('bans').child(auth.uid).exists()",
+      ".read": "auth != null",
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",
         ".write": "auth != null && auth.uid === $uid",
@@ -16,26 +16,26 @@
       }
     },
     "stamps": {
-      ".read": "auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading' && !root.child('bans').child(auth.uid).exists()",
+      ".read": "auth != null",
       "$uid": {
-        ".write": "auth != null && auth.uid === $uid && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading'"
+        ".write": "auth != null && auth.uid === $uid"
       }
     },
     "data": {
       "$col": {
-        ".read": "auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading' && !root.child('bans').child(auth.uid).exists()",
+        ".read": "auth != null",
         ".indexOn": [
           "ts"
         ],
         "$id": {
-          ".write": "(auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading' && !root.child('bans').child(auth.uid).exists() && ((!data.exists() && newData.child('by').val() === auth.uid) || (data.exists() && data.child('by').val() === auth.uid))) || (auth != null && root.child('members').child(auth.uid).child('admin').val() === 'happy_life' && !newData.exists())"
+          ".write": "(auth != null && ((!data.exists() && newData.child('by').val() === auth.uid) || (data.exists() && data.child('by').val() === auth.uid))) || (auth != null && root.child('members').child(auth.uid).child('admin').val() === 'happy_life' && !newData.exists())"
         }
       }
     },
     "presence": {
-      ".read": "auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading' && !root.child('bans').child(auth.uid).exists()",
+      ".read": "auth != null",
       "$peer": {
-        ".write": "(auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading' && !root.child('bans').child(auth.uid).exists() && ((newData.exists() && newData.child('by').val() === auth.uid) || (!newData.exists() && data.child('by').val() === auth.uid))) || (auth != null && root.child('members').child(auth.uid).child('admin').val() === 'happy_life' && !newData.exists())"
+        ".write": "(auth != null && ((newData.exists() && newData.child('by').val() === auth.uid) || (!newData.exists() && data.child('by').val() === auth.uid))) || (auth != null && root.child('members').child(auth.uid).child('admin').val() === 'happy_life' && !newData.exists())"
       }
     },
     "bans": {
@@ -46,26 +46,26 @@
       }
     },
     "chat": {
-      ".read": "auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading' && !root.child('bans').child(auth.uid).exists()",
+      ".read": "auth != null",
       ".indexOn": [
         "t"
       ],
       "$m": {
-        ".write": "auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading' && !root.child('bans').child(auth.uid).exists() && !data.exists() && newData.child('by').val() === auth.uid",
+        ".write": "auth != null && !data.exists() && newData.child('by').val() === auth.uid",
         ".validate": "newData.child('d').child('t').isString() && newData.child('d').child('t').val().length <= 200"
       }
     },
     "likes": {
-      ".read": "auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading' && !root.child('bans').child(auth.uid).exists()",
+      ".read": "auth != null",
       "$item": {
         "$uid": {
-          ".write": "auth != null && auth.uid === $uid && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading'"
+          ".write": "auth != null && auth.uid === $uid"
         }
       }
     },
     "songhyeon": {
       "members": {
-        ".read": "auth != null && (root.child('songhyeon').child('members').child(auth.uid).child('key').val() === '12345678' || root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'happy_life') && !root.child('songhyeon').child('bans').child(auth.uid).exists()",
+        ".read": "auth != null",
         "$uid": {
           ".read": "auth != null && auth.uid === $uid",
           ".write": "auth != null && auth.uid === $uid",
@@ -78,57 +78,57 @@
         }
       },
       "stamps": {
-        ".read": "auth != null && (root.child('songhyeon').child('members').child(auth.uid).child('key').val() === '12345678' || root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'happy_life') && !root.child('songhyeon').child('bans').child(auth.uid).exists()",
+        ".read": "auth != null",
         "$uid": {
-          ".write": "auth != null && auth.uid === $uid && (root.child('songhyeon').child('members').child(auth.uid).child('key').val() === '12345678' || root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'happy_life')"
+          ".write": "auth != null && auth.uid === $uid"
         }
       },
       "data": {
         "$col": {
-          ".read": "auth != null && (root.child('songhyeon').child('members').child(auth.uid).child('key').val() === '12345678' || root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'happy_life') && !root.child('songhyeon').child('bans').child(auth.uid).exists()",
+          ".read": "auth != null",
           ".indexOn": [
             "ts"
           ],
           "$id": {
-            ".write": "(auth != null && (root.child('songhyeon').child('members').child(auth.uid).child('key').val() === '12345678' || root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'happy_life') && !root.child('songhyeon').child('bans').child(auth.uid).exists() && ((!data.exists() && newData.child('by').val() === auth.uid) || (data.exists() && data.child('by').val() === auth.uid))) || (auth != null && root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'happy_life' && !newData.exists())"
+            ".write": "(auth != null && ((!data.exists() && newData.child('by').val() === auth.uid) || (data.exists() && data.child('by').val() === auth.uid))) || (auth != null && root.child('songhyeon').child('members').child(auth.uid).child('admin').val() === 'happy_life' && !newData.exists())"
           }
         }
       },
       "presence": {
-        ".read": "auth != null && (root.child('songhyeon').child('members').child(auth.uid).child('key').val() === '12345678' || root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'happy_life') && !root.child('songhyeon').child('bans').child(auth.uid).exists()",
+        ".read": "auth != null",
         "$peer": {
-          ".write": "(auth != null && (root.child('songhyeon').child('members').child(auth.uid).child('key').val() === '12345678' || root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'happy_life') && !root.child('songhyeon').child('bans').child(auth.uid).exists() && ((newData.exists() && newData.child('by').val() === auth.uid) || (!newData.exists() && data.child('by').val() === auth.uid))) || (auth != null && root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'happy_life' && !newData.exists())"
+          ".write": "(auth != null && ((newData.exists() && newData.child('by').val() === auth.uid) || (!newData.exists() && data.child('by').val() === auth.uid))) || (auth != null && root.child('songhyeon').child('members').child(auth.uid).child('admin').val() === 'happy_life' && !newData.exists())"
         }
       },
       "bans": {
-        ".read": "auth != null && root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'happy_life'",
+        ".read": "auth != null && root.child('songhyeon').child('members').child(auth.uid).child('admin').val() === 'happy_life'",
         "$uid": {
           ".read": "auth != null && auth.uid === $uid",
-          ".write": "auth != null && root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'happy_life'"
+          ".write": "auth != null && root.child('songhyeon').child('members').child(auth.uid).child('admin').val() === 'happy_life'"
         }
       },
       "chat": {
-        ".read": "auth != null && (root.child('songhyeon').child('members').child(auth.uid).child('key').val() === '12345678' || root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'happy_life') && !root.child('songhyeon').child('bans').child(auth.uid).exists()",
+        ".read": "auth != null",
         ".indexOn": [
           "t"
         ],
         "$m": {
-          ".write": "auth != null && (root.child('songhyeon').child('members').child(auth.uid).child('key').val() === '12345678' || root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'happy_life') && !root.child('songhyeon').child('bans').child(auth.uid).exists() && !data.exists() && newData.child('by').val() === auth.uid && (root.child('songhyeon').child('settings').child('class').child('chat').val() !== 'off' || auth != null && root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'happy_life')",
+          ".write": "auth != null && !data.exists() && newData.child('by').val() === auth.uid && (root.child('songhyeon').child('settings').child('class').child('chat').val() !== 'off' || auth != null && root.child('songhyeon').child('members').child(auth.uid).child('admin').val() === 'happy_life')",
           ".validate": "newData.child('d').child('t').isString() && newData.child('d').child('t').val().length <= 200"
         }
       },
       "likes": {
-        ".read": "auth != null && (root.child('songhyeon').child('members').child(auth.uid).child('key').val() === '12345678' || root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'happy_life') && !root.child('songhyeon').child('bans').child(auth.uid).exists()",
+        ".read": "auth != null",
         "$item": {
           "$uid": {
-            ".write": "auth != null && auth.uid === $uid && (root.child('songhyeon').child('members').child(auth.uid).child('key').val() === '12345678' || root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'happy_life')"
+            ".write": "auth != null && auth.uid === $uid"
           }
         }
       },
       "settings": {
-        ".read": "auth != null && (root.child('songhyeon').child('members').child(auth.uid).child('key').val() === '12345678' || root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'happy_life') && !root.child('songhyeon').child('bans').child(auth.uid).exists()",
+        ".read": "auth != null",
         "$id": {
-          ".write": "auth != null && root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'happy_life'"
+          ".write": "auth != null && root.child('songhyeon').child('members').child(auth.uid).child('admin').val() === 'happy_life'"
         }
       }
     }
