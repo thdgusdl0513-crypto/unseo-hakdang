@@ -223,7 +223,7 @@ $('#facePop').addEventListener('click',e=>{if(e.target.closest('[data-look]')){s
 canvas.addEventListener('pointerdown',()=>$('#facePop').classList.remove('show'));renderFaces();
 
 /* ---------- wardrobe ---------- */
-let wTab='modern';
+let wTab='top';
 const HAT_ICO={gat:'🎩',none:'🙅',jobawi:'🧣',jokduri:'👑',hwagwan:'💐',beanie:'🧶',beret:'🎨',cap:'🧢'},ACC_ICO={glasses:'👓',sunglasses:'🕶️',scarf:'🧣',norigae:'🎐',flowerpin:'🌸',headphones:'🎧',backpack:'🎒',crossbag:'👜'};
 ACC_ICO.norigae='🪢';
 function previewImg(){try{if(!thumbR){thumbOf('av','girl');}const sc=new THREE.Scene();sc.add(new THREE.HemisphereLight(0xfff4e0,0x8a6a4a,1.05));const dl=new THREE.DirectionalLight(0xffffff,.7);dl.position.set(2,4,-5);sc.add(dl);
@@ -231,12 +231,12 @@ function previewImg(){try{if(!thumbR){thumbOf('av','girl');}const sc=new THREE.S
 function renderWardrobe(){if(!$('#wardrobe').classList.contains('show'))return;$$('#wTabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===wTab));const L=ST.look;const el=$('#wGrid');
   if(wTab==='hat')el.innerHTML=HATS.map(h=>`<button data-h="${h[0]}" class="${L.h===h[0]?'on':''}"><span>${HAT_ICO[h[0]]}</span>${h[1]}</button>`).join('');
   else if(wTab==='acc')el.innerHTML=ACCS.map(a=>`<button data-a="${a[0]}" class="${L.a.includes(a[0])?'on':''}"><span>${ACC_ICO[a[0]]}</span>${a[1]}</button>`).join('');
-  else el.innerHTML=OUTFITS.filter(o=>o.cat===wTab).map(o=>`<button data-o="${o.id}" class="${L.o===o.id?'on':''}"><i class="sw">${o.sw.map(c=>`<b style="background:${c}"></b>`).join('')}</i>${o.name}</button>`).join('');
-  const im=previewImg();$('#wPrev').innerHTML=im?`<img src="${im}" alt="">`:'';$('#wNote').textContent=wTab==='acc'?`소품은 4개까지 · 지금 ${L.a.length}개`:'';}
+  else{const list=wTab==='top'?TOPS:BOTTOMS,key=wTab==='top'?'t':'b';el.innerHTML=[['trad','전통'],['mhan','모던 한복'],['modern','현대']].map(([c,n])=>`<div class="wSec">${n}</div>`+list.filter(o=>o.cat===c).map(o=>`<button data-${key}="${o.id}" class="${L[key]===o.id?'on':''}"><i class="sw">${o.sw.map(x=>`<b style="background:${x}"></b>`).join('')}</i>${o.name}</button>`).join('')).join('');}
+  const im=previewImg();$('#wPrev').innerHTML=im?`<img src="${im}" alt="">`:'';$('#wNote').textContent=wTab==='acc'?`소품은 4개까지 · 지금 ${L.a.length}개`:wTab==='top'&&L.t==='cheollik'?'원피스라 치마는 가려지고, 바지는 함께 입을 수 있어요':'';}
 function setLook(L){ST.look=L;LS.set('look',lookStr(L));setAvatar(ST.avatar||'girl');renderWardrobe();}
 $('#wTabs').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(!b)return;wTab=b.dataset.t;renderWardrobe();});
 $('#wGrid').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const L=Object.assign({},ST.look,{a:ST.look.a.slice()});
-  if(b.dataset.o)L.o=b.dataset.o;else if(b.dataset.h)L.h=b.dataset.h;else if(b.dataset.a){const i=L.a.indexOf(b.dataset.a);if(i>=0)L.a.splice(i,1);else{if(L.a.length>=4){toast('소품은 4개까지 착용할 수 있어요');return;}L.a.push(b.dataset.a);}}setLook(L);});
+  if(b.dataset.t)L.t=b.dataset.t;else if(b.dataset.b)L.b=b.dataset.b;else if(b.dataset.h)L.h=b.dataset.h;else if(b.dataset.a){const i=L.a.indexOf(b.dataset.a);if(i>=0)L.a.splice(i,1);else{if(L.a.length>=4){toast('소품은 4개까지 착용할 수 있어요');return;}L.a.push(b.dataset.a);}}setLook(L);});
 $('#wReset').addEventListener('click',()=>setLook(Object.assign({},DEFAULT_LOOK,{a:[]})));
 
 /* ---------- playlist ---------- */
