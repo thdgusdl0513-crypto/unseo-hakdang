@@ -1,4 +1,4 @@
-/* 운서학당 · sound mixer: nature layers, hourly temple bell, generative piano / jazz / waltz */
+/* 송현학당 · sound mixer: nature layers, hourly temple bell, generative piano / jazz / waltz */
 const SND=Object.assign({on:false,vol:.85,rain:0,wind:.35,snow:0,whistle:0,gayageum:.45,fire:0,bell:true,music:'piano',mvol:.55},LS.get('snd',{}));SND.on=false;
 const LAYERS=[['rain','빗소리','🌧'],['wind','바람 소리','🍃'],['snow','눈 내리는 소리','❄️'],['whistle','휘파람','🎶'],['gayageum','가야금 풍경','🪕'],['fire','타닥타닥 장작','🔥']];
 const MUSIC=[['none','없음'],['piano','피아노'],['jazz','재즈'],['waltz','왈츠']];

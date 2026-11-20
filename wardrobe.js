@@ -1,4 +1,4 @@
-/* 운서학당 · 옷장: 옷(현대·전통·모던 한복), 모자, 소품 */
+/* 송현학당 · 옷장: 옷(현대·전통·모던 한복), 모자, 소품 */
 const TOPS=[
  {id:'school',cat:'trad',name:'교복 저고리',sw:['#fbf6ec','#9fadc2']},
  {id:'saekdong',cat:'trad',name:'색동저고리',sw:['#c4384a','#f2c84b','#4a8ac8'],st:'jeogori',c:0xfbf4e6,sleeve:{tex:'saekdong'},tie:0x6a3aa8},

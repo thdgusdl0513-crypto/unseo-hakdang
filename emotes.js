@@ -1,4 +1,4 @@
-/* 운서학당 · 행동(이모트): 인사, 꾸벅, 하트, 박수, 신나, 춤, 화이팅, 꾸벅잠 */
+/* 송현학당 · 행동(이모트): 인사, 꾸벅, 하트, 박수, 신나, 춤, 화이팅, 꾸벅잠 */
 const EMOTES=[['wave','👋','인사'],['bow','🙇','꾸벅'],['heart','💗','하트'],['clap','👏','박수'],['jump','🎉','신나'],['dance','💃','춤'],['cheer','💪','화이팅'],['sleep','😴','꾸벅잠']];
 const EM_DUR={wave:2.4,bow:2.0,heart:2.8,clap:2.4,jump:2.2,dance:3.4,cheer:2.2,sleep:4.2};
 const EM_FACE={wave:'smile',bow:'smile',heart:'shy',clap:'joy',jump:'joy',dance:'joy',cheer:'joy',sleep:'sleepy'};

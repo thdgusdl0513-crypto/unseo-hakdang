@@ -1,4 +1,4 @@
-/* 운서학당 · characters: chibi hanbok + gat, bipedal animals, drawn faces with expressions */
+/* 송현학당 · characters: chibi hanbok + gat, bipedal animals, drawn faces with expressions */
 const EYE=std(0x1a1414),SCARF=std(0xc4584a,{emissive:0x3a1008}),IVORY=std(0xfbf6ec,{emissive:0x4a463c}),PINKPAD=std(0xf2a6ae,{emissive:0x401818});
 const GATM=new THREE.MeshToonMaterial({color:0x1a1512,gradientMap:GRAD,transparent:true,opacity:.84,depthWrite:false}),BEAD=std(0xe0a64a,{emissive:0x3a2008});
 const fur=c=>std(c,{emissive:new THREE.Color(c).multiplyScalar(.16)});

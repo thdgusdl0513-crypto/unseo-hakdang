@@ -1,4 +1,4 @@
-/* 운서학당 · spaces & seasons */
+/* 송현학당 · spaces & seasons */
 const MONTHS={1:['snow','한겨울 눈','❄️'],2:['snow','겨울 끝자락','❄️'],3:['spring','이른 봄','🌱'],4:['spring','벚꽃','🌸'],5:['birthday','생일 축하의 달','🎂'],6:['summer','화창한 초여름','☀️'],7:['rain','장마','☔'],8:['summer','한여름 햇살','🌻'],9:['autumn','초가을','🍂'],10:['halloween','할로윈','🎃'],11:['autumn','단풍','🍁'],12:['xmas','크리스마스','🎄']};
 let SEASON=null;
 function makeSeason(month,tod){const [key,name,ico]=MONTHS[month];const S={month,key,name,ico,tod};
@@ -103,21 +103,21 @@ function buildCampus(S){reseed(21);const G=new THREE.Group();const T=[];const sp
   const path=(x1,z1,x2,z2,w)=>{const dx=x2-x1,dz=z2-z1,L=Math.hypot(dx,dz);const t=ctex(64,256,(g)=>{g.drawImage(TEX.paving.image,0,0,64,256);},[1,Math.max(1,Math.round(L/3))]);const m=new THREE.Mesh(new THREE.PlaneGeometry(w,L),std(S.snow?0xdfe6ea:0xffffff,{map:t,roughness:.95}));m.rotation.x=-PI/2;m.rotation.z=-Math.atan2(dx,dz)+PI;m.position.set((x1+x2)/2,.015,(z1+z2)/2);G.add(m);};
   path(0,4,0,22,3);path(0,-10,0,-16,3);path(-5,-7,-13,-16,2.4);path(5,-7,13,-16,2.4);path(-7,-4,-22,-5,2.4);path(-6,0,-22,11,2.4);path(7,-2,22,3,2.6);
   // buildings
-  hall(G,{x:0,z:-21.6,w:12,d:9,h:4.2,two:true,plaque:'雲書閣',label:'도서관 · 운서각',doorColor:0x9fe6ff});
-  hall(G,{x:-13,z:-20.2,w:7.2,d:6,h:3.4,plaque:'基礎魔法堂',label:'마법학 기초 · 전공필수'});
-  hall(G,{x:13,z:-20.2,w:7.2,d:6,h:3.4,plaque:'靈藥堂',label:'마법약 수업 · 전공필수',wallMat:std(0x5a5e58),doorColor:0x8affb0,plaqueBg:'#1a2a20',plaqueFg:'#9fe8b0'});
-  hall(G,{x:25.2,z:3,rot:-PI/2,w:10,d:6.4,h:3.8,plaque:'溫和寮',label:'기숙사 · 온화료',panel:TEX.panelRed,wallMat:std(0xb03a2c),pillar:std(0x6a2018),roofMat:MAT.tileRed,warm:true,plaqueBg:'#5a1410',plaqueFg:'#ffd27a'});
+  hall(G,{x:0,z:-21.6,w:12,d:9,h:4.2,two:true,plaque:'圖書館',label:RL('library'),doorColor:0x9fe6ff});
+  hall(G,{x:-13,z:-20.2,w:7.2,d:6,h:3.4,plaque:'基礎魔法堂',label:RL('basics')});
+  hall(G,{x:13,z:-20.2,w:7.2,d:6,h:3.4,plaque:'靈藥堂',label:RL('potion'),wallMat:std(0x5a5e58),doorColor:0x8affb0,plaqueBg:'#1a2a20',plaqueFg:'#9fe8b0'});
+  hall(G,{x:25.2,z:3,rot:-PI/2,w:10,d:6.4,h:3.8,plaque:'溫和寮',label:RL('dorm'),panel:TEX.panelRed,wallMat:std(0xb03a2c),pillar:std(0x6a2018),roofMat:MAT.tileRed,warm:true,plaqueBg:'#5a1410',plaqueFg:'#ffd27a'});
   // greenhouse
   {const g=new THREE.Group();g.position.set(-25.5,0,-5);g.rotation.y=PI/2;G.add(g);box(g,9,.3,6.5,MAT.stone,0,.15,0);const gw=new THREE.Mesh(new THREE.BoxGeometry(8.4,3.4,6),MAT.glass);gw.position.y=2;g.add(gw);
     for(let i=0;i<=6;i++){box(g,.1,3.4,.1,MAT.woodDark,-4.2+i*1.4,2,3);box(g,.1,3.4,.1,MAT.woodDark,-4.2+i*1.4,2,-3);}box(g,8.6,.12,.12,MAT.woodDark,0,3.7,3);box(g,8.6,.12,.12,MAT.woodDark,0,3.7,-3);
     [-1,1].forEach(s=>{const r=new THREE.Mesh(new THREE.PlaneGeometry(8.6,3.5),MAT.glass);r.position.set(0,4.5,s*1.55);r.rotation.x=-PI/2+s*-.52;g.add(r);});box(g,8.6,.14,.14,MAT.woodDark,0,5.35,0);
     for(let i=0;i<14;i++){sph(g,R(.3,.6),std([0x4c8a3a,0x6aa84a,0x3a7a4a][i%3]),R(-3.6,3.6),R(.5,1.2),R(-2.4,2.4));}for(let i=0;i<6;i++){const gl=glow(0xffe8a0,1,.5);gl.position.set(R(-3,3),R(1,3),R(-2,2));g.add(gl);}
-    const door=new THREE.Mesh(new THREE.PlaneGeometry(1.6,2.4),new THREE.MeshBasicMaterial({color:0xcff0c0}));door.position.set(0,1.5,3.04);g.add(door);const L=makeLabel('약초학 온실 · 전공선택');L.sprite.position.set(0,6.4,2);L.sprite.scale.set(3.2,.6,1);g.add(L.sprite);}
+    const door=new THREE.Mesh(new THREE.PlaneGeometry(1.6,2.4),new THREE.MeshBasicMaterial({color:0xcff0c0}));door.position.set(0,1.5,3.04);g.add(door);const L=makeLabel(RL('herbs'));L.sprite.position.set(0,6.4,2);L.sprite.scale.set(3.2,.6,1);g.add(L.sprite);}
   // training pavilion
   {const g=new THREE.Group();g.position.set(-25.5,0,11);g.rotation.y=PI/2;G.add(g);box(g,9,.5,7,MAT.stone,0,.25,0);const fl=new THREE.Mesh(new THREE.PlaneGeometry(8.4,6.4),std(0xffffff,{map:TEX.floorLight}));fl.rotation.x=-PI/2;fl.position.y=.52;g.add(fl);
     [[-4,-3],[0,-3],[4,-3],[-4,3],[0,3],[4,3]].forEach(p=>cyl(g,.18,.2,3.4,10,MAT.red,p[0],2.2,p[1]));const rf=curvedRoof(11,9.4,1,.36,.2);rf.position.y=4.5;g.add(rf);if(S.snow){const sn=curvedRoof(10.6,9,1,.1,.2,MAT.white);sn.position.y=4.75;g.add(sn);}
     for(let i=0;i<3;i++){const dm=new THREE.Group();dm.position.set(-2.5+i*2.5,.5,-1);g.add(dm);cyl(dm,.1,.12,1.6,8,MAT.woodLight,0,.8,0);cyl(dm,.25,.25,.7,10,std(0xc8a070),0,1.2,0);box(dm,1,.08,.08,MAT.woodLight,0,1.3,0);sph(dm,.18,std(0xc8a070),0,1.75,0);}
-    const L=makeLabel('기초체력 수련장 · 전공선택');L.sprite.position.set(0,6.2,2);L.sprite.scale.set(3.2,.6,1);g.add(L.sprite);}
+    const L=makeLabel(RL('training'));L.sprite.position.set(0,6.2,2);L.sprite.scale.set(3.2,.6,1);g.add(L.sprite);}
   // pond
   {const p=new THREE.Mesh(new THREE.CircleGeometry(2.8,36),std(S.snow?0xcfe2ee:0x1c3a46,{metalness:S.snow?0:.5,roughness:S.snow?.4:.15}));p.rotation.x=-PI/2;p.position.set(-11,.03,9);G.add(p);const rim=new THREE.Mesh(new THREE.TorusGeometry(2.85,.18,6,36),MAT.stoneDark);rim.rotation.x=-PI/2;rim.position.set(-11,.05,9);G.add(rim);sp.obs.push({x:-11,z:9,r:3.1});
     if(!S.snow)for(let i=0;i<6;i++){const a=rnd()*6,r=R(.5,2.1);const pad=new THREE.Mesh(new THREE.CircleGeometry(R(.22,.34),12),std(0x3a6a40));pad.rotation.x=-PI/2;pad.position.set(-11+Math.cos(a)*r,.06,9+Math.sin(a)*r);G.add(pad);if((S.month>=6&&S.month<=8)&&i%2===0){cyl(G,.14,.04,.18,6,emis(0xf6b0c8,.5),pad.position.x,.15,pad.position.z);}}}
@@ -156,13 +156,16 @@ function buildCampus(S){reseed(21);const G=new THREE.Group();const T=[];const sp
   return sp;}
 
 /* ---------- interiors ---------- */
+const RL=id=>ROOMS[id].name+(ROOMS[id].tag?' · '+ROOMS[id].tag.replace(' ',''):'');
+const ROOM_DEF={};
 const ROOMS={
  potion:{name:'마법약 수업',en:'II · POTIONS — 靈藥堂',tag:'전공 필수',title:'끓는 솥 앞에서,<br>집중의 물약을.',study:true},
  basics:{name:'마법학 기초',en:'I · FOUNDATIONS — 基礎魔法堂',tag:'전공 필수',title:'기(氣)의 흐름,<br>첫 주문을 익히다.',study:true},
  herbs:{name:'약초학 수업',en:'III · HERBOLOGY — 藥草園',tag:'전공 선택',title:'유리 온실 속,<br>약초가 자라는 시간.',study:true},
  training:{name:'기초체력훈련',en:'IV · TRAINING — 修鍊場',tag:'전공 선택',title:'몸이 단단해야<br>마법도 단단하다.',study:true},
- library:{name:'도서관 · 운서각',en:'V · LIBRARY — 雲書閣',tag:'자유 독서',title:'구름 위,<br>현자들의 서고.',study:true},
+ library:{name:'도서관',en:'V · LIBRARY — 圖書館',tag:'자유 독서',title:'구름 위,<br>현자들의 서고.',study:true},
  dorm:{name:'기숙사 · 온화료',en:'DORMITORY — 溫和寮',tag:'자유 대화',title:'노을 지는 창가,<br>우리들의 공부방.',study:false}};
+Object.keys(ROOMS).forEach(k=>ROOM_DEF[k]=Object.assign({},ROOMS[k]));
 function roomShell(id,S,o){const G=new THREE.Group();const T=[];const sp={id,G,tick:T,bounds:[-7.2,7.2,-6.2,6.6],obs:[],seats:[],triggers:[],doors:[{x:0,z:6.6,r:.9,to:'campus'}],spawn:{x:0,z:5.2}};
   const fl=new THREE.Mesh(new THREE.PlaneGeometry(16,14),std(0xffffff,{map:o.floor,roughness:.8}));fl.rotation.x=-PI/2;G.add(fl);
   const H=o.wallH||5;const wm=o.wallMat||MAT.plaster;

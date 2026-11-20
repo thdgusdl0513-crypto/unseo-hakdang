@@ -1,5 +1,5 @@
-/* 운서학당 · core: renderer, textures, helpers, avatars */
-const LS={get(k,d){try{const v=localStorage.getItem('unseo.'+k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set(k,v){try{localStorage.setItem('unseo.'+k,JSON.stringify(v));}catch(e){}}};
+/* 송현학당 · core: renderer, textures, helpers, avatars */
+const LS={get(k,d){try{const v=localStorage.getItem('songhyeon.'+k);return v==null?d:JSON.parse(v);}catch(e){return d;}},set(k,v){try{localStorage.setItem('songhyeon.'+k,JSON.stringify(v));}catch(e){}}};
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const PI=Math.PI, $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 let seed=7; const rnd=()=>{seed=(seed*16807)%2147483647;return (seed-1)/2147483646;}; const R=(a,b)=>a+(b-a)*rnd();
