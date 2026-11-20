@@ -14,6 +14,7 @@
   async function join(pw){if(!uid)await authP;if(!uid)throw new Error('no-auth');CS.stage='join';try{await fdb.ref('members/'+uid).update({key:pw,ts:Date.now()});}catch(e){CS.err='join';CS.msg=String(e&&e.message||e);throw e;}markJoined();}
   window.__cloudJoin=pw=>join(pw).catch(e=>{console.warn('입장 기록 실패',e);});
   CS.stage='auth';const authP=auth.signInAnonymously().then(async c=>{uid=c.user.uid;CS.stage='member';
+    try{fdb.ref('bans/'+uid).on('value',s=>{if(s.exists()&&window.__onKicked)window.__onKicked();},()=>{});}catch(e){}
     try{const s=await fdb.ref('members/'+uid+'/key').get();if(s.exists()){markJoined();return;}}catch(e){}
     const saved=lsGet('pwk');if(saved){try{await join(saved);}catch(e){}}else CS.stage='needpw';
   }).catch(e=>{CS.err='auth';CS.msg=String(e&&(e.code||e.message)||e);console.warn('익명 로그인 실패 — Firebase 콘솔에서 익명 로그인을 켰는지 확인해 주세요',e);});
@@ -66,6 +67,11 @@
       join:()=>Promise.reject({code:'not_permitted'}),
       canSendToClaudeSession:async()=>'off'};}
 
+  window.__cloudAdmin={
+    async kick(id,nick){await fdb.ref('bans/'+id).set({ts:Date.now(),nick:String(nick||'').slice(0,12)});
+      try{const s=await fdb.ref('presence').get();const jobs=[];s.forEach(c=>{const v=c.val()||{};if(v.by===id)jobs.push(fdb.ref('presence/'+c.key).remove());});await Promise.all(jobs);}catch(e){}},
+    unkick(id){return fdb.ref('bans/'+id).remove();},
+    watchBans(cb){const ref=fdb.ref('bans');const h=ref.on('value',s=>cb(s.val()||{}),()=>cb(null));return ()=>ref.off('value',h);}};
   window.claude={use:async name=>{await authP;await readyP;
     if(name==='db')return DB;if(name==='user')return USER;if(name==='room'){if(!ROOM)ROOM=makeRoom();return ROOM;}return null;}};
   window.__cloudKind='firebase';

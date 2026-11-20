@@ -3,7 +3,7 @@
     ".read": false,
     ".write": false,
     "members": {
-      ".read": "auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading'",
+      ".read": "auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading' && !root.child('bans').child(auth.uid).exists()",
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",
         ".write": "auth != null && auth.uid === $uid",
@@ -16,40 +16,47 @@
       }
     },
     "stamps": {
-      ".read": "auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading'",
+      ".read": "auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading' && !root.child('bans').child(auth.uid).exists()",
       "$uid": {
         ".write": "auth != null && auth.uid === $uid && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading'"
       }
     },
     "data": {
       "$col": {
-        ".read": "auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading'",
+        ".read": "auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading' && !root.child('bans').child(auth.uid).exists()",
         ".indexOn": [
           "ts"
         ],
         "$id": {
-          ".write": "(auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading' && ((!data.exists() && newData.child('by').val() === auth.uid) || (data.exists() && data.child('by').val() === auth.uid))) || (auth != null && root.child('members').child(auth.uid).child('admin').val() === 'unseo-sajang' && !newData.exists())"
+          ".write": "(auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading' && !root.child('bans').child(auth.uid).exists() && ((!data.exists() && newData.child('by').val() === auth.uid) || (data.exists() && data.child('by').val() === auth.uid))) || (auth != null && root.child('members').child(auth.uid).child('admin').val() === '19700920' && !newData.exists())"
         }
       }
     },
     "presence": {
-      ".read": "auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading'",
+      ".read": "auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading' && !root.child('bans').child(auth.uid).exists()",
       "$peer": {
-        ".write": "auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading' && ((newData.exists() && newData.child('by').val() === auth.uid) || (!newData.exists() && data.child('by').val() === auth.uid))"
+        ".write": "(auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading' && !root.child('bans').child(auth.uid).exists() && ((newData.exists() && newData.child('by').val() === auth.uid) || (!newData.exists() && data.child('by').val() === auth.uid))) || (auth != null && root.child('members').child(auth.uid).child('admin').val() === '19700920' && !newData.exists())"
+      }
+    },
+    "bans": {
+      ".read": "auth != null && root.child('members').child(auth.uid).child('admin').val() === '19700920'",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && root.child('members').child(auth.uid).child('admin').val() === '19700920'"
       }
     },
     "chat": {
-      ".read": "auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading'",
+      ".read": "auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading' && !root.child('bans').child(auth.uid).exists()",
       ".indexOn": [
         "t"
       ],
       "$m": {
-        ".write": "auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading' && !data.exists() && newData.child('by').val() === auth.uid",
+        ".write": "auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading' && !root.child('bans').child(auth.uid).exists() && !data.exists() && newData.child('by').val() === auth.uid",
         ".validate": "newData.child('d').child('t').isString() && newData.child('d').child('t').val().length <= 200"
       }
     },
     "likes": {
-      ".read": "auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading'",
+      ".read": "auth != null && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading' && !root.child('bans').child(auth.uid).exists()",
       "$item": {
         "$uid": {
           ".write": "auth != null && auth.uid === $uid && root.child('members').child(auth.uid).child('key').val() === 'homesweetreading'"
@@ -58,7 +65,7 @@
     },
     "songhyeon": {
       "members": {
-        ".read": "auth != null && root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'homesweetreading'",
+        ".read": "auth != null && root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'homesweetreading' && !root.child('songhyeon').child('bans').child(auth.uid).exists()",
         "$uid": {
           ".read": "auth != null && auth.uid === $uid",
           ".write": "auth != null && auth.uid === $uid",
@@ -71,40 +78,47 @@
         }
       },
       "stamps": {
-        ".read": "auth != null && root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'homesweetreading'",
+        ".read": "auth != null && root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'homesweetreading' && !root.child('songhyeon').child('bans').child(auth.uid).exists()",
         "$uid": {
           ".write": "auth != null && auth.uid === $uid && root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'homesweetreading'"
         }
       },
       "data": {
         "$col": {
-          ".read": "auth != null && root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'homesweetreading'",
+          ".read": "auth != null && root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'homesweetreading' && !root.child('songhyeon').child('bans').child(auth.uid).exists()",
           ".indexOn": [
             "ts"
           ],
           "$id": {
-            ".write": "(auth != null && root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'homesweetreading' && ((!data.exists() && newData.child('by').val() === auth.uid) || (data.exists() && data.child('by').val() === auth.uid))) || (auth != null && root.child('songhyeon').child('members').child(auth.uid).child('admin').val() === 'songhyeon-teacher' && !newData.exists())"
+            ".write": "(auth != null && root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'homesweetreading' && !root.child('songhyeon').child('bans').child(auth.uid).exists() && ((!data.exists() && newData.child('by').val() === auth.uid) || (data.exists() && data.child('by').val() === auth.uid))) || (auth != null && root.child('songhyeon').child('members').child(auth.uid).child('admin').val() === '19700920' && !newData.exists())"
           }
         }
       },
       "presence": {
-        ".read": "auth != null && root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'homesweetreading'",
+        ".read": "auth != null && root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'homesweetreading' && !root.child('songhyeon').child('bans').child(auth.uid).exists()",
         "$peer": {
-          ".write": "auth != null && root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'homesweetreading' && ((newData.exists() && newData.child('by').val() === auth.uid) || (!newData.exists() && data.child('by').val() === auth.uid))"
+          ".write": "(auth != null && root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'homesweetreading' && !root.child('songhyeon').child('bans').child(auth.uid).exists() && ((newData.exists() && newData.child('by').val() === auth.uid) || (!newData.exists() && data.child('by').val() === auth.uid))) || (auth != null && root.child('songhyeon').child('members').child(auth.uid).child('admin').val() === '19700920' && !newData.exists())"
+        }
+      },
+      "bans": {
+        ".read": "auth != null && root.child('songhyeon').child('members').child(auth.uid).child('admin').val() === '19700920'",
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && root.child('songhyeon').child('members').child(auth.uid).child('admin').val() === '19700920'"
         }
       },
       "chat": {
-        ".read": "auth != null && root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'homesweetreading'",
+        ".read": "auth != null && root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'homesweetreading' && !root.child('songhyeon').child('bans').child(auth.uid).exists()",
         ".indexOn": [
           "t"
         ],
         "$m": {
-          ".write": "auth != null && root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'homesweetreading' && !data.exists() && newData.child('by').val() === auth.uid && (root.child('songhyeon').child('settings').child('class').child('chat').val() !== 'off' || auth != null && root.child('songhyeon').child('members').child(auth.uid).child('admin').val() === 'songhyeon-teacher')",
+          ".write": "auth != null && root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'homesweetreading' && !root.child('songhyeon').child('bans').child(auth.uid).exists() && !data.exists() && newData.child('by').val() === auth.uid && (root.child('songhyeon').child('settings').child('class').child('chat').val() !== 'off' || auth != null && root.child('songhyeon').child('members').child(auth.uid).child('admin').val() === '19700920')",
           ".validate": "newData.child('d').child('t').isString() && newData.child('d').child('t').val().length <= 200"
         }
       },
       "likes": {
-        ".read": "auth != null && root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'homesweetreading'",
+        ".read": "auth != null && root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'homesweetreading' && !root.child('songhyeon').child('bans').child(auth.uid).exists()",
         "$item": {
           "$uid": {
             ".write": "auth != null && auth.uid === $uid && root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'homesweetreading'"
@@ -112,9 +126,9 @@
         }
       },
       "settings": {
-        ".read": "auth != null && root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'homesweetreading'",
+        ".read": "auth != null && root.child('songhyeon').child('members').child(auth.uid).child('key').val() === 'homesweetreading' && !root.child('songhyeon').child('bans').child(auth.uid).exists()",
         "$id": {
-          ".write": "auth != null && root.child('songhyeon').child('members').child(auth.uid).child('admin').val() === 'songhyeon-teacher'"
+          ".write": "auth != null && root.child('songhyeon').child('members').child(auth.uid).child('admin').val() === '19700920'"
         }
       }
     }
