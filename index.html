@@ -39,6 +39,9 @@ body.hasTk #chatWrap{top:calc(112px + env(safe-area-inset-top));}
 #chatWrap.show{display:block}
 #chatLog{pointer-events:auto;max-height:26vh;max-width:420px;overflow:auto;padding:9px 12px;border-radius:14px;background:rgba(255,244,224,.78);border:1px solid rgba(140,96,60,.35);font-size:13.5px;line-height:1.55;touch-action:pan-y;user-select:text;-webkit-user-select:text;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
 #chatLog div{margin:2px 0;word-break:break-all}#chatLog b{color:var(--rose);margin-right:6px}#chatLog .me b{color:var(--teal)}#chatLog .sys{color:var(--ink2);font-size:12px}
+#mini{position:absolute;left:12px;bottom:calc(14px + env(safe-area-inset-bottom) + var(--mmLift,0px));width:104px;height:104px;border-radius:50%;padding:4px;pointer-events:auto;cursor:pointer;transition:bottom .3s;z-index:2}#miniC{width:100%;height:100%;border-radius:50%;display:block}#miniN{position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);font-size:10px;font-weight:700;white-space:nowrap;padding:1px 7px;border-radius:9px;background:#fbf3e2;color:var(--ink);box-shadow:0 1px 4px rgba(60,30,10,.25)}
+@media (max-width:420px){#mini{width:88px;height:88px;left:8px}}
+body.mmHide #mini{display:none}
 #bottom{position:absolute;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:9px;pointer-events:none}
 #action{pointer-events:auto;display:none;align-items:center;gap:9px;padding:11px 20px;border-radius:26px;font-size:15px;color:var(--ink);animation:bob 2.4s ease-in-out infinite}
 #action.show{display:flex}#action span{font-size:18px}
@@ -170,6 +173,7 @@ body.seated #hint,body.seated #action{display:none!important}
   <div id="facePop" class="paper"></div>
   <div id="bigTitle"><small id="zEn"></small><h1 id="zTitle"></h1></div>
   <div id="chatWrap"><div id="chatLog"></div></div>
+  <div id="mini" class="paper" aria-label="작은 지도"><canvas id="miniC" width="208" height="208"></canvas><b id="miniN"></b></div>
   <div id="bottom">
     <button id="action" class="paper"><span id="aIco">🪑</span><b id="aTxt" style="font-weight:400"></b></button>
     <div id="hint">바닥을 톡 누르면 걸어가고, 끌면 시점이 돌아가요</div>
