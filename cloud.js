@@ -15,8 +15,9 @@
   window.__cloudJoin=pw=>join(pw).catch(e=>{console.warn('입장 기록 실패',e);});
   CS.stage='auth';const authP=auth.signInAnonymously().then(async c=>{uid=c.user.uid;CS.stage='member';
     try{fdb.ref('bans/'+uid).on('value',s=>{if(s.exists()&&window.__onKicked)window.__onKicked();},()=>{});}catch(e){}
+    const saved=lsGet('pwk');if(saved){try{await join(String(saved).toLowerCase().replace(/\s+/g,''));return;}catch(e){}}
     try{const s=await fdb.ref('members/'+uid+'/key').get();if(s.exists()){markJoined();return;}}catch(e){}
-    const saved=lsGet('pwk');if(saved){try{await join(saved);}catch(e){}}else CS.stage='needpw';
+    if(!saved)CS.stage='needpw';
   }).catch(e=>{CS.err='auth';CS.msg=String(e&&(e.code||e.message)||e);console.warn('익명 로그인 실패 — Firebase 콘솔에서 익명 로그인을 켰는지 확인해 주세요',e);});
 
   /* ---------- db (Firestore 비슷한 모양으로 감싸기) ---------- */

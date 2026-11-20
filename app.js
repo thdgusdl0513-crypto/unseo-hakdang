@@ -157,7 +157,7 @@ function setupRoom(){ROOM.onPeers(ch=>{PEERS=ch.peers.slice();ch.left.forEach(p=
   ROOM.onConnection(c=>{if(c)pushPresence(true);});pushPresence(true);renderChat();}
 function dropRemote(peer){const r=REMOTES[peer];if(!r)return;scene.remove(r.A.root,r.L.sprite,r.B.sprite);if(r.pet)scene.remove(r.pet.root);delete REMOTES[peer];}
 function upsertRemote(p){const pr=p.presence||{};let r=REMOTES[p.peer];if(!pr.sp){if(r)r.A.root.visible=false;return;}
-  const lk=typeof pr.lk==='string'?pr.lk.slice(0,120):'';if(!r||r.av!==pr.av||r.lk!==lk){if(r)scene.remove(r.A.root);const A=makeAvatar(AVMAP[pr.av]||pr.av==='shiba'?pr.av:'girl',lookParse(lk));if(r)r.lk=lk;scene.add(A.root);A.root.position.set(+pr.x||0,0,+pr.z||0);if(!r){r={L:makeLabel('친구'),B:makeBubble(),ph:0,amt:0,lk};scene.add(r.L.sprite,r.B.sprite);}r.A=A;r.av=pr.av;}
+  const lk=typeof pr.lk==='string'?pr.lk.slice(0,240):'';if(!r||r.av!==pr.av||r.lk!==lk){if(r)scene.remove(r.A.root);const A=makeAvatar(AVMAP[pr.av]||pr.av==='shiba'?pr.av:'girl',lookParse(lk));if(r)r.lk=lk;scene.add(A.root);A.root.position.set(+pr.x||0,0,+pr.z||0);if(!r){r={L:makeLabel('친구'),B:makeBubble(),ph:0,amt:0,lk};scene.add(r.L.sprite,r.B.sprite);}r.A=A;r.av=pr.av;}
   const pid=PETMAP[pr.pt]?pr.pt:'none';if(r.petId!==pid){if(r.pet)scene.remove(r.pet.root);r.pet=makePet(pid);r.petId=pid;if(r.pet){r.pet.root.position.copy(r.A.root.position);scene.add(r.pet.root);}}
   if(typeof pr.em==='string'&&pr.em!==r.emSeen){const first=r.emSeen===undefined;r.emSeen=pr.em;const k=pr.em.split(':')[0];if(!first&&pr.sp===ST.space){playEmote(r.A,k);if(k==='heart'||k==='wave'){const nm=nameOf(p.by,pr.nk);toast(k==='heart'?`${esc(nm)}님이 하트를 보냈어요 💗`:`${esc(nm)}님이 인사해요 👋`);}}}else if(r.emSeen===undefined)r.emSeen=pr.em||'';
   if(typeof pr.cl==='string'&&pr.cl!==r.clSeen){const first=r.clSeen===undefined;r.clSeen=pr.cl;const [to,ts]=pr.cl.split('|');if(!first&&(to===MYID||to==='*')&&p.by!==MYID&&Date.now()-(+ts||0)<120000)gotCall(p.by,pr);}else if(r.clSeen===undefined)r.clSeen=pr.cl||'';
@@ -259,12 +259,19 @@ function renderWardrobe(){if(!$('#wardrobe').classList.contains('show'))return;$
   if(wTab==='hat')el.innerHTML=HATS.map(h=>`<button data-h="${h[0]}" class="${L.h===h[0]?'on':''}"><span>${HAT_ICO[h[0]]}</span>${h[1]}</button>`).join('');
   else if(wTab==='acc')el.innerHTML=ACCS.map(a=>`<button data-a="${a[0]}" class="${L.a.includes(a[0])?'on':''}"><span>${ACC_ICO[a[0]]}</span>${a[1]}</button>`).join('');
   else{const list=wTab==='top'?TOPS:BOTTOMS,key=wTab==='top'?'t':'b';el.innerHTML=[['trad','전통'],['mhan','모던 한복'],['modern','현대']].map(([c,n])=>`<div class="wSec">${n}</div>`+list.filter(o=>o.cat===c).map(o=>`<button data-${key}="${o.id}" class="${L[key]===o.id?'on':''}"><i class="sw">${o.sw.map(x=>`<b style="background:${x}"></b>`).join('')}</i>${o.name}</button>`).join('')).join('');}
+  renderColors();
   const im=previewImg();$('#wPrev').innerHTML=im?`<img src="${im}" alt="">`:'';$('#wNote').textContent=wTab==='acc'?`소품은 4개까지 · 지금 ${L.a.length}개`:wTab==='top'&&L.t==='cheollik'?'원피스라 치마는 가려지고, 바지는 함께 입을 수 있어요':'';}
+function swRow(key,label){const L=ST.look;const cur=(L.c&&L.c[key])||0;return `<div class="cRow"><span>${label}</span><div class="cSw">${PALETTE.map((p,i)=>`<button data-ck="${key}" data-ci="${i}" class="${i===cur?'on':''}${i?'':' def'}" title="${p[0]}" style="${i?`background:#${p[1].toString(16).padStart(6,'0')}`:''}"></button>`).join('')}</div></div>`;}
+function renderColors(){const el=$('#wCol');if(!el)return;const L=ST.look;let h='';
+  if(wTab==='top')h=swRow('t','상의 색');else if(wTab==='bottom')h=swRow('b','하의 색');else if(wTab==='hat')h=L.h==='none'?'':swRow('h','모자 색');
+  else if(wTab==='acc')h=L.a.length?L.a.map(a=>swRow(a,(ACCS.find(x=>x[0]===a)||['',''])[1])).join(''):'<div class="empty">소품을 고르면 여기서 색을 바꿀 수 있어요</div>';
+  el.innerHTML=h?`<div class="sec">색 고르기 <small>맨 앞 동그라미는 기본 색</small></div>${h}`:'';}
 function setLook(L){ST.look=L;LS.set('look',lookStr(L));setAvatar(ST.avatar||'girl');renderWardrobe();}
 $('#wTabs').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(!b)return;wTab=b.dataset.t;renderWardrobe();});
 $('#wGrid').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const L=Object.assign({},ST.look,{a:ST.look.a.slice()});
   if(b.dataset.t)L.t=b.dataset.t;else if(b.dataset.b)L.b=b.dataset.b;else if(b.dataset.h)L.h=b.dataset.h;else if(b.dataset.a){const i=L.a.indexOf(b.dataset.a);if(i>=0)L.a.splice(i,1);else{if(L.a.length>=4){toast('소품은 4개까지 착용할 수 있어요');return;}L.a.push(b.dataset.a);}}setLook(L);});
-$('#wReset').addEventListener('click',()=>setLook(Object.assign({},DEFAULT_LOOK,{a:[]})));
+$('#wReset').addEventListener('click',()=>setLook(Object.assign({},DEFAULT_LOOK,{a:[],c:{}})));
+$('#wCol').addEventListener('click',e=>{const b=e.target.closest('[data-ck]');if(!b)return;const L=Object.assign({},ST.look,{a:ST.look.a.slice(),c:Object.assign({},ST.look.c||{})});const i=+b.dataset.ci;if(i>0)L.c[b.dataset.ck]=i;else delete L.c[b.dataset.ck];setLook(L);});
 
 /* ---------- playlist ---------- */
 let LIKES=LS.get('local.likes',{}),plSort='hot',plOpen=null,armed=null,armT=null;let ADMIN_ON=!!LS.get('adminOn',false);
