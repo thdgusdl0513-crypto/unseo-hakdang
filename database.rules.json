@@ -6,7 +6,7 @@
       ".read": "auth != null",
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",
-        ".write": "auth != null && auth.uid === $uid",
+        ".write": "(auth != null && auth.uid === $uid) || (auth != null && root.child('members').child(auth.uid).child('admin').val() === 'happy_life' && !newData.exists())",
         "nick": {
           ".validate": "newData.isString() && newData.val().length <= 12"
         },
@@ -18,7 +18,7 @@
     "stamps": {
       ".read": "auth != null",
       "$uid": {
-        ".write": "auth != null && auth.uid === $uid"
+        ".write": "(auth != null && auth.uid === $uid) || (auth != null && root.child('members').child(auth.uid).child('admin').val() === 'happy_life' && !newData.exists())"
       }
     },
     "data": {
@@ -77,7 +77,7 @@
         ".read": "auth != null",
         "$uid": {
           ".read": "auth != null && auth.uid === $uid",
-          ".write": "auth != null && auth.uid === $uid",
+          ".write": "(auth != null && auth.uid === $uid) || (auth != null && root.child('cheongdo').child('members').child(auth.uid).child('admin').val() === 'happy_life' && !newData.exists())",
           "nick": {
             ".validate": "newData.isString() && newData.val().length <= 12"
           },
@@ -89,7 +89,7 @@
       "stamps": {
         ".read": "auth != null",
         "$uid": {
-          ".write": "auth != null && auth.uid === $uid"
+          ".write": "(auth != null && auth.uid === $uid) || (auth != null && root.child('cheongdo').child('members').child(auth.uid).child('admin').val() === 'happy_life' && !newData.exists())"
         }
       },
       "data": {
@@ -149,7 +149,7 @@
         ".read": "auth != null",
         "$uid": {
           ".read": "auth != null && auth.uid === $uid",
-          ".write": "auth != null && auth.uid === $uid",
+          ".write": "(auth != null && auth.uid === $uid) || (auth != null && root.child('songhyeon').child('members').child(auth.uid).child('admin').val() === 'happy_life' && !newData.exists())",
           "nick": {
             ".validate": "newData.isString() && newData.val().length <= 12"
           },
@@ -161,7 +161,7 @@
       "stamps": {
         ".read": "auth != null",
         "$uid": {
-          ".write": "auth != null && auth.uid === $uid"
+          ".write": "(auth != null && auth.uid === $uid) || (auth != null && root.child('songhyeon').child('members').child(auth.uid).child('admin').val() === 'happy_life' && !newData.exists())"
         }
       },
       "data": {

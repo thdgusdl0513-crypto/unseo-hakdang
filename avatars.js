@@ -16,6 +16,8 @@ const AVATARS=[
  {id:'frog',name:'개구리',emo:'🐸',type:'frog'},
  {id:'turtle',name:'거북이',emo:'🐢',type:'turtle'},
  {id:'bird',name:'흰 오목눈이',emo:'🐦',type:'bird'},
+ {id:'peacock',name:'공작',emo:'🦚',type:'bird',peacock:true,bc:0x2f6fc0,lc:0x2e8a6a,beak:'#4a4a52'},
+ {id:'crane',name:'학',emo:'🕊️',type:'bird',crane:true,bc:0xfbfaf6,lc:0x26262c,beak:'#c8b46a'},
  {id:'cheongryong',name:'청룡 · 사방신',emo:'🐉',type:'beast',sp:'dragon',c:0x3f93ad,b:0xf4e8bc,ear:'none',horn:'antler',tail:'dragon',vest:0x2a4a7a,god:true},
  {id:'baekho',name:'백호 · 사방신',emo:'🐯',type:'beast',sp:'cat',c:0xfbf8f2,b:0xffffff,ear:'round',eye:'#5aa0d8',tail:'long',mask:'tiger',tiger:true,vest:0x6a7a8a,god:true},
  {id:'jujak',name:'주작 · 사방신',emo:'🐦‍🔥',type:'bird',phoenix:true,beak:'#d89a2a',god:true},
@@ -164,17 +166,22 @@ function makeAvatar(id,look){if(id==='shiba')id='sapsal';const cfg=AVMAP[id]||AV
     A.gat=makeGat(head,.36,.88,-.1);avatarBook(A,.78,-.42);A.h=2.0;A.waddle=.1;
     A.fit={y0:.3,y1:.84,r1:.31,r0:.37,neck:.84,legTop:.26,legLen:.18,legR:.13,sleeve:[.1,1.3,-.08],openBack:true};A.headR=.42;A.headS=[1,.95,.98];}
   else{ // bird (흰 오목눈이)
-    const ph=cfg.phoenix;const wh=ph?std(0xe4553c,{emissive:0x3a0c06}):std(0xfbf8f2,{emissive:0x4a4844}),br=ph?std(0xf2b040,{emissive:0x3a2406}):std(0x7a5a46,{emissive:0x140c08});
+    const ph=cfg.phoenix;const wh=ph?std(0xe4553c,{emissive:0x3a0c06}):cfg.bc!=null?std(cfg.bc,{emissive:new THREE.Color(cfg.bc).multiplyScalar(.14)}):std(0xfbf8f2,{emissive:0x4a4844}),br=ph?std(0xf2b040,{emissive:0x3a2406}):cfg.lc!=null?std(cfg.lc,{emissive:new THREE.Color(cfg.lc).multiplyScalar(.12)}):std(0x7a5a46,{emissive:0x140c08});
     [-1,1].forEach((s,i)=>{const g=new THREE.Group();g.position.set(s*.14,.22,-.02);B.add(g);cyl(g,.022,.022,.2,5,br,0,-.08,0);[-.4,0,.4].forEach(a=>{const t=box(g,.02,.02,.09,br,Math.sin(a)*.04,-.18,-.04);t.rotation.y=a;});A.legs.push({g,ph:i?PI:0});});
     const head=new THREE.Group();head.position.y=.68;B.add(head);A.head=head;sph(head,.52,wh,0,0,0,1,.95,.95);A.face=faceDecal(head,.52,cfg,1,.95,.95,0);
     for(let i=0;i<14;i++){const a=rnd()*PI*2,y=R(-.35,.2);sph(head,.12,wh,Math.cos(a)*.42,y,Math.sin(a)*.4*(Math.sin(a)<0?.0:.9)+(Math.sin(a)<0?.1:0));}
     [-1,1].forEach((s,i)=>{const g=new THREE.Group();g.position.set(s*.46,.78,.04);B.add(g);sph(g,.2,wh,s*.12,-.04,0,1.2,.5,.85).rotation.z=s*.5;sph(g,.1,br,s*.04,.02,.02,1.2,.5,.8).rotation.z=s*.6;A.arms.push({g,ph:0,s,wing:true});});
     if(ph){const cols=[0xf2b040,0xe4553c,0xf08a30,0x3aa0a0,0xf2b040];cols.forEach((c,i)=>{const a=(i-2)*.28;const g=new THREE.Group();g.position.set(0,.5,.45);g.rotation.set(-1.1,a,0);B.add(g);sph(g,.08,std(c,{emissive:new THREE.Color(c).multiplyScalar(.2)}),0,.42,0,1,4.2,.35);sph(g,.06,std(0x2a7a8a,{emissive:0x0a2024}),0,.82,0,1,1,.4);});
       [-.12,0,.12].forEach((x,i)=>{const c=new THREE.Mesh(new THREE.ConeGeometry(.05,.28,6),i===1?br:wh);c.position.set(x,.5,.3);c.rotation.x=.7;head.add(c);sph(head,.04,br,x,.62,.42);});}
+    else if(cfg.peacock){const fan=new THREE.Group();fan.position.set(0,.55,.42);fan.rotation.x=.28;B.add(fan);const fe=std(0x2e8a5a,{emissive:0x0a2a1a}),eg=std(0xe6c050,{emissive:0x3a2a08}),eb=std(0x1e4aa8,{emissive:0x081a3a}),ek=std(0x1a1a3a);
+      for(let i=0;i<11;i++){const a=(i-5)*.27;const f=new THREE.Group();f.rotation.z=a;fan.add(f);sph(f,.075,fe,0,.5,0,1,6.2,.3);sph(f,.075,eg,0,.95,-.01,1,1.15,.3);sph(f,.055,eb,0,.95,-.025,1,1.1,.3);sph(f,.028,ek,0,.94,-.04,1,1.1,.3);}
+      [-.09,0,.09].forEach(x=>{cyl(head,.008,.008,.24,4,br,x,.6,.02).rotation.z=-x*1.6;sph(head,.045,std(0x2f6fc0,{emissive:0x0a1a3a}),x*1.6,.73,.02);});}
+    else if(cfg.crane){const bk=std(0x1e1e22,{emissive:0x050505});[-.12,0,.12].forEach((x,i)=>{const t=sph(B,.08,bk,x,.5,.58,1,.7,2.8);t.rotation.x=-.5+i*.05;});sph(head,.12,std(0xd8283a,{emissive:0x4a0808}),0,.5,-.04,1,.45,1);
+      A.arms.forEach(a=>{sph(a.g,.09,bk,a.s*.22,-.08,0,1.2,.45,.8).rotation.z=a.s*.6;});}
     else{const tl=box(B,.16,.04,.42,br,0,.48,.56);tl.rotation.x=-.5;box(B,.1,.045,.2,wh,0,.42,.72).rotation.x=-.5;}
     const n0=B.children.length;const col=new THREE.Mesh(new THREE.TorusGeometry(.26,.04,6,20),IVORY);col.rotation.x=PI/2;col.position.y=.3;col.scale.set(1.3,1.3,1);B.add(col);
     A.garb=B.children.slice(n0);A.gat=makeGat(head,.42,.78,-.1);A.hop=true;avatarBook(A,.5,-.62);A.h=1.95;
-    A.fit={y0:.24,y1:.66,r1:.55,r0:.4,neck:.62,bird:true};A.headR=.52;A.headS=[1,.95,.95];}
+    A.fit={y0:.24,y1:.66,r1:.55,r0:.4,neck:.62,bird:true,cy:.68,br:.54};A.headR=.52;A.headS=[1,.95,.95];}
   A.setFace=function(expr){if(!A.face||A.expr===expr)return;A.expr=expr;A.face.material.map=faceTex(cfg,expr);};
   if(typeof applyLook==='function'&&look)applyLook(A,look);
   return A;}

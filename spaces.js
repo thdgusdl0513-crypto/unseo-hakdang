@@ -172,7 +172,7 @@ function roomShell(id,S,o){const G=new THREE.Group();const T=[];const sp={id,G,t
   const wt=windowTex(S),wmM=new THREE.MeshBasicMaterial({map:wt});(o.windows||[-5,5]).forEach(x=>{const w=new THREE.Mesh(new THREE.PlaneGeometry(1.8,2.2),wmM);w.position.set(x,2.8,-6.98);G.add(w);box(G,2,.12,.12,MAT.woodDark,x,3.95,-6.95);box(G,2,.12,.2,MAT.woodDark,x,1.65,-6.92);[-1,0,1].forEach(k=>box(G,.07,2.3,.08,MAT.woodDark,x+k*.95,2.8,-6.94));box(G,1.9,.06,.08,MAT.woodDark,x,2.8,-6.94);});
   [-1,1].forEach(s=>{const w=new THREE.Mesh(new THREE.PlaneGeometry(2.2,2),wmM);w.position.set(s*7.97,2.8,1);w.rotation.y=-s*PI/2;G.add(w);box(G,.1,.12,2.4,MAT.woodDark,s*7.94,3.85,1);box(G,.1,.12,2.4,MAT.woodDark,s*7.94,1.75,1);[-1.15,0,1.15].forEach(k=>box(G,.1,2.2,.08,MAT.woodDark,s*7.94,2.8,1+k));});
   const mat=new THREE.Mesh(new THREE.PlaneGeometry(2.4,1),new THREE.MeshBasicMaterial({color:0xd8bd7a,transparent:true,opacity:.35}));mat.rotation.x=-PI/2;mat.position.set(0,.02,6.3);G.add(mat);const ml=makeLabel('↓ 마당으로 나가기',{bg:'rgba(12,20,22,.6)'});ml.sprite.position.set(0,.6,6.4);ml.sprite.scale.set(1.9,.36,1);G.add(ml.sprite);
-  (o.lights||[[0xffc890,1.2,0,4.2,0]]).forEach(l=>{const L=new THREE.PointLight(l[0],l[1],18);L.position.set(l[2],l[3],l[4]);G.add(L);});
+  (o.lights||[[0xffc890,1.2,0,4.2,0]]).forEach(l=>{const L=new THREE.PointLight(l[0],l[1],18);L.position.set(l[2],l[3],l[4]);if(l[5]){L.userData.lamp=l[5];L.userData.dim=l[6]||0;}G.add(L);});
   return sp;}
 function addSeat(sp,x,z,ry,h){sp.seats.push({x,z,ry,h});}
 function buildRoom(id,S){reseed(id.length*97+3);let sp;
@@ -212,10 +212,10 @@ function buildRoom(id,S){reseed(id.length*97+3);let sp;
    const drum=new THREE.Group();drum.position.set(5.8,0,-5.6);G.add(drum);cyl(drum,.7,.7,.9,20,std(0xa82a22),0,1.2,0).rotation.z=PI/2;[-1,1].forEach(s=>{const f=new THREE.Mesh(new THREE.CircleGeometry(.68,20),std(0xf0e0c0));f.position.set(s*.46,1.2,0);f.rotation.y=s*PI/2;drum.add(f);});box(drum,1.2,.1,.1,MAT.woodDark,0,.6,0);[-1,1].forEach(s=>box(drum,.1,1.2,.1,MAT.woodDark,s*.5,.6,0));sp.obs.push({x:5.8,z:-5.6,r:1});
    const rack=new THREE.Group();rack.position.set(-5.6,0,-6.5);G.add(rack);box(rack,2.4,.1,.3,MAT.woodDark,0,2.2,0);box(rack,2.4,.1,.3,MAT.woodDark,0,.4,0);for(let i=0;i<6;i++)cyl(rack,.035,.035,2.2,6,MAT.woodLight,-1+i*.4,1.3,.1);
    for(let i=0;i<5;i++){const b=new THREE.Group();b.position.set(-7.3+i*.25,0,4+i%2*.4);G.add(b);for(let k=0;k<3;k++)cyl(b,.05,.05,3,6,std(0x6a9a4a),R(-.2,.2),1.5,R(-.2,.2));}
- }else if(id==='library'){sp=roomShell(id,S,{floor:TEX.floorDark,wains:MAT.woodDark,wallH:5.5,lights:[[0xffc890,1.2,-4,4.2,0],[0xffc890,1.2,4,4.2,0],[0x7fe0ff,1.4,0,2.6,-4.6]],windows:[]});const G=sp.G,T=sp.tick;
+ }else if(id==='library'){sp=roomShell(id,S,{floor:TEX.floorDark,wains:MAT.woodDark,wallH:5.5,lights:[[0xffc890,1.2,-4,4.2,0,'desk',.35],[0xffc890,1.2,4,4.2,0,'desk',.35],[0x7fe0ff,1.4,0,2.6,-4.6]],windows:[]});const G=sp.G,T=sp.tick;
    [-5.6,-1.9,1.9,5.6].forEach(x=>bookshelf(G,x,-6.6,0,3.6,4.8));[-1,1].forEach(s=>[-4.4,-.6,3.2].forEach(z=>bookshelf(G,s*7.6,z,-s*PI/2,3.6,4.4)));
    [[-3.4,-1],[3.4,-1],[-3.4,3],[3.4,3]].forEach(p=>{box(G,2.6,.1,1.3,MAT.wood,p[0],.78,p[1]);[[-1.15,-.5],[1.15,-.5],[-1.15,.5],[1.15,.5]].forEach(q=>box(G,.08,.76,.08,MAT.woodDark,p[0]+q[0],.38,p[1]+q[1]));
-     const lamp=new THREE.Group();lamp.position.set(p[0],.83,p[1]);G.add(lamp);cyl(lamp,.04,.08,.4,8,MAT.gold,0,.2,0);const sh=new THREE.Mesh(new THREE.ConeGeometry(.2,.16,14,1,true),emis(0x2e7a4a,.5));sh.position.y=.45;sh.rotation.x=PI;lamp.add(sh);const lg=glow(0xffe0a0,1.5,.7);lg.position.y=.38;lamp.add(lg);
+     const lamp=new THREE.Group();lamp.position.set(p[0],.83,p[1]);G.add(lamp);cyl(lamp,.04,.08,.4,8,MAT.gold,0,.2,0);const sh=new THREE.Mesh(new THREE.ConeGeometry(.2,.16,14,1,true),emis(0x2e7a4a,.5));sh.position.y=.45;sh.rotation.x=PI;sh.userData.lamp='desk';lamp.add(sh);const lg=glow(0xffe0a0,1.5,.7);lg.position.y=.38;lg.userData.lamp='desk';lamp.add(lg);
      sp.obs.push({x:p[0]-.8,z:p[1],r:.75},{x:p[0]+.8,z:p[1],r:.75});[-.7,.7].forEach(dx=>{chair(G,p[0]+dx,p[1]+1.05,0);addSeat(sp,p[0]+dx,p[1]+1.05,0,.48);chair(G,p[0]+dx,p[1]-1.05,PI);addSeat(sp,p[0]+dx,p[1]-1.05,PI,.48);});});
    const desk=new THREE.Group();desk.position.set(0,0,-4.4);G.add(desk);const sg=new THREE.Mesh(new THREE.CircleGeometry(1.6,48),new THREE.MeshBasicMaterial({map:TEX.sigil,color:0x9fe6ff,transparent:true,opacity:.75,blending:THREE.AdditiveBlending,depthWrite:false}));sg.rotation.x=-PI/2;sg.position.y=.03;desk.add(sg);box(desk,1.6,.1,.8,MAT.wood,0,.62,0);[[-.7,-.32],[.7,-.32],[-.7,.32],[.7,.32]].forEach(q=>box(desk,.08,.6,.08,MAT.woodDark,q[0],.3,q[1]));
    const book=new THREE.Group();book.position.y=1.25;desk.add(book);[-1,1].forEach(s=>{const h=new THREE.Group();h.rotation.z=s*.2;book.add(h);box(h,.5,.03,.7,std(0x2a3f6e),s*.26,-.02,0);box(h,.46,.04,.64,emis(0xf6efdc,.6),s*.24,.01,0);});const bg=glow(0x9fe8ff,2.6,.7);bg.position.y=1.3;desk.add(bg);
@@ -223,7 +223,7 @@ function buildRoom(id,S){reseed(id.length*97+3);let sp;
    const orb=[];for(let i=0;i<8;i++){const g=new THREE.Group();box(g,.34,.07,.46,emis([0x2d3f6b,0x6b2a2a,0x2f5a4c,0x7a5a2a][i%4],.3),0,0,0);box(g,.3,.05,.42,std(0xefe6cc),.02,0,0);G.add(g);orb.push({g,a:i/8*PI*2,r:R(2,3),y:R(3.4,4.6)});}T.push((t,dt)=>orb.forEach(o=>{o.a+=dt*.2;o.g.position.set(Math.cos(o.a)*o.r,o.y+Math.sin(t+o.a*3)*.2,-1+Math.sin(o.a)*o.r*.8);o.g.rotation.set(Math.sin(t+o.a)*.4,-o.a,0);}));
    [-3,3].forEach(x=>chorong(G,x,4.4,1,true));
  }else{ // dorm — cozy study lounge
-   sp=roomShell(id,S,{floor:TEX.floorWarm,wallMat:std(0xf2e2c4),wains:std(0x8a5a3a),wallH:5.6,lights:[[0xffd4a8,1.2,0,3.6,-.6],[0xffd0a0,.7,-6,2.2,-4.4],[S.night?0x8a7ac8:0xffa070,.7,3.5,3,-5.5]],windows:[]});const G=sp.G,T=sp.tick;
+   sp=roomShell(id,S,{floor:TEX.floorWarm,wallMat:std(0xf2e2c4),wains:std(0x8a5a3a),wallH:5.6,lights:[[0xffd4a8,1.2,0,3.6,-.6,'desk',.25],[0xffd0a0,.7,-6,2.2,-4.4,'desk',0],[S.night?0x8a7ac8:0xffa070,.7,3.5,3,-5.5]],windows:[]});const G=sp.G,T=sp.tick;
    // big window with city view
    const wt=cityWindowTex(S);const win=new THREE.Mesh(new THREE.PlaneGeometry(8,4.4),new THREE.MeshBasicMaterial({map:wt}));win.position.set(3.4,2.95,-6.98);G.add(win);
    for(let i=0;i<=5;i++)box(G,.09,4.6,.12,std(0x3a3a44),-.6+i*1.6,2.95,-6.93);[.75,2.95,5.15].forEach(y=>box(G,8.2,.09,.12,std(0x3a3a44),3.4,y,-6.93));box(G,8.4,.14,.5,MAT.wood,3.4,.75,-6.75);
@@ -266,9 +266,9 @@ function buildRoom(id,S){reseed(id.length*97+3);let sp;
    const CC=[0x6a7a52,0xf0e2c8,0x9aa8a0,0xe8b8b8,0x4a5a7a,0xd8c8a0,0x8a9a6a,0xf2d0c0];
    [-1.25,0,1.25].forEach((x,i)=>{cush(x,1.05,CC[i],0,true);cush(x,-2.05,CC[i+3],PI,true);});cush(-2.55,-.5,CC[6],-PI/2,true);cush(2.55,-.5,CC[7],PI/2,true);
    // pendant lamp
-   cyl(G,.012,.012,1.3,4,std(0x2a2a30),0,4.95,-.5);const dome=new THREE.Mesh(new THREE.SphereGeometry(.5,24,12,0,PI*2,0,PI/2),std(0x2a2a30,{side:THREE.DoubleSide}));dome.position.set(0,4,-.5);G.add(dome);const lg=glow(0xffd8a0,2.6,.9);lg.position.set(0,3.85,-.5);G.add(lg);
+   cyl(G,.012,.012,1.3,4,std(0x2a2a30),0,4.95,-.5);const dome=new THREE.Mesh(new THREE.SphereGeometry(.5,24,12,0,PI*2,0,PI/2),std(0x2a2a30,{side:THREE.DoubleSide}));dome.position.set(0,4,-.5);G.add(dome);const lg=glow(0xffd8a0,2.6,.9);lg.position.set(0,3.85,-.5);lg.userData.lamp='desk';G.add(lg);
    // floor lamp
-   cyl(G,.03,.03,2,6,MAT.gold,-6.2,1,-4.4);const sh=new THREE.Mesh(new THREE.CylinderGeometry(.3,.42,.5,16,1,true),emis(0xf6d8a0,.8));sh.position.set(-6.2,2.15,-4.4);G.add(sh);const sg=glow(0xffd090,2.6,.6);sg.position.set(-6.2,2.1,-4.4);G.add(sg);sp.obs.push({x:-6.2,z:-4.4,r:.45});
+   cyl(G,.03,.03,2,6,MAT.gold,-6.2,1,-4.4);const sh=new THREE.Mesh(new THREE.CylinderGeometry(.3,.42,.5,16,1,true),emis(0xf6d8a0,.8));sh.position.set(-6.2,2.15,-4.4);sh.userData.lamp='desk';G.add(sh);const sg=glow(0xffd090,2.6,.6);sg.position.set(-6.2,2.1,-4.4);sg.userData.lamp='desk';G.add(sg);sp.obs.push({x:-6.2,z:-4.4,r:.45});
    // sofa (right wall)
    const sofa=new THREE.Group();sofa.position.set(6.9,0,1.8);sofa.rotation.y=PI/2;G.add(sofa);box(sofa,3.4,.5,1.1,std(0x7a8aa0),0,.35,0);box(sofa,3.4,.85,.32,std(0x6a7a90),0,.85,.45);[-1,1].forEach(s=>box(sofa,.3,.7,1.1,std(0x6a7a90),s*1.7,.5,0));
    [[-1,0xf0e2c8],[0,0xe8b8b8],[1,0x9aa8a0]].forEach(c=>{const p=box(sofa,.6,.5,.18,std(c[1]),c[0],.85,.25);p.rotation.x=-.25;});const bl2=box(sofa,1.2,.06,1,std(0x6a7a52),.9,.62,-.05);bl2.rotation.z=.08;

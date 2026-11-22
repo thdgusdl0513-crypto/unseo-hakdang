@@ -324,6 +324,39 @@ body.seated #hint,body.seated #action{display:none!important}
 .yRes.big{font-size:38px;color:#e07a10}
 .yAni{display:inline-block;font-size:30px;margin-right:4px;animation:yAni .9s ease-in-out infinite alternate}@keyframes yAni{to{transform:translateY(-4px) rotate(8deg)}}
 .yRule{font-size:11px;color:var(--ink2);text-align:center;margin-top:6px;line-height:1.5}
+#lightBtn{position:absolute;right:12px;bottom:calc(76px + env(safe-area-inset-bottom) + var(--mmLift,0px));width:52px;height:52px;border-radius:50%;font-size:23px;display:grid;place-items:center;pointer-events:auto;z-index:2;transition:bottom .3s,filter .2s}
+#lightBtn.off{filter:grayscale(1) brightness(.75)}#lightBtn[hidden]{display:none}
+@media (max-width:420px){#lightBtn{right:8px;width:46px;height:46px;font-size:20px;bottom:calc(68px + env(safe-area-inset-bottom) + var(--mmLift,0px))}}
+.qForm{display:flex;flex-direction:column;gap:7px;padding:12px;border-radius:14px;background:rgba(255,255,255,.45);border:1.5px solid rgba(140,96,60,.25)}
+.qFormH{font-size:13.5px;font-weight:700;color:#6a4a30}.qRow{display:flex;gap:6px}.qRow #qBook{flex:1}.qRow #qPage{width:64px;text-align:center}
+.qForm input,.qForm textarea{width:100%;padding:9px 11px;border-radius:10px;border:1.5px solid rgba(140,96,60,.3);background:#fffaf0;font:inherit;font-size:15px}
+.qForm #qText{font-family:'Nanum Myeongjo',serif;font-size:16px;line-height:1.6;min-height:96px}
+.qSec{font-weight:700;font-size:14px;margin:14px 0 6px}.qSec small{font-weight:400;color:var(--ink2);font-size:12px}
+.qCard{position:relative;margin:8px 0;padding:16px 16px 10px 18px;border-radius:6px 14px 14px 6px;background:linear-gradient(#fffdf6,#f8eed8);box-shadow:0 2px 6px rgba(90,60,30,.15);border-left:5px solid #c4384a}
+.qCard.mine{border-left-color:#2a62a8}
+.qSeal{position:absolute;right:10px;top:10px;width:26px;height:26px;border-radius:5px;background:#c4384a;color:#fff;font:700 15px serif;display:grid;place-items:center;opacity:.85;transform:rotate(6deg)}
+.qCard.mine .qSeal{background:#2a62a8}
+.qText{font-family:'Nanum Myeongjo',serif;font-size:16.5px;line-height:1.75;margin:0 28px 8px 0;white-space:pre-wrap;word-break:keep-all}
+.qText::before{content:'「\00a0';color:#b0874a}.qText::after{content:'\00a0」';color:#b0874a}
+.qBook{font-size:13px;color:#6a4a30;text-align:right;margin-bottom:4px}.qNote{font-size:13px;color:#5a4a3a;background:rgba(140,96,60,.08);border-radius:8px;padding:6px 9px;margin:6px 0}
+.qFoot{display:flex;align-items:center;gap:6px;border-top:1px dashed rgba(140,96,60,.3);padding-top:7px;margin-top:6px;font-size:13px}.qFoot small{color:var(--ink2);font-size:11.5px}
+.qAct{margin-left:auto;display:flex;gap:4px}.qAct button{border:0;background:rgba(140,96,60,.1);border-radius:14px;padding:4px 9px;font-size:13px}.qLike.on{background:rgba(196,56,74,.14)}
+.qMore{margin:6px 0}.qMore summary{cursor:pointer;font-size:13.5px;color:#6a4a30;padding:6px 2px}
+#qPrompt{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;width:min(360px,calc(100vw - 24px));padding:12px 14px;border-radius:16px;box-shadow:0 8px 24px rgba(40,20,10,.3);animation:qpIn .4s cubic-bezier(.2,1.4,.4,1)}
+@keyframes qpIn{from{transform:translate(-50%,30px);opacity:0}}
+.qpT{font-size:14px;font-weight:700;margin-bottom:8px}.qpB{display:flex;gap:6px}.qpB button{flex:1}
+#wGrid button.lock{opacity:.55;filter:grayscale(.6);position:relative}#wGrid button .lk,#wGrid button .gf{position:absolute;top:4px;right:5px;font-style:normal;font-size:10.5px;background:rgba(60,40,20,.75);color:#fff;border-radius:8px;padding:1px 5px}#wGrid button .gf{background:none;font-size:13px;padding:0}#wGrid button{position:relative}
+.wSec small{font-weight:400;font-size:11.5px;color:var(--ink2)}
+#giftPop{position:fixed;inset:0;z-index:80;background:rgba(30,15,5,.45);display:grid;place-items:center;animation:gpF .3s}@keyframes gpF{from{opacity:0}}
+.gpBox{position:relative;width:min(340px,calc(100vw - 32px));padding:18px 16px 14px;border-radius:22px;overflow:hidden;animation:gpIn .55s cubic-bezier(.2,1.5,.4,1)}@keyframes gpIn{from{transform:scale(.6) rotate(-4deg);opacity:0}}
+.gpT{font:800 19px 'Nanum Myeongjo',serif;text-align:center;margin-bottom:10px}.gpR{display:flex;gap:10px;align-items:center;padding:8px 10px;margin:6px 0;border-radius:14px;background:rgba(255,255,255,.55)}.gpI{font-size:32px;animation:gpBn 1s ease-in-out infinite alternate}@keyframes gpBn{to{transform:translateY(-4px) rotate(8deg)}}
+.gpR b{display:block;font-size:14.5px}.gpR small{font-size:12px;color:var(--ink2)}.gpB{display:flex;gap:6px;margin-top:10px}.gpB button{flex:1}
+.gpConf{position:absolute;inset:0;pointer-events:none}.gpConf i{position:absolute;top:-20px;font-style:normal;font-size:18px;animation:gpC 2.2s ease-in forwards}@keyframes gpC{to{transform:translateY(420px) rotate(260deg);opacity:0}}
+.msList{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}.ms{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.4);border:1px solid rgba(140,96,60,.2)}.ms.ok{background:rgba(247,217,176,.55);border-color:var(--amber)}
+.msI{font-size:22px;width:28px;text-align:center}.msM{flex:1;min-width:0}.msM b{font-size:13.5px;display:block}.msM small{font-size:11.5px;color:var(--ink2)}.ms em{font-style:normal;font-size:12px;font-weight:700;color:#8a5a2a;white-space:nowrap}
+.msBar{display:block;height:5px;border-radius:3px;background:rgba(140,96,60,.15);margin-top:4px;overflow:hidden}.msBar u{display:block;height:100%;background:linear-gradient(90deg,#f2c84b,#e07a3a)}
+#tmCols{display:flex;align-items:center;gap:5px;margin:6px 0 2px;flex-wrap:wrap}#tmCols span{font-size:11.5px;color:var(--ink2);margin-right:2px}#tmCols button{width:20px;height:20px;border-radius:50%;border:2px solid rgba(0,0,0,.12);padding:0}#tmCols button.glass{background:linear-gradient(135deg,#fff,#d8eef8 40%,#f6d8f0)}#tmCols button.on{box-shadow:0 0 0 2px #fff,0 0 0 4px #c4584a}
+.snack{margin:4px 0 10px;padding:12px 14px;border-radius:16px;background:linear-gradient(135deg,#fff3c8,#ffd9a8);border:2px solid #e8a84a;font-weight:700;font-size:14.5px;text-align:center;line-height:1.5;animation:gpBn 1.2s ease-in-out infinite alternate}
 </style>
 </head>
 <body>
@@ -339,13 +372,15 @@ body.seated #hint,body.seated #action{display:none!important}
   <div id="chatWrap"><div id="chatLog"></div></div>
   <div id="mini" class="paper" aria-label="작은 지도"><canvas id="miniC" width="208" height="208"></canvas><b id="miniN"></b></div>
   <button id="shotBtn" class="paper" aria-label="사진 찍기">📸</button>
+  <button id="lightBtn" class="paper" aria-label="조명" hidden>💡</button>
   <div id="bottom">
     <button id="action" class="paper"><span id="aIco">🪑</span><b id="aTxt" style="font-weight:400"></b></button>
-    <div id="hint">바닥을 톡 누르면 걸어가고, 끌면 시점이 돌아가요</div>
+    <div id="hint">톡 누르면 그곳으로 걸어가고, 꾹 누른 채 움직이면 손가락을 따라와요 · 끌면 시점이 돌아가요</div>
     <div id="timer" class="paper">
       <div class="tmTop"><span id="tmSub"></span><em id="tmTag"></em></div>
       <div id="tmTime">0:00</div><div id="tmHint"></div>
       <input id="tmBook" maxlength="60" placeholder="읽는 책 · 공부할 내용 (선택)">
+      <div id="tmCols"></div>
       <div class="tmRow"><div id="tmModes"><button data-m="0">자유</button><button data-m="25">25분</button><button data-m="50">50분</button></div><button id="tmGo">시작</button></div>
       <button id="tmSave">일어나기</button>
     </div>
@@ -360,6 +395,7 @@ body.seated #hint,body.seated #action{display:none!important}
     <button data-open="stamp"><span>🔖</span>출석도장</button>
     <button data-open="map"><span>🗺</span>학당 지도</button>
     <button data-open="records"><span>📒</span>기록장</button>
+    <button data-open="quotes"><span>📜</span>오늘의 문장</button>
     <button data-open="board"><span>📌</span>게시판</button>
     <button data-open="playlist"><span>🎵</span>플레이리스트</button>
     <button data-open="wardrobe"><span>🧥</span>옷장</button>
@@ -367,7 +403,8 @@ body.seated #hint,body.seated #action{display:none!important}
     <button data-open="games"><span>🎲</span>놀이마당</button>
     <button data-open="garden"><span>🪴</span>화분 가꾸기<i id="gdDot" class="tileDot" hidden></i></button>
     <button data-open="me"><span><svg viewBox="0 0 40 40" width="30" height="30"><ellipse cx="20" cy="25" rx="17" ry="4.5" fill="#2a2420" opacity=".85"/><path d="M13 24V14Q13 10 20 10Q27 10 27 14V24Z" fill="#2a2420"/><rect x="13" y="21" width="14" height="2.4" fill="#6a4a30"/><path d="M9 27Q20 39 31 27" stroke="#d9a050" stroke-width="1.8" fill="none" stroke-dasharray="1.6 2.2"/></svg></span>닉네임·캐릭터</button>
-    <button id="sndTile"><span><svg viewBox="0 0 40 40" width="28" height="28"><line x1="20" y1="2" x2="20" y2="8" stroke="#3a2a20" stroke-width="1.5"/><path d="M12 22Q12 8 20 8Q28 8 28 22Z" fill="#6a7a6a"/><rect x="11" y="21" width="18" height="3" rx="1" fill="#4a5a4a"/><line x1="20" y1="24" x2="20" y2="30" stroke="#3a2a20" stroke-width="1.2"/><path d="M14 31Q20 28 25 31L23 33L26 36Q20 37.5 14 33Z" fill="#c9a65a"/></svg></span><em id="sndState" style="font-style:normal">소리</em></button>
+    <button id="sndTile"><span id="sndIco">🔊</span><em id="sndState" style="font-style:normal">소리</em></button>
+    <button data-open="sound"><span>🎼</span>소리 고르기</button>
     <button data-open="cam"><span>🔭</span>시점 조절</button>
     <button data-open="season"><span>🍁</span>계절·시간</button>
     <button data-open="help"><span>📜</span>이용 안내</button>
@@ -398,6 +435,10 @@ body.seated #hint,body.seated #action{display:none!important}
   </div>
 </div></div>
 
+<div id="quotes" class="modal"><div class="sheet paper"><div class="grip"></div>
+  <div class="sh"><button class="back" data-back>‹ 설정</button><span>📜 오늘의 문장</span><button class="x" data-close>×</button></div>
+  <div class="tabs" id="qTabs"><button data-qt="today">오늘</button><button data-qt="mine">내 문장들</button><button data-qt="all">모두의 문장</button></div>
+  <div id="qBody"></div></div></div>
 <div id="records" class="modal"><div class="sheet paper"><div class="grip"></div>
   <div class="sh"><button class="back" data-back>‹ 설정</button><button class="x" data-close>×</button></div>
   <div class="tabs" id="recTabs"><button data-t="me">나의 기록</button><button data-t="friends">함께 기록</button><button data-t="books">읽은 책</button></div>
@@ -472,6 +513,7 @@ body.seated #hint,body.seated #action{display:none!important}
   <div class="sh"><button class="back" data-back>‹ 설정</button><button class="x" data-close>×</button></div>
   <div class="calHead"><button id="calPrev">‹</button><b id="calTitle"></b><button id="calNext">›</button></div>
   <div class="stats" id="stStats"></div>
+  <div id="snackBox"></div><div id="stMissions"></div>
   <div class="cal" id="cal"></div>
   <div id="todayBox">
     <div class="sec">오늘의 도장 꾸미기</div>
@@ -539,7 +581,7 @@ body.seated #hint,body.seated #action{display:none!important}
 <script>
 (async function(){
   try{await Promise.race([Promise.all([document.fonts.load('800 80px "Nanum Myeongjo"','雲書學堂閣基礎魔法靈藥溫和寮體力勅令符天地玄黃第一講藥草園天下大將軍地女'),document.fonts.load('30px "Gowun Batang"','가나다 마법')]),new Promise(r=>setTimeout(r,2500))]);}catch(e){}
-  try{for(const s of ['core.js','avatars.js','wardrobe.js','emotes.js','pets.js','spaces.js','sound.js','prologue.js','app.js','social.js','garden.js']){await new Promise((res,rej)=>{const el=document.createElement('script');el.src=s;el.onload=res;el.onerror=()=>rej(new Error(s+' 불러오기 실패'));document.body.appendChild(el);});}}
+  try{for(const s of ['core.js','avatars.js','wardrobe.js','emotes.js','pets.js','spaces.js','sound.js','prologue.js','app.js','social.js','garden.js','quotes.js']){await new Promise((res,rej)=>{const el=document.createElement('script');el.src=s;el.onload=res;el.onerror=()=>rej(new Error(s+' 불러오기 실패'));document.body.appendChild(el);});}}
   catch(e){document.getElementById('loadTxt').textContent='학당을 열지 못했어요: '+e.message;}
 })();
 window.addEventListener('error',e=>{const l=document.getElementById('loadTxt');if(l)l.textContent='오류: '+e.message;});
