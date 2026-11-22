@@ -130,11 +130,11 @@ function buildCampus(S){reseed(21);const G=new THREE.Group();const T=[];const sp
   else{tree(G,0,-3,1.7,S);}
   sp.obs.push({x:0,z:-3,r:2.4});
   // mountains & sky objects
-  const skyC=new THREE.Color(S.sky);[[-60,-95,40,28],[-20,-110,48,34],[30,-100,42,30],[70,-90,38,26],[-90,-60,40,24],[95,-55,40,26]].forEach((m,i)=>{const c=new THREE.Mesh(new THREE.ConeGeometry(m[2],m[3],7),new THREE.MeshBasicMaterial({color:skyC.clone().lerp(new THREE.Color(S.night?0x050a0e:0x2a4a50),.45+i%2*.15),fog:false}));c.position.set(m[0],m[3]/2-3,m[1]);G.add(c);if(S.snow){const cap=new THREE.Mesh(new THREE.ConeGeometry(m[2]*.3,m[3]*.3,7),new THREE.MeshBasicMaterial({color:0xf2f6f8,fog:false}));cap.position.set(m[0],m[3]-3-m[3]*.15,m[1]);G.add(cap);}});
+  mountainsKR(G,S);
   if(S.night){const mo=new THREE.Mesh(new THREE.SphereGeometry(4,24,12),new THREE.MeshBasicMaterial({color:0xf3ead0,fog:false}));mo.position.set(-34,40,-120);G.add(mo);const mg=glow(0xbcd2e8,34,.45);mg.position.copy(mo.position);G.add(mg);
     const n=500,pos=new Float32Array(n*3);for(let i=0;i<n;i++){const th=rnd()*PI*2,ph=rnd()*PI*.42;pos[i*3]=Math.cos(th)*Math.sin(ph)*160;pos[i*3+1]=Math.cos(ph)*160;pos[i*3+2]=Math.sin(th)*Math.sin(ph)*160;}const sg=new THREE.BufferGeometry();sg.setAttribute('position',new THREE.BufferAttribute(pos,3));G.add(new THREE.Points(sg,new THREE.PointsMaterial({color:0xf5ecd0,size:1.4,sizeAttenuation:false,fog:false,transparent:true,opacity:S.rain?.2:.85})));}
   else if(!S.rain){const su=glow(0xfff2c0,30,.6);su.position.set(40,50,-120);G.add(su);}
-  for(let i=0;i<14;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:TEX.cloud,color:S.night?0x5a6a7a:S.rain?0x9aa6ae:0xffffff,transparent:true,opacity:S.rain?.6:.45,depthWrite:false,fog:false}));s.position.set(R(-90,90),R(22,40),R(-110,-60));const sc=R(24,40);s.scale.set(sc,sc*.45,1);G.add(s);T.push((t,dt)=>{s.position.x+=dt*.6;if(s.position.x>100)s.position.x=-100;});}
+  for(let i=0;i<14;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:TEX.cloud,color:S.night?0xb8bcd8:S.rain?0xc8d0d6:0xffffff,transparent:true,opacity:S.night?.22:S.rain?.55:.45,depthWrite:false,fog:false}));s.position.set(R(-90,90),R(22,40),R(-110,-60));const sc=R(24,40);s.scale.set(sc,sc*.45,1);G.add(s);T.push((t,dt)=>{s.position.x+=dt*.6;if(s.position.x>100)s.position.x=-100;});}
   // season particles & decor
   const A=[-22,22,0,9,-20,24];
   if(S.blossom||S.someBlossom){const p=particles(G,S.blossom?260:90,{tex:TEX.petal,size:.22,area:A,fall:.45,sway:.5,colors:[0xffc0d0,0xffd8e2,0xffffff]});T.push(p.tick);}
@@ -156,12 +156,20 @@ function buildCampus(S){reseed(21);const G=new THREE.Group();const T=[];const sp
   Object.entries(DOORS).forEach(([k,d])=>{if(k==='sauna'&&!sp.sauna)return;sp.doors.push({x:d.x,z:d.z,r:1.4,to:k});});
   return sp;}
 
+function ridgeMesh(G,o){const n=Math.ceil((o.x1-o.x0)/2.5)+1;const pos=[],col=[],idx=[];const rr=rnd;const ph=[rr()*9,rr()*9,rr()*9,rr()*9];const cB=new THREE.Color(o.bot),cT=new THREE.Color(o.top),cS=new THREE.Color(0xf4f7fa);
+  for(let i=0;i<n;i++){const x=o.x0+(o.x1-o.x0)*i/(n-1);let v=.5*Math.sin(x*.035+ph[0])+.3*Math.sin(x*.083+ph[1])+.14*Math.sin(x*.19+ph[2])+.06*Math.sin(x*.43+ph[3]);v=Math.pow(Math.max(0,(v+1)/2),1.35);const y=o.base+o.amp*v;
+    pos.push(x,y,0,x,o.y0||-4,0);const ct=cT.clone();if(o.snow&&v>.55)ct.lerp(cS,Math.min(1,(v-.55)*3));col.push(ct.r,ct.g,ct.b,cB.r,cB.g,cB.b);if(i){const a=(i-1)*2;idx.push(a,a+1,a+2,a+1,a+3,a+2);}}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.setIndex(idx);
+  const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,fog:!!o.fog,side:THREE.DoubleSide}));m.position.set(o.px||0,0,o.pz||0);m.rotation.y=o.ry||0;G.add(m);return m;}
+function mountainsKR(G,S){const sky=new THREE.Color(S.sky),dk=new THREE.Color(S.night?0x0a1218:0x2a4048);const L=(t)=>sky.clone().lerp(dk,t);
+  const near=S.snow?0xd8e0e6:S.key==='autumn'||S.key==='halloween'?0x8a6a44:S.key==='spring'?0x6a9a6a:0x4f7a58;const nearC=new THREE.Color(near);if(S.night)nearC.lerp(new THREE.Color(0x10161c),.6);
+  ridgeMesh(G,{x0:-170,x1:170,pz:-118,base:8,amp:30,top:L(.28),bot:L(.38),snow:S.snow});
+  ridgeMesh(G,{x0:-160,x1:160,pz:-96,base:5,amp:22,top:L(.42),bot:L(.55),snow:S.snow});
+  ridgeMesh(G,{x0:-150,x1:150,pz:-72,base:2,amp:13,top:nearC,bot:nearC.clone().multiplyScalar(.72),snow:S.snow,fog:true});
+  [-1,1].forEach(s=>{ridgeMesh(G,{x0:-110,x1:70,px:s*92,ry:PI/2,base:6,amp:24,top:L(.38),bot:L(.5),snow:S.snow});ridgeMesh(G,{x0:-80,x1:50,px:s*70,ry:PI/2,base:2,amp:12,top:nearC,bot:nearC.clone().multiplyScalar(.72),snow:S.snow,fog:true});});}
 /* ---------- 마당 꾸미기: 궁궐·산·정자·개천·과자점·갤러리·자전거·온천 ---------- */
 function campusExtras(G,sp,S,T){sp.plat=[[10.15,14.85,12.15,16.85,.62],[-10.95,-9.05,18.3,20.9,.3]];sp.blocks=[[-17.4,-10.95,18.45,20.75],[-9.05,-2.6,18.45,20.75],[10.3,14.7,12.25,12.45],[10.3,14.7,16.55,16.75],[14.55,14.75,12.3,16.7],[13.9,16.5,3.8,7.4],[-16.8,-15.2,-12.8,-6.2],[3,5.6,18.1,19.1]];sp.clears=[[-10.75,-9.25,18.0,21.2]];const winter=S.snow||[12,1,2].includes(S.month);const seat=(x,z,ry,h,o)=>sp.seats.push(Object.assign({x,z,ry,h},o||{}));const act=(o,a)=>{o.traverse(c=>{c.userData.act=a;});};
   const lbl=(g,t,x,y,z,w)=>{const L=makeLabel(t);L.sprite.position.set(x,y,z);L.sprite.scale.set(w||2.6,.52,1);g.add(L.sprite);return L;};
-  // 산 능선 (가까운 초록 산)
-  const mc=S.snow?[0xdfe8ee,0xc8d4dc]:S.key==='autumn'||S.key==='halloween'?[0x8a5a2a,0x6a4a2a]:[0x3f6a48,0x2f5a3e];
-  [[-62,-58,20,17],[-40,-64,18,20],[-18,-70,22,24],[8,-68,20,22],[32,-62,19,19],[56,-56,22,16],[-74,-30,20,14],[76,-28,20,15],[-70,10,18,12],[72,14,18,13]].forEach((m,i)=>{const c=new THREE.Mesh(new THREE.ConeGeometry(m[2],m[3],8),std(mc[i%2],{roughness:1,flatShading:true}));c.position.set(m[0],m[3]/2-1,m[1]);c.rotation.y=i;G.add(c);if(S.snow){const cap=new THREE.Mesh(new THREE.ConeGeometry(m[2]*.32,m[3]*.32,8),std(0xffffff));cap.position.set(m[0],m[3]-1-m[3]*.16,m[1]);G.add(cap);}});
   // 궁궐 (근정전 느낌)
   {const g=new THREE.Group();g.position.set(0,0,-46);G.add(g);const st=MAT.stone;box(g,34,1,16,st,0,.5,0);box(g,28,1,13,st,0,1.5,0);
     const pil=MAT.red;for(let i=0;i<8;i++){cyl(g,.42,.46,6,10,pil,-10.5+i*3,5,4.6);}box(g,22,5.4,8,MAT.plaster,0,4.8,0);box(g,22.4,.6,8.4,MAT.dan,0,7.6,0);
@@ -208,7 +216,7 @@ function campusExtras(G,sp,S,T){sp.plat=[[10.15,14.85,12.15,16.85,.62],[-10.95,-
     for(let i=0;i<5;i++)sp.obs.push({x:-16+.0,z:-12+i*1.25,r:.75});}
   // 자전거 보관대
   {const g=new THREE.Group();g.position.set(4.3,0,18.6);G.add(g);box(g,2.6,.08,.9,MAT.stoneDark,0,.04,0);for(let i=0;i<3;i++){const b=bikeMesh([0xd8504a,0x3a8ad8,0xf2b84a][i]);b.position.set(-.85+i*.85,0,0);b.rotation.y=PI/2;b.scale.setScalar(.85);g.add(b);}
-    const L=makeLabel('🚲 자전거 · 30분 읽으면 5분');L.sprite.position.set(0,2,0);L.sprite.scale.set(3,.55,1);g.add(L.sprite);act(g,'bike');sp.obs.push({x:4.3,z:18.6,r:1.3});}
+    const L=makeLabel('🚲 자전거 타기');L.sprite.position.set(0,2,0);L.sprite.scale.set(3,.55,1);g.add(L.sprite);act(g,'bike');sp.obs.push({x:4.3,z:18.6,r:1.3});}
   // 겨울: 온천과 사우나
   if(winter){const g=new THREE.Group();g.position.set(16.6,0,19.6);G.add(g);for(let i=0;i<22;i++){const a=i/22*PI*2;sph(g,R(.35,.5),MAT.stoneDark,Math.cos(a)*2.3,.2,Math.sin(a)*1.9,1,.7,1);}
     const w=new THREE.Mesh(new THREE.CircleGeometry(2.1,30),std(0x6ac8d0,{emissive:0x1a5a60,roughness:.1,transparent:true,opacity:.92}));w.rotation.x=-PI/2;w.scale.set(1,.85,1);w.position.y=.42;g.add(w);

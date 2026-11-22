@@ -42,11 +42,11 @@ function update3D(){try{if(!SP||!SP.gallery)return;const L=gList().slice(0,6);SP
 /* 🚲 자전거 */
 let BIKE=null;
 function bikeAvail(){const day=dk();const used=LS.get('bikeDay','')===day?LS.get('bikeUsed',0):0;const mins=todayTot(MYID,0);return {mins,earned:Math.floor(mins/30),used,left:Math.floor(mins/30)-used};}
-function startBike(){if(BIKE){toast('이미 자전거를 타고 있어요 🚲');return;}const a=bikeAvail();if(a.left<=0){toast(a.earned?`오늘 자전거는 다 탔어요<small>30분 더 읽으면 5분 더 탈 수 있어요 (오늘 ${a.mins}분)</small>`:`📚 오늘 30분 이상 읽으면 5분 탈 수 있어요<small>지금 오늘 ${a.mins}분 · ${30-a.mins%30}분 남았어요</small>`);return;}
-  if(ST.sitting>=0)standUp(true);LS.set('bikeDay',dk());LS.set('bikeUsed',a.used+1);const m=bikeMesh(0x3a8ad8);me.root.add(m);BIKE={m,until:Date.now()+5*60e3};SPEED=8.2;window.__bike=1;pushPresence(true);
-  const hud=document.createElement('div');hud.id='bikeHud';hud.className='paper';document.body.appendChild(hud);toast('🚲 씽씽! 5분 동안 자전거를 타요<small>마당을 신나게 달려 봐요</small>');tickBike();}
+function startBike(){if(BIKE){toast('이미 자전거를 타고 있어요 🚲');return;}
+  if(ST.sitting>=0)standUp(true);const m=bikeMesh(0x3a8ad8);me.root.add(m);BIKE={m,t0:Date.now()};SPEED=8.2;window.__bike=1;pushPresence(true);
+  const hud=document.createElement('div');hud.id='bikeHud';hud.className='paper';document.body.appendChild(hud);toast('🚲 씽씽! 자전거를 타요<small>내리고 싶으면 위쪽 ‘내리기’를 눌러요</small>');tickBike();}
 function stopBike(msg){if(!BIKE)return;me.root.remove(BIKE.m);BIKE=null;SPEED=4.4;window.__bike=0;pushPresence(true);const h=c$('#bikeHud');if(h)h.remove();if(msg)toast(msg);}
-function tickBike(){if(!BIKE)return;const left=BIKE.until-Date.now();if(left<=0||ST.space!=='campus'){stopBike('🚲 자전거를 제자리에 두었어요. 또 읽고 타러 와요!');return;}const h=c$('#bikeHud');if(h)h.innerHTML=`🚲 ${Math.floor(left/60000)}:${String(Math.floor(left/1000)%60).padStart(2,'0')} <button id="bikeStop">내리기</button>`;setTimeout(tickBike,500);}
+function tickBike(){if(!BIKE)return;if(ST.space!=='campus'){stopBike('🚲 자전거는 보관대에 두고 들어갔어요');return;}const e=Date.now()-BIKE.t0;const h=c$('#bikeHud');if(h)h.innerHTML=`🚲 ${Math.floor(e/60000)}:${String(Math.floor(e/1000)%60).padStart(2,'0')} <button id="bikeStop">내리기</button>`;setTimeout(tickBike,500);}
 document.addEventListener('click',e=>{if(e.target.closest('#bikeStop'))stopBike('🚲 자전거에서 내렸어요');});
 /* 동작 */
 window.__campusAct=function(a,h){if(a==='cloud'){cloudMsg(h.object.userData.ci||0);return true;}

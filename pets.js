@@ -83,12 +83,12 @@ function makePet(id){const cfg=PETMAP[id];if(!cfg||id==='none')return null;
   return P;}
 /* follow the owner (owner = root Object3D); bounds clamp optional */
 function petFollow(P,owner,dt,t,bounds){if(!P)return;const o=owner.position,ry=owner.rotation.y,c=Math.cos(ry),s=Math.sin(ry);
-  let tx=o.x+c*1.05+s*.7,tz=o.z-s*1.05+c*.7;if(bounds){tx=Math.max(bounds[0],Math.min(bounds[1],tx));tz=Math.max(bounds[2],Math.min(bounds[3],tz));}
+  const sd=P.fly?1.9:1.05,bk=P.fly?-.2:.7;let tx=o.x+c*sd+s*bk,tz=o.z-s*sd+c*bk;if(bounds){tx=Math.max(bounds[0],Math.min(bounds[1],tx));tz=Math.max(bounds[2],Math.min(bounds[3],tz));}
   const R0=P.root.position,dx=tx-R0.x,dz=tz-R0.z,d=Math.hypot(dx,dz);
   if(d>9){R0.set(tx,0,tz);}else if(d>.12){const sp=Math.min(d*3.2,6)*dt;R0.x+=dx/d*Math.min(sp,d);R0.z+=dz/d*Math.min(sp,d);const ang=Math.atan2(-dx,-dz);let da=ang-P.root.rotation.y;da=Math.atan2(Math.sin(da),Math.cos(da));P.root.rotation.y+=da*Math.min(1,dt*10);}
   else{let da=ry-P.root.rotation.y;da=Math.atan2(Math.sin(da),Math.cos(da));P.root.rotation.y+=da*Math.min(1,dt*3);}
   R0.y=0;P.amt+=((d>.12?1:0)-P.amt)*Math.min(1,dt*8);P.ph+=dt*13*P.amt;const B=P.bob;
-  B.position.y=(P.fly?.5+Math.sin(t*2)*.08:0)+Math.abs(Math.sin(P.ph))*(P.totem?.22:P.fly?.04:.14)*P.amt+Math.sin(t*2.2)*.012;B.rotation.z=P.totem?Math.sin(P.ph)*.1*P.amt+Math.sin(t*1.3)*.03:Math.sin(P.ph)*.06*P.amt;
+  B.position.y=(P.fly?1.35+Math.sin(t*2)*.1:0)+Math.abs(Math.sin(P.ph))*(P.totem?.22:P.fly?.04:.14)*P.amt+Math.sin(t*2.2)*.012;B.rotation.z=P.totem?Math.sin(P.ph)*.1*P.amt+Math.sin(t*1.3)*.03:Math.sin(P.ph)*.06*P.amt;
   P.legs.forEach(l=>l.g.rotation.x=Math.sin(P.ph+l.ph)*.7*P.amt);P.arms.forEach(a=>{if(a.wing)a.g.rotation.z=a.s*(Math.abs(Math.sin(P.ph*1.5))*.9*P.amt+Math.sin(t*3)*.05);else a.g.rotation.x=Math.sin(P.ph+a.ph)*.6*P.amt;});
   P.tails.forEach((tg,i)=>tg.rotation.z=Math.sin(t*4+i)*.3);if(P.head)P.head.rotation.z=Math.sin(t*1.1)*.06*(1-P.amt);P.ticks.forEach(f=>f(t));}
 
