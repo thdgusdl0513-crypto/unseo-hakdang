@@ -42,7 +42,7 @@ function particles(G,n,o){const pos=new Float32Array(n*3),col=new Float32Array(n
   return {P,tick(t,dt){for(let i=0;i<n;i++){const v=V[i];let x=pos[i*3],y=pos[i*3+1],z=pos[i*3+2];
     y-=o.fall*v.s*dt;x+=(o.sway?Math.sin(t*1.3+v.p)*o.sway*dt:0)+(o.wind||0)*dt;z+=o.sway?Math.cos(t+v.p)*o.sway*.5*dt:0;
     if(o.wander){x=pos[i*3]+Math.sin(t*.7+v.p)*.01;y=pos[i*3+1]+Math.sin(t*1.1+v.p*2)*.008;}
-    if(y<a[2]&&o.fall>0){y=a[3];x=R(a[0],a[1]);z=R(a[4],a[5]);}pos[i*3]=x;pos[i*3+1]=y;pos[i*3+2]=z;}geo.attributes.position.needsUpdate=true;}};}
+    if(y<a[2]&&o.fall>0){y=a[3];x=R(a[0],a[1]);z=R(a[4],a[5]);}if(y>a[3]&&o.fall<0){y=a[2];x=R(a[0],a[1]);z=R(a[4],a[5]);}pos[i*3]=x;pos[i*3+1]=y;pos[i*3+2]=z;}geo.attributes.position.needsUpdate=true;}};}
 function tree(G,x,z,s,S,kind){const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(s);G.add(g);const tips=[];const up=new THREE.Vector3(0,1,0);
   function seg(a,b,r){const m=new THREE.Mesh(new THREE.CylinderGeometry(r*.68,r,a.distanceTo(b),6),MAT.bark);m.position.copy(a).add(b).multiplyScalar(.5);m.quaternion.setFromUnitVectors(up,b.clone().sub(a).normalize());g.add(m);}
   (function br(p,dir,len,r,dep){const e=p.clone().add(dir.clone().multiplyScalar(len));seg(p,e,r);if(dep===0){tips.push(e);return;}if(dep<=2)tips.push(e);const k=dep===3?2:2+(rnd()<.5?1:0);for(let i=0;i<k;i++)br(e,dir.clone().add(new THREE.Vector3(R(-.8,.8),R(0,.5),R(-.8,.8))).normalize(),len*.72,r*.62,dep-1);})(new THREE.Vector3(),new THREE.Vector3(R(-.2,.2),1,R(-.2,.2)).normalize(),1.8,.26,3);
@@ -96,7 +96,7 @@ function hall(G,o){const g=new THREE.Group();g.position.set(o.x,0,o.z);g.rotatio
   [-1,1].forEach(s=>chorong(g,s*1.4,.4+h-.9,d/2+.5,o.warm));return g;}
 
 /* ---------- campus ---------- */
-const DOORS={library:{x:0,z:-14.5,back:{x:0,z:-12.8}},basics:{x:-13,z:-14.5,back:{x:-13,z:-12.8}},potion:{x:13,z:-14.5,back:{x:13,z:-12.8}},herbs:{x:-20.5,z:-5,back:{x:-18.8,z:-5}},training:{x:-20.5,z:11,back:{x:-18.8,z:11}},dorm:{x:20.5,z:3,back:{x:18.8,z:3}}};
+const DOORS={library:{x:0,z:-14.5,back:{x:0,z:-12.8}},basics:{x:-13,z:-14.5,back:{x:-13,z:-12.8}},potion:{x:13,z:-14.5,back:{x:13,z:-12.8}},herbs:{x:-20.5,z:-5,back:{x:-18.8,z:-5}},training:{x:-20.5,z:11,back:{x:-18.8,z:11}},dorm:{x:20.5,z:3,back:{x:18.8,z:3}},sauna:{x:18.0,z:15.2,back:{x:16.9,z:15.2}}};
 function buildCampus(S){reseed(21);const G=new THREE.Group();const T=[];const sp={id:'campus',G,tick:T,bounds:[-20.5,20.5,-14.5,22],obs:[],seats:[],triggers:[],doors:[],spawn:{x:0,z:15}};
   const gm=std(S.ground,{map:TEX.moss,roughness:1});const ground=new THREE.Mesh(new THREE.PlaneGeometry(120,110),gm);ground.rotation.x=-PI/2;G.add(ground);
   const pave=std(0xffffff,{map:TEX.paving,roughness:.95});const pm=new THREE.Mesh(new THREE.CircleGeometry(7.5,40),std(S.snow?0xdfe6ea:0xffffff,{map:ctex(256,256,(g)=>{g.drawImage(TEX.paving.image,0,0);},[4,4]),roughness:.95}));pm.rotation.x=-PI/2;pm.position.set(0,.02,-3);G.add(pm);
@@ -123,7 +123,7 @@ function buildCampus(S){reseed(21);const G=new THREE.Group();const T=[];const sp
     if(!S.snow)for(let i=0;i<6;i++){const a=rnd()*6,r=R(.5,2.1);const pad=new THREE.Mesh(new THREE.CircleGeometry(R(.22,.34),12),std(0x3a6a40));pad.rotation.x=-PI/2;pad.position.set(-11+Math.cos(a)*r,.06,9+Math.sin(a)*r);G.add(pad);if((S.month>=6&&S.month<=8)&&i%2===0){cyl(G,.14,.04,.18,6,emis(0xf6b0c8,.5),pad.position.x,.15,pad.position.z);}}}
   // lanterns & trees
   [[-2.4,8],[2.4,8],[-2.4,14],[2.4,14],[-2.4,-12],[2.4,-12],[8.5,-4.5],[-8.5,-6.5]].forEach(p=>stoneLamp(G,p[0],p[1]));
-  [[-18.5,-13.5,1.2],[18.5,-13.5,1.1],[-19,20,1.3],[19,20,1.2],[-7,21.5,1],[8,21.5,1.1],[-21,3,1],[21,-9,1.1],[21,13,1]].forEach(p=>{pine(G,p[0],p[1],p[2],S);sp.obs.push({x:p[0],z:p[1],r:.9});});
+  [[-18.5,-13.5,1.2],[18.5,-13.5,1.1],[-19,20,1.3],[22,22.5,1.2],[-7,21.5,1],[8,21.5,1.1],[-21,3,1],[21,-9,1.1],[21,13,1]].forEach(p=>{pine(G,p[0],p[1],p[2],S);sp.obs.push({x:p[0],z:p[1],r:.9});});
   [[-8,-12],[8,-12.5],[-15,1.5],[14,10],[-6,17],[6.5,17.5],[15,-8],[-16,16]].forEach((p,i)=>{tree(G,p[0],p[1],R(.9,1.15),S);sp.obs.push({x:p[0],z:p[1],r:.7});});
   // central feature
   if(S.key==='xmas'){xmasTree(G,0,-3,1.25,T);for(let i=0;i<7;i++){const a=i/7*PI*2;const c=[0xd83a3a,0x2a8a4a,0xf2c84b,0x3a6ad8][i%4];const b=box(G,R(.4,.6),R(.35,.55),R(.4,.6),std(c,{emissive:new THREE.Color(c).multiplyScalar(.15)}),Math.cos(a)*2.2,.22,-3+Math.sin(a)*2.2);b.rotation.y=a;box(G,.08,.6,.62,MAT.gold,b.position.x,.25,b.position.z).rotation.y=a;}}
@@ -151,9 +151,80 @@ function buildCampus(S){reseed(21);const G=new THREE.Group();const T=[];const sp
     for(let i=0;i<4;i++){const gh=new THREE.Group();G.add(gh);sph(gh,.35,std(0xf4f4ff,{emissive:0x8080a0,transparent:true,opacity:.8}),0,0,0,1,1.3,1);sph(gh,.05,EYE,-.1,.1,-.3);sph(gh,.05,EYE,.1,.1,-.3);gh.add(glow(0xb0c0ff,1.6,.4));const ph=i*1.6,r=R(5,12);T.push(t=>{gh.position.set(Math.cos(t*.2+ph)*r,2.5+Math.sin(t*1.3+ph)*.5,-3+Math.sin(t*.2+ph)*r);});}}
   if(S.snow){snowman(G,-6.5,13.5);sp.obs.push({x:-6.5,z:13.5,r:.7});}
   if(S.key==='xmas'){[[-2.4,8],[2.4,8],[-2.4,14],[2.4,14]].forEach(p=>{const w=new THREE.Mesh(new THREE.TorusGeometry(.32,.1,8,20),std(0x2a6a3a));w.position.set(p[0],2.4,p[1]);G.add(w);sph(G,.08,emis(0xe23a3a,.6),p[0],2.12,p[1]);});}
+  campusExtras(G,sp,S,T);
   // doors
-  Object.entries(DOORS).forEach(([k,d])=>sp.doors.push({x:d.x,z:d.z,r:1.4,to:k}));
+  Object.entries(DOORS).forEach(([k,d])=>{if(k==='sauna'&&!sp.sauna)return;sp.doors.push({x:d.x,z:d.z,r:1.4,to:k});});
   return sp;}
+
+/* ---------- 마당 꾸미기: 궁궐·산·정자·개천·과자점·갤러리·자전거·온천 ---------- */
+function campusExtras(G,sp,S,T){sp.plat=[[10.15,14.85,12.15,16.85,.62],[-10.95,-9.05,18.3,20.9,.3]];sp.blocks=[[-17.4,-10.95,18.45,20.75],[-9.05,-2.6,18.45,20.75],[10.3,14.7,12.25,12.45],[10.3,14.7,16.55,16.75],[14.55,14.75,12.3,16.7],[13.9,16.5,3.8,7.4],[-16.8,-15.2,-12.8,-6.2],[3,5.6,18.1,19.1]];sp.clears=[[-10.75,-9.25,18.0,21.2]];const winter=S.snow||[12,1,2].includes(S.month);const seat=(x,z,ry,h,o)=>sp.seats.push(Object.assign({x,z,ry,h},o||{}));const act=(o,a)=>{o.traverse(c=>{c.userData.act=a;});};
+  const lbl=(g,t,x,y,z,w)=>{const L=makeLabel(t);L.sprite.position.set(x,y,z);L.sprite.scale.set(w||2.6,.52,1);g.add(L.sprite);return L;};
+  // 산 능선 (가까운 초록 산)
+  const mc=S.snow?[0xdfe8ee,0xc8d4dc]:S.key==='autumn'||S.key==='halloween'?[0x8a5a2a,0x6a4a2a]:[0x3f6a48,0x2f5a3e];
+  [[-62,-58,20,17],[-40,-64,18,20],[-18,-70,22,24],[8,-68,20,22],[32,-62,19,19],[56,-56,22,16],[-74,-30,20,14],[76,-28,20,15],[-70,10,18,12],[72,14,18,13]].forEach((m,i)=>{const c=new THREE.Mesh(new THREE.ConeGeometry(m[2],m[3],8),std(mc[i%2],{roughness:1,flatShading:true}));c.position.set(m[0],m[3]/2-1,m[1]);c.rotation.y=i;G.add(c);if(S.snow){const cap=new THREE.Mesh(new THREE.ConeGeometry(m[2]*.32,m[3]*.32,8),std(0xffffff));cap.position.set(m[0],m[3]-1-m[3]*.16,m[1]);G.add(cap);}});
+  // 궁궐 (근정전 느낌)
+  {const g=new THREE.Group();g.position.set(0,0,-46);G.add(g);const st=MAT.stone;box(g,34,1,16,st,0,.5,0);box(g,28,1,13,st,0,1.5,0);
+    const pil=MAT.red;for(let i=0;i<8;i++){cyl(g,.42,.46,6,10,pil,-10.5+i*3,5,4.6);}box(g,22,5.4,8,MAT.plaster,0,4.8,0);box(g,22.4,.6,8.4,MAT.dan,0,7.6,0);
+    const r1=curvedRoof(28,15,1.6,.5,.34,MAT.tile);r1.position.y=8.4;g.add(r1);box(g,17,3.2,7,MAT.dan,0,10.4,0);const r2=curvedRoof(22,11,1.4,.45,.36,MAT.tile);r2.position.y=12.2;g.add(r2);
+    if(S.snow){const s1=curvedRoof(27,14.4,1.6,.12,.34,MAT.white);s1.position.y=8.75;g.add(s1);const s2=curvedRoof(21,10.6,1.4,.12,.36,MAT.white);s2.position.y=12.55;g.add(s2);}
+    // 궁궐 담장과 양옆 전각
+    for(let k=-1;k<=1;k+=2){const w=new THREE.Group();w.position.set(k*26,0,-40);G.add(w);box(w,10,1,8,st,0,.5,0);for(let i=0;i<4;i++)cyl(w,.3,.32,4,8,pil,-3.6+i*2.4,3,3.2);box(w,8,3.6,6,MAT.plaster,0,3,0);const r=curvedRoof(12,9,1.2,.4,.34,MAT.tile);r.position.y=5.3;w.add(r);}
+    box(G,90,2.4,.8,std(0xb8a68a),0,1.2,-33);const cap=curvedRoof(90,2.2,.2,.25,.4,MAT.tile);cap.position.set(0,2.5,-33);G.add(cap);}
+  // 대나무 숲 · 꽃덤불
+  const bam=std(S.snow?0x8aa890:0x5a9a4a);for(let i=0;i<26;i++){const x=-20.2+(i%6)*.55+R(-.15,.15),z=-1.5+Math.floor(i/6)*.7+R(-.2,.2);cyl(G,.06,.07,R(3.5,5.5),6,bam,x,2.2,z);}sp.obs.push({x:-18.8,z:-.2,r:1.8});
+  if(!S.snow){[[9,20.5],[-2.6,20.6],[17.5,-12],[-17,-13.2],[19.5,7]].forEach(([x,z],i)=>{for(let k=0;k<6;k++)sph(G,R(.35,.55),std([0x4a8a3a,0x5a9a48][k%2]),x+R(-.8,.8),R(.3,.5),z+R(-.5,.5));if(S.month>=4&&S.month<=9)for(let k=0;k<7;k++)sph(G,.1,emis([0xff8ab0,0xffe06a,0xffffff,0xc8a0ff][k%4],.3),x+R(-.9,.9),R(.6,.8),z+R(-.5,.5));});}
+  // 정자 — 다같이 앉기
+  {const g=new THREE.Group();g.position.set(12.5,0,14.5);G.add(g);box(g,4.8,.5,4.8,MAT.stone,0,.25,0);const fl=box(g,4.6,.12,4.6,MAT.woodLight,0,.56,0);fl.userData.walk=1;
+    [[-2.1,-2.1],[2.1,-2.1],[-2.1,2.1],[2.1,2.1],[0,-2.1],[0,2.1]].forEach(p=>cyl(g,.13,.15,3,10,MAT.red,p[0],2,p[1]));const rf=curvedRoof(6.4,6.4,.9,.32,.3,MAT.tile);rf.position.y=3.5;g.add(rf);if(S.snow){const s=curvedRoof(6.1,6.1,.9,.1,.3,MAT.white);s.position.y=3.75;g.add(s);}
+    box(g,4.4,.1,.1,MAT.wood,0,1.05,-2.15);box(g,4.4,.1,.1,MAT.wood,0,1.05,2.15);box(g,.1,.1,4.4,MAT.wood,2.15,1.05,0);lbl(g,'정자 · 다같이 쉬어 가요',0,4.7,0,3);
+    const pl=box(g,.9,.3,.35,std(0x2a1a11),0,3.05,-2.6);const pt=makeLabel('樂心亭');pt.sprite.position.set(0,3.05,-2.8);pt.sprite.scale.set(1.2,.35,1);
+    [[-1.4,-1.4],[0,-1.6],[1.4,-1.4],[1.6,0],[1.4,1.4],[0,1.6],[-1.4,1.4],[-1.6,0]].forEach(([x,z])=>{const ry=Math.atan2(x,z);seat(12.5+x,14.5+z,ry,.62,{read:true,nm:'정자'});const c=new THREE.Mesh(new THREE.CylinderGeometry(.26,.28,.08,14),std(0xd8b46a));c.position.set(x,.66,z);g.add(c);});
+    cyl(g,.45,.5,.36,12,MAT.woodDark,0,.8,0);sph(g,.1,std(0xe8e0c8),0,1.02,0);sp.obs.push({x:12.5,z:14.5,r:.55});}
+  // 개천 (청계천) — 발 담그고 책 읽기
+  {const z0=19.6,x0=-17,x1=-3;const L=x1-x0,cx=(x0+x1)/2;const wt=ctex(64,256,(g,w,h)=>{const gr=g.createLinearGradient(0,0,w,0);gr.addColorStop(0,'#2a6a7a');gr.addColorStop(.5,'#4a9aa8');gr.addColorStop(1,'#2a6a7a');g.fillStyle=gr;g.fillRect(0,0,w,h);g.strokeStyle='rgba(255,255,255,.35)';g.lineWidth=2;for(let i=0;i<16;i++){g.beginPath();const y=i*16+R(0,8);g.moveTo(R(4,20),y);g.quadraticCurveTo(w/2,y+6,w-R(4,20),y);g.stroke();}},[1,6]);
+    const wm=std(S.snow?0xdfeaf2:0x9cc4c6,{map:S.snow?null:wt,roughness:.2,metalness:.15,emissive:S.snow?0x000000:0x061418});const water=new THREE.Mesh(new THREE.PlaneGeometry(1.8,L),wm);water.rotation.x=-PI/2;water.rotation.z=PI/2;water.position.set(cx,.06,z0);G.add(water);if(!S.snow)T.push((t,dt)=>{wt.offset.y-=dt*.25;});
+    [-1,1].forEach(s=>{box(G,L,.3,.5,MAT.stone,cx,.15,z0+s*1.15);for(let i=0;i<14;i++)box(G,R(.4,.7),.18,.5,MAT.stoneDark,x0+.5+i*1,.32,z0+s*1.15);});
+    for(let x=x0;x<=x1;x+=1)if(Math.abs(x+10)>1.2)sp.obs.push({x,z:z0,r:1.05});
+    {const b=new THREE.Group();b.position.set(-10,0,z0);G.add(b);const arc=new THREE.Mesh(new THREE.CylinderGeometry(2.2,2.2,1.8,20,1,false,-.55,1.1),MAT.stone);arc.rotation.z=PI/2;arc.rotation.y=PI/2;arc.position.y=-1.85;b.add(arc);arc.userData.walk=1;[-1,1].forEach(s=>box(b,.12,.35,2.6,MAT.stoneDark,s*.85,.6,0));}
+    for(let i=0;i<5;i++){const x=-15.5+i*2.6+(i>=2?.9:0);seat(x,z0-1.12,PI,.36,{read:true,nm:'개천가',feet:true});}
+    lbl(G,'개천가 · 발 담그고 책 읽기',-14,2.4,z0-1.8,3.2);
+    // 버드나무
+    [[-16.8,17.4],[-4,17.6]].forEach(([x,z])=>{cyl(G,.18,.26,2.6,8,MAT.bark,x,1.3,z);for(let k=0;k<18;k++){const a=k/18*PI*2;const v=new THREE.Mesh(new THREE.CylinderGeometry(.02,.06,R(1.4,2.2),4),std(S.snow?0xb8c8b8:0x7ab85a));v.position.set(x+Math.cos(a)*R(.5,1),2.2,z+Math.sin(a)*R(.5,1));G.add(v);}sph(G,1.1,std(S.snow?0xc8d4c8:0x8ac868),x,2.9,z,1,.55,1);sp.obs.push({x,z,r:.5});});
+    if(!S.snow&&!S.night){const p=particles(G,26,{tex:TEX.glow,size:.12,area:[x0,x1,.1,.4,z0-.7,z0+.7],fall:0,wander:true,colors:[0xffffff],add:true});T.push(p.tick);}}
+  // 달달 과자점 (허니듀크 느낌)
+  {const g=new THREE.Group();g.position.set(15.2,0,5.6);g.rotation.y=PI/2;G.add(g);box(g,3.6,.3,2.6,MAT.stone,0,.15,0);box(g,3.4,2.6,.2,MAT.wood,0,1.6,1.1);[-1,1].forEach(s=>box(g,.2,2.6,2.4,MAT.wood,s*1.6,1.6,0));
+    const cnt=box(g,3.2,1,.7,std(0xf2d0d8),0,.8,-.6);box(g,3.3,.1,.8,MAT.woodLight,0,1.33,-.6);
+    for(let i=0;i<5;i++){const j=new THREE.Group();j.position.set(-1.2+i*.6,1.6,-.6);g.add(j);const gl=new THREE.Mesh(new THREE.CylinderGeometry(.18,.18,.4,12),MAT.glass);gl.position.y=0;j.add(gl);for(let k=0;k<6;k++)sph(j,.06,emis([0xff6a8a,0xffd84a,0x6ad0ff,0x9aff7a,0xc89aff][(i+k)%5],.3),R(-.08,.08),R(-.12,.1),R(-.08,.08));cyl(j,.19,.19,.06,12,std(0xc9a65a),0,.22,0);}
+    for(let i=0;i<4;i++){const sh=box(g,.7,.06,.3,MAT.woodLight,-1.1+i*.75,2.1,.9);for(let k=0;k<3;k++)box(g,.14,.2,.14,emis([0xff7a9a,0x7ac8ff,0xffe07a][k],.25),-1.3+i*.75+k*.2,2.24,.9);}
+    const aw=new THREE.Group();aw.position.set(0,3.05,-.4);aw.rotation.x=.42;g.add(aw);for(let i=0;i<8;i++)box(aw,.45,.06,1.8,std(i%2?0xffffff:0xe85a7a),-1.575+i*.45,0,0);
+    for(let i=0;i<8;i++){const sc=new THREE.Mesh(new THREE.ConeGeometry(.22,.25,3),std(i%2?0xffffff:0xe85a7a));sc.rotation.x=PI;sc.position.set(-1.575+i*.45,2.68,-1.25);g.add(sc);}
+    const L=makeLabel('🍭 달달 과자점',{bg:'rgba(255,236,244,.95)',fg:'#c23a6a',line:'#ff9ab8',font:"400 40px 'Orbit', sans-serif"});try{document.fonts.load("40px 'Orbit'",'달달 과자점').then(()=>{L.text=null;L.set('🍭 달달 과자점');});}catch(e){}L.sprite.position.set(0,3.9,-.4);L.sprite.scale.set(2.8,.6,1);g.add(L.sprite);
+    [[-.9,-1.5],[.9,-1.5]].forEach(([x,z])=>{const lp=new THREE.Group();lp.position.set(x,0,z-.4);g.add(lp);cyl(lp,.04,.04,1.6,6,std(0xffffff),0,.8,0);const sw=new THREE.Mesh(new THREE.TorusGeometry(.18,.06,8,20),std(x<0?0xff6a8a:0x6ad0ff));sw.position.y=1.7;lp.add(sw);});
+    act(g,'shop');sp.obs.push({x:15.2,z:5.6,r:1.7});}
+  // 그림 갤러리
+  {const g=new THREE.Group();g.position.set(-16,0,-9.5);g.rotation.y=PI/2;G.add(g);box(g,6.6,.3,1.6,MAT.stone,0,.15,0);box(g,6.4,3,.25,MAT.plaster,0,1.8,.5);[-3.1,3.1].forEach(x=>cyl(g,.12,.14,3.2,8,MAT.red,x,1.75,-.4));const rf=curvedRoof(7.6,2.6,.5,.25,.35,MAT.tile);rf.position.set(0,3.4,.1);g.add(rf);
+    const frames=[];for(let i=0;i<6;i++){const fx=-2.1+(i%3)*2.1,fy=i<3?2.55:1.25;const fr=box(g,1.3,1.05,.08,MAT.woodDark,fx,fy,.34);const pic=new THREE.Mesh(new THREE.PlaneGeometry(1.08,.86),new THREE.MeshBasicMaterial({color:0xf6efe0}));pic.position.set(fx,fy,.29);pic.rotation.y=PI;g.add(pic);frames.push(pic);}
+    const L=makeLabel('🖼️ 학당 갤러리 · 그림 그려 걸기');L.sprite.position.set(0,4.4,0);L.sprite.scale.set(3.4,.6,1);g.add(L.sprite);act(g,'gallery');sp.gallery=frames;
+    for(let i=0;i<5;i++)sp.obs.push({x:-16+.0,z:-12+i*1.25,r:.75});}
+  // 자전거 보관대
+  {const g=new THREE.Group();g.position.set(4.3,0,18.6);G.add(g);box(g,2.6,.08,.9,MAT.stoneDark,0,.04,0);for(let i=0;i<3;i++){const b=bikeMesh([0xd8504a,0x3a8ad8,0xf2b84a][i]);b.position.set(-.85+i*.85,0,0);b.rotation.y=PI/2;b.scale.setScalar(.85);g.add(b);}
+    const L=makeLabel('🚲 자전거 · 30분 읽으면 5분');L.sprite.position.set(0,2,0);L.sprite.scale.set(3,.55,1);g.add(L.sprite);act(g,'bike');sp.obs.push({x:4.3,z:18.6,r:1.3});}
+  // 겨울: 온천과 사우나
+  if(winter){const g=new THREE.Group();g.position.set(16.6,0,19.6);G.add(g);for(let i=0;i<22;i++){const a=i/22*PI*2;sph(g,R(.35,.5),MAT.stoneDark,Math.cos(a)*2.3,.2,Math.sin(a)*1.9,1,.7,1);}
+    const w=new THREE.Mesh(new THREE.CircleGeometry(2.1,30),std(0x6ac8d0,{emissive:0x1a5a60,roughness:.1,transparent:true,opacity:.92}));w.rotation.x=-PI/2;w.scale.set(1,.85,1);w.position.y=.42;g.add(w);
+    const st=particles(G,40,{tex:TEX.glow,size:.9,area:[14.8,18.4,.5,2.4,18,21.2],fall:-.35,colors:[0xffffff],op:.25});T.push(st.tick);
+    [[-1.2,-.6],[0,-1],[1.2,-.6],[-1,.7],[1,.7]].forEach(([x,z])=>seat(16.6+x,19.6+z,Math.atan2(-x,-z),.12,{nm:'온천',spa:true}));lbl(g,'♨️ 온천 · 겨울에만 열어요',0,2.6,-2.2,3);
+    sp.obs.push({x:16.6,z:19.6,r:.4});sp.blocks.push([14.2,19,17.6,21.6],[18.4,20.8,13.9,16.5]);
+    sp.sauna=true;const h=new THREE.Group();h.position.set(19.6,0,15.2);h.rotation.y=PI/2;G.add(h);box(h,2.6,2.2,2.2,std(0x8a5a32),0,1.1,0);for(let i=0;i<5;i++)box(h,2.62,.05,2.22,MAT.woodDark,0,.3+i*.45,0);const hr=new THREE.Mesh(new THREE.ConeGeometry(2.1,1,4),std(0x5a3a22));hr.rotation.y=PI/4;hr.position.y=2.7;h.add(hr);
+    box(h,.8,1.5,.05,std(0xffd8a0,{emissive:0x5a3a10}),0,.8,-1.12);const sl=makeLabel('🧖 사우나 · 문으로 들어가요');sl.sprite.position.set(0,3.6,0);sl.sprite.scale.set(1.8,.5,1);h.add(sl.sprite);act(h,'sauna');sp.obs.push({x:19.6,z:15.2,r:1.5});
+    box(h,1.4,.08,.3,std(0xffd8a0,{emissive:0x5a3a10}),0,2.0,-1.16);}
+  // 하늘 구름 — 눌러서 오늘의 한마디
+  G.traverse(o=>{if(o.isSprite&&o.material&&o.material.map===TEX.cloud){o.userData.act='cloud';o.userData.ci=Math.round(o.position.x*7+o.position.z)&1023;}});
+}
+function bikeMesh(col){const b=new THREE.Group();const fm=std(col,{metalness:.3,roughness:.4}),tr=std(0x2a2a2e);[-.42,.42].forEach(z=>{const w=new THREE.Mesh(new THREE.TorusGeometry(.26,.035,8,22),tr);w.position.set(0,.29,z);w.rotation.y=PI/2;b.add(w);const hub=cyl(b,.03,.03,.06,6,fm,0,.29,z);hub.rotation.z=PI/2;});
+  const bar=(a,c)=>{const v=new THREE.Vector3().subVectors(c,a);const m=new THREE.Mesh(new THREE.CylinderGeometry(.025,.025,v.length(),6),fm);m.position.copy(a).add(c).multiplyScalar(.5);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),v.clone().normalize());b.add(m);};
+  const P=(y,z)=>new THREE.Vector3(0,y,z);bar(P(.29,.42),P(.55,.05));bar(P(.55,.05),P(.29,.05));bar(P(.29,.05),P(.29,.42));bar(P(.55,.05),P(.58,-.3));bar(P(.58,-.3),P(.29,-.42));bar(P(.58,-.3),P(.7,-.34));
+  box(b,.36,.03,.03,tr,0,.71,-.34);box(b,.12,.04,.2,tr,0,.6,.06);b.userData.bike=1;return b;}
 
 /* ---------- interiors ---------- */
 const ROOMS={
@@ -162,7 +233,8 @@ const ROOMS={
  herbs:{name:'약초학 수업',en:'III · HERBOLOGY — 藥草園',tag:'전공 선택',title:'유리 온실 속,<br>약초가 자라는 시간.',study:true},
  training:{name:'기초체력훈련',en:'IV · TRAINING — 修鍊場',tag:'전공 선택',title:'몸이 단단해야<br>마법도 단단하다.',study:true},
  library:{name:'도서관 · 몽원각',en:'V · LIBRARY — 圖書閣',tag:'자유 독서',title:'구름 위,<br>현자들의 서고.',study:true},
- dorm:{name:'기숙사 · 온화료',en:'DORMITORY — 溫和寮',tag:'자유 대화',title:'노을 지는 창가,<br>우리들의 공부방.',study:false}};
+ dorm:{name:'기숙사 · 온화료',en:'DORMITORY — 溫和寮',tag:'자유 대화',title:'노을 지는 창가,<br>우리들의 공부방.',study:false},
+ sauna:{name:'사우나 · 한증막',en:'SAUNA — 汗蒸幕',tag:'겨울 휴식',title:'따끈따끈,<br>몸도 마음도 노곤노곤.',study:false}};
 function roomShell(id,S,o){const G=new THREE.Group();const T=[];const sp={id,G,tick:T,bounds:[-7.2,7.2,-6.2,6.6],obs:[],seats:[],triggers:[],doors:[{x:0,z:6.6,r:.9,to:'campus'}],spawn:{x:0,z:5.2}};
   const fl=new THREE.Mesh(new THREE.PlaneGeometry(16,14),std(0xffffff,{map:o.floor,roughness:.8}));fl.rotation.x=-PI/2;G.add(fl);
   const H=o.wallH||5;const wm=o.wallMat||MAT.plaster;
@@ -222,6 +294,20 @@ function buildRoom(id,S){reseed(id.length*97+3);let sp;
    sp.obs.push({x:0,z:-4.4,r:1});sp.triggers.push({x:0,z:-3.1,r:1.3,act:'books',title:'독서 기록장 펼치기',sub:'읽은 책과 독후감을 남겨요'});T.push(t=>{sg.rotation.z=t*.12;book.position.y=1.25+Math.sin(t*1.6)*.06;});
    const orb=[];for(let i=0;i<8;i++){const g=new THREE.Group();box(g,.34,.07,.46,emis([0x2d3f6b,0x6b2a2a,0x2f5a4c,0x7a5a2a][i%4],.3),0,0,0);box(g,.3,.05,.42,std(0xefe6cc),.02,0,0);G.add(g);orb.push({g,a:i/8*PI*2,r:R(2,3),y:R(3.4,4.6)});}T.push((t,dt)=>orb.forEach(o=>{o.a+=dt*.2;o.g.position.set(Math.cos(o.a)*o.r,o.y+Math.sin(t+o.a*3)*.2,-1+Math.sin(o.a)*o.r*.8);o.g.rotation.set(Math.sin(t+o.a)*.4,-o.a,0);}));
    [-3,3].forEach(x=>chorong(G,x,4.4,1,true));
+ }else if(id==='sauna'){sp=roomShell(id,S,{floor:TEX.floorLight,wallMat:std(0xb07a42),wains:MAT.woodDark,lights:[[0xffa860,1.7,0,3.6,-1],[0xff8a50,1.1,-5,2.4,-4],[0xff8a50,1.1,5,2.4,-4]],windows:[]});const G=sp.G,T=sp.tick;
+   const wd=std(0xc8945a),wd2=std(0xa8743e);
+   for(let i=0;i<7;i++)box(G,14.4,.04,.06,MAT.woodDark,0,.9+i*.7,-6.15);
+   box(G,12,.5,1.3,wd2,0,.25,-3.7);box(G,12,.08,1.4,wd,0,.54,-3.7);box(G,12,1,1.3,wd2,0,.5,-5.2);box(G,12,.08,1.4,wd,0,1.04,-5.2);
+   [-4.5,-2.25,0,2.25,4.5].forEach(x=>addSeat(sp,x,-3.55,PI,.58));[-4.5,-1.5,1.5,4.5].forEach(x=>{addSeat(sp,x,-5.05,PI,1.08);sp.seats[sp.seats.length-1].far=1;});
+   [-1,1].forEach(s=>{box(G,1.3,.45,4,wd2,s*6.3,.22,1);box(G,1.4,.08,4.1,wd,s*6.3,.48,1);[-.5,1,2.5].forEach(z=>addSeat(sp,s*6.2,z,s*PI/2,.52));});
+   const hs=new THREE.Group();hs.position.set(0,0,1.4);G.add(hs);cyl(hs,.75,.85,.8,10,std(0x3a3a3e,{metalness:.4}),0,.4,0);box(hs,1.9,.12,1.9,MAT.woodDark,0,.06,0);for(let i=0;i<14;i++)sph(hs,R(.14,.22),std(0x5a5a5e,{emissive:0x3a1006}),R(-.45,.45),R(.85,1.05),R(-.45,.45));
+   const hg=glow(0xff7a30,2.2,.55);hg.position.y=1;hs.add(hg);sp.obs.push({x:0,z:1.4,r:1.3});
+   const st=particles(G,46,{tex:TEX.glow,size:1.1,area:[-1.2,1.2,1,4.2,.2,2.6],fall:-.45,colors:[0xffffff],op:.22});T.push(st.tick);
+   const bk=new THREE.Group();bk.position.set(1.3,0,2.3);G.add(bk);cyl(bk,.22,.18,.32,12,wd,0,.16,0);[0,1].forEach(k=>{const r=new THREE.Mesh(new THREE.TorusGeometry(.2,.015,4,16),std(0xc9a65a));r.rotation.x=PI/2;r.position.y=.06+k*.2;bk.add(r);});const lad=cyl(bk,.015,.015,.5,5,wd2,.15,.4,0);lad.rotation.z=-.6;
+   const tray=new THREE.Group();tray.position.set(-5,0,4.6);G.add(tray);box(tray,1.6,.6,.8,wd2,0,.3,0);for(let i=0;i<4;i++)sph(tray,.09,std(0x9a6a4a),-.5+i*.18,.68,-.12,1,1.25,1);for(let i=0;i<2;i++){cyl(tray,.08,.07,.2,10,std(0xf6ecd0),.35+i*.22,.7,.1);}sp.obs.push({x:-5,z:4.6,r:.9});
+   const tw=new THREE.Group();tw.position.set(5,0,4.8);G.add(tw);box(tw,1.6,1.6,.5,wd2,0,.8,0);for(let r=0;r<2;r++)for(let i=0;i<3;i++){const t=cyl(tw,.16,.16,.4,10,std([0xf6b8c8,0xb8d8f6,0xf6ecd0][(i+r)%3]),-.45+i*.45,.55+r*.7,-.05);t.rotation.z=PI/2;}sp.obs.push({x:5,z:4.8,r:.9});
+   const sg=textTex([{t:'汗蒸幕',y:70,f:'800 76px '}],{w:360,h:130,bg:'#5a2a14',fg:'#ffd8a0',border:'#2a1408'});const sgm=new THREE.Mesh(new THREE.PlaneGeometry(2.4,.86),new THREE.MeshBasicMaterial({map:sg}));sgm.position.set(0,4.2,-6.1);G.add(sgm);
+   const hg2=new THREE.Group();hg2.position.set(-6.9,2.4,-2);hg2.rotation.y=PI/2;G.add(hg2);box(hg2,.5,.8,.08,wd2,0,0,0);cyl(hg2,.06,.12,.3,8,std(0xf2d8a0,{transparent:true,opacity:.7}),0,.12,.06);cyl(hg2,.12,.06,.3,8,std(0xf2d8a0,{transparent:true,opacity:.7}),0,-.12,.06);
  }else{ // dorm — cozy study lounge
    sp=roomShell(id,S,{floor:TEX.floorWarm,wallMat:std(0xf2e2c4),wains:std(0x8a5a3a),wallH:5.6,lights:[[0xffd4a8,1.2,0,3.6,-.6,'desk',.25],[0xffd0a0,.7,-6,2.2,-4.4,'desk',0],[S.night?0x8a7ac8:0xffa070,.7,3.5,3,-5.5]],windows:[]});const G=sp.G,T=sp.tick;
    // big window with city view

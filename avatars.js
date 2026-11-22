@@ -18,6 +18,8 @@ const AVATARS=[
  {id:'bird',name:'흰 오목눈이',emo:'🐦',type:'bird'},
  {id:'peacock',name:'공작',emo:'🦚',type:'bird',peacock:true,bc:0x2f6fc0,lc:0x2e8a6a,beak:'#4a4a52'},
  {id:'crane',name:'학',emo:'🕊️',type:'bird',crane:true,bc:0xfbfaf6,lc:0x26262c,beak:'#c8b46a'},
+ {id:'duck',name:'오리',emo:'🦆',type:'bird',duck:true,bc:0xffe27a,lc:0xf28a2a,beak:'#f28a2a'},
+ {id:'mandarin',name:'원앙',emo:'🦆',type:'bird',mandarin:true,bc:0xe89a4a,lc:0xe0702a,beak:'#d8402a'},
  {id:'cheongryong',name:'청룡 · 사방신',emo:'🐉',type:'beast',sp:'dragon',c:0x3f93ad,b:0xf4e8bc,ear:'none',horn:'antler',tail:'dragon',vest:0x2a4a7a,god:true},
  {id:'baekho',name:'백호 · 사방신',emo:'🐯',type:'beast',sp:'cat',c:0xfbf8f2,b:0xffffff,ear:'round',eye:'#5aa0d8',tail:'long',mask:'tiger',tiger:true,vest:0x6a7a8a,god:true},
  {id:'jujak',name:'주작 · 사방신',emo:'🐦‍🔥',type:'bird',phoenix:true,beak:'#d89a2a',god:true},
@@ -89,7 +91,7 @@ function makeGat(p,y,s,tilt){const g=new THREE.Group();g.position.y=y;g.scale.se
   sph(g,.04,std(0x8fd3bd,{emissive:0x2a5a4a}),0,.06,-.21);
   [-1,1].forEach(sd=>{for(let i=0;i<9;i++){const t=i/8;sph(g,.026,BEAD,sd*.27*(1-t*.85),-.04-Math.sin(t*PI/2)*.55,-.05-t*.2);}});return g;}
 function goreum(p,y,z,col){sph(p,.05,col||SCARF,.07,y,z);box(p,.05,.3,.02,col||SCARF,.06,y-.17,z-.005).rotation.z=.1;box(p,.05,.22,.02,col||SCARF,.11,y-.13,z).rotation.z=-.15;}
-function avatarBook(A,y,z){const b=new THREE.Group();b.position.set(0,y,z);[-1,1].forEach(s=>{const h=new THREE.Group();h.rotation.z=s*.25;b.add(h);box(h,.22,.02,.3,std(0x3a5a8a),s*.12,-.012,0);box(h,.2,.03,.28,std(0xfbf4e2,{emissive:0x6a5a40}),s*.11,.008,0);});b.rotation.x=-.5;b.visible=false;A.bob.add(b);A.book=b;}
+function avatarBook(A,y,z){const b=new THREE.Group();b.position.set(0,y,z);[-1,1].forEach(s=>{const h=new THREE.Group();h.rotation.z=s*.25;b.add(h);box(h,.22,.02,.3,std(0x3a5a8a),s*.12,-.012,0);box(h,.2,.03,.28,std(0xfbf4e2,{emissive:0x6a5a40}),s*.11,.008,0);});const pg=new THREE.Group();pg.position.set(0,.03,0);b.add(pg);const pm=box(pg,.19,.006,.26,std(0xffffff,{emissive:0x7a6a50}),.1,0,0);pm.visible=false;A.page=pg;A.pageM=pm;A.bookY=y;A.bookZ=z;b.rotation.x=-.5;b.visible=false;A.bob.add(b);A.book=b;}
 
 /* ---------- builders ---------- */
 function makeAvatar(id,look){if(id==='shiba')id='sapsal';const cfg=AVMAP[id]||AVATARS[0];const A={id,cfg,garb:[],legWear:[],sleeves:[],root:new THREE.Group(),bob:new THREE.Group(),legs:[],arms:[],tails:[],hop:false,waddle:0,h:2.2,face:null,expr:'base',blinkAt:performance.now()+2000+Math.random()*3000};A.root.add(A.bob);
@@ -176,6 +178,10 @@ function makeAvatar(id,look){if(id==='shiba')id='sapsal';const cfg=AVMAP[id]||AV
     else if(cfg.peacock){const fan=new THREE.Group();fan.position.set(0,.55,.42);fan.rotation.x=.28;B.add(fan);const fe=std(0x2e8a5a,{emissive:0x0a2a1a}),eg=std(0xe6c050,{emissive:0x3a2a08}),eb=std(0x1e4aa8,{emissive:0x081a3a}),ek=std(0x1a1a3a);
       for(let i=0;i<11;i++){const a=(i-5)*.27;const f=new THREE.Group();f.rotation.z=a;fan.add(f);sph(f,.075,fe,0,.5,0,1,6.2,.3);sph(f,.075,eg,0,.95,-.01,1,1.15,.3);sph(f,.055,eb,0,.95,-.025,1,1.1,.3);sph(f,.028,ek,0,.94,-.04,1,1.1,.3);}
       [-.09,0,.09].forEach(x=>{cyl(head,.008,.008,.24,4,br,x,.6,.02).rotation.z=-x*1.6;sph(head,.045,std(0x2f6fc0,{emissive:0x0a1a3a}),x*1.6,.73,.02);});}
+    else if(cfg.duck){const o=std(0xf28a2a,{emissive:0x3a1a04});const bl=sph(head,.13,o,0,-.1,-.47,1.25,.42,1);const tl=box(B,.14,.04,.2,wh,0,.48,.56);tl.rotation.x=-.7;[-1,1].forEach(s=>sph(head,.06,wh,s*.08,.5,0,1,1.4,1));}
+    else if(cfg.mandarin){const gr=std(0x2a7a5a,{emissive:0x08281a}),pu=std(0x6a3a8a,{emissive:0x1a0a2a}),wt=std(0xfbf8f2,{emissive:0x3a3a38}),or=std(0xf08a2a,{emissive:0x3a1a04});
+      sph(head,.3,gr,0,.32,.14,1,.55,1.1);sph(head,.2,pu,0,.22,.36,1,.6,1);[-1,1].forEach(s=>{const w=sph(head,.16,wt,s*.43,.12,.02,.25,.35,1.3);w.rotation.y=s*.4;const sail=new THREE.Mesh(new THREE.ConeGeometry(.12,.3,4),or);sail.position.set(s*.32,.92,.18);sail.rotation.z=-s*.2;sail.scale.set(1,1,.25);B.add(sail);});
+      sph(B,.3,pu,0,.42,-.3,1,.8,.35);const bl=sph(head,.07,std(0xd8402a,{emissive:0x3a0808}),0,-.08,-.5,1,.6,1.2);const tl=box(B,.14,.04,.24,gr,0,.48,.56);tl.rotation.x=-.6;}
     else if(cfg.crane){const bk=std(0x1e1e22,{emissive:0x050505});[-.12,0,.12].forEach((x,i)=>{const t=sph(B,.08,bk,x,.5,.58,1,.7,2.8);t.rotation.x=-.5+i*.05;});sph(head,.12,std(0xd8283a,{emissive:0x4a0808}),0,.5,-.04,1,.45,1);
       A.arms.forEach(a=>{sph(a.g,.09,bk,a.s*.22,-.08,0,1.2,.45,.8).rotation.z=a.s*.6;});}
     else{const tl=box(B,.16,.04,.42,br,0,.48,.56);tl.rotation.x=-.5;box(B,.1,.045,.2,wh,0,.42,.72).rotation.x=-.5;}
@@ -186,7 +192,10 @@ function makeAvatar(id,look){if(id==='shiba')id='sapsal';const cfg=AVMAP[id]||AV
   if(typeof applyLook==='function'&&look)applyLook(A,look);
   return A;}
 function animateAvatar(A,ph,amt,t,sit){const B=A.bob;
-  if(sit){B.position.y=Math.sin(t*1.6)*.01;B.rotation.z=0;A.legs.forEach(l=>l.g.rotation.x=A.cfg.type==='bird'?0:PI/2.1);A.arms.forEach(a=>{if(a.wing){a.g.rotation.z=0;return;}a.g.rotation.x=1.0;a.g.rotation.z=a.s*.3;});if(A.head)A.head.rotation.x=.12;return;}
+  if(sit){B.position.y=Math.sin(t*1.6)*.01;B.rotation.z=0;A.legs.forEach(l=>l.g.rotation.x=A.cfg.type==='bird'?0:PI/2.1);const rd=A.reading&&A.book&&A.book.visible;
+    A.arms.forEach(a=>{if(a.wing){a.g.rotation.z=rd?a.s*.5:0;a.g.rotation.x=rd?-.6:0;return;}a.g.rotation.x=rd?1.32+Math.sin(t*.8+a.s)*.03:1.0;a.g.rotation.z=a.s*(rd?.08:.3);});if(A.head){A.head.rotation.x=rd?.34+Math.sin(t*.5)*.03:.12;A.head.rotation.y=rd?Math.sin(t*.35)*.12:0;}
+    if(A.book){if(rd){A.book.position.y=A.bookY+.14;A.book.position.z=A.bookZ-.02;A.book.rotation.x=-1.0+Math.sin(t*.7)*.03;const k=(t%5)/5;if(A.page){A.pageM.visible=k<.22;A.page.rotation.z=k<.22?k/.22*PI:0;}}else{A.book.position.y=A.bookY;A.book.position.z=A.bookZ;A.book.rotation.x=-.5;if(A.pageM)A.pageM.visible=false;}}return;}
+  if(A.head)A.head.rotation.y=0;
   const hopY=A.hop?Math.abs(Math.sin(ph))*.2*amt:Math.abs(Math.sin(ph))*.05*amt;B.position.y=hopY+Math.sin(t*2)*.012;B.rotation.z=Math.sin(ph)*A.waddle*amt;
   A.legs.forEach(l=>l.g.rotation.x=Math.sin(ph+l.ph)*.6*amt);
   A.arms.forEach(a=>{if(a.wing){a.g.rotation.z=a.s*(Math.abs(Math.sin(ph*1.6))*.8*amt+Math.sin(t*2.5)*.06);return;}a.g.rotation.x=Math.sin(ph+a.ph)*.6*amt;a.g.rotation.z=a.s*(A.cfg.type==='human'?.18:.35);});

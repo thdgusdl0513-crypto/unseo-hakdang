@@ -12,7 +12,7 @@
 <title>몽원학당 · 동양풍 마법사 학교</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Nanum+Myeongjo:wght@400;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbit&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Nanum+Myeongjo:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
 :root{--paper:#f6ead2;--paper2:#efdcba;--ink:#4a3224;--ink2:#7a5a44;--amber:#d9884a;--amber2:#e8a860;--teal:#3f7f7a;--rose:#c4584a;--shadow:0 6px 18px rgba(40,22,10,.28)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -362,6 +362,37 @@ body.seated #hint,body.seated #action{display:none!important}
 .msBar{display:block;height:5px;border-radius:3px;background:rgba(140,96,60,.15);margin-top:4px;overflow:hidden}.msBar u{display:block;height:100%;background:linear-gradient(90deg,#f2c84b,#e07a3a)}
 #tmCols{display:flex;align-items:center;gap:5px;margin:6px 0 2px;flex-wrap:wrap}#tmCols span{font-size:11.5px;color:var(--ink2);margin-right:2px}#tmCols button{width:20px;height:20px;border-radius:50%;border:2px solid rgba(0,0,0,.12);padding:0}#tmCols button.glass{background:linear-gradient(135deg,#fff,#d8eef8 40%,#f6d8f0)}#tmCols button.on{box-shadow:0 0 0 2px #fff,0 0 0 4px #c4584a}
 .snack{margin:4px 0 10px;padding:12px 14px;border-radius:16px;background:linear-gradient(135deg,#fff3c8,#ffd9a8);border:2px solid #e8a84a;font-weight:700;font-size:14.5px;text-align:center;line-height:1.5;animation:gpBn 1.2s ease-in-out infinite alternate}
+#cloudMsg{position:fixed;left:50%;top:calc(96px + env(safe-area-inset-top));transform:translateX(-50%);z-index:60;width:min(330px,calc(100vw - 28px));padding:14px 16px 10px;border-radius:22px;text-align:center;box-shadow:0 10px 30px rgba(40,60,90,.25);animation:cmIn .5s cubic-bezier(.2,1.5,.4,1);transition:opacity .4s,transform .4s}
+#cloudMsg.out{opacity:0;transform:translate(-50%,-10px)}@keyframes cmIn{from{opacity:0;transform:translate(-50%,-20px) scale(.9)}}
+#cloudMsg .cmT{font-size:12.5px;color:#5a7a9a;font-weight:700;letter-spacing:.05em}#cloudMsg .cmB{font-family:'Nanum Myeongjo',serif;font-size:16.5px;line-height:1.6;margin:6px 0 4px;word-break:keep-all}#cloudMsg small{font-size:11px;color:var(--ink2)}
+.shopTop{text-align:center;margin:2px 0 10px}.shopCoin{font-size:20px}.shopCoin b{font-size:26px;color:#b8861a}.shopTop small{display:block;font-size:11.5px;color:var(--ink2)}
+.shopGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.snk{padding:10px;border-radius:14px;background:rgba(255,255,255,.5);border:1.5px solid rgba(232,90,122,.25);text-align:center;display:flex;flex-direction:column;gap:3px}
+.snkI{font-size:34px}.snk b{font-size:14px}.snk small{font-size:11px;color:var(--ink2);min-height:28px}.snkB{display:flex;gap:4px;margin-top:4px}.snkB button{flex:1;padding:7px 4px;font-size:13px}
+.galGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.galItem{position:relative;padding:8px 8px 6px;border-radius:6px;background:#3a2a1e;box-shadow:inset 0 0 0 4px #8a6440;color:#f6efe0;text-align:center}
+.galItem img{width:100%;aspect-ratio:1;object-fit:cover;border:3px solid #f6efe0;display:block}.galItem b{display:block;font-size:13px;margin-top:5px}.galItem small{font-size:10.5px;opacity:.75}.galDel{position:absolute;top:2px;right:4px;border:0;background:rgba(0,0,0,.5);color:#fff;border-radius:50%;width:22px;height:22px}
+.drawWrap{border-radius:14px;overflow:hidden;box-shadow:0 0 0 3px #8a6440,0 4px 12px rgba(60,30,10,.2);background:#fffaf0}#drawCv{width:100%;aspect-ratio:1;display:block;touch-action:none}
+.drawTools{margin-top:10px;display:flex;flex-direction:column;gap:8px}.dCols{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}.dCols button{width:30px;height:30px;border-radius:50%;border:2px solid rgba(0,0,0,.15);padding:0}.dCols button.on{box-shadow:0 0 0 2px #fff,0 0 0 4px #c4584a}
+.dRow{display:flex;gap:5px}.dRow button{flex:1;padding:7px 2px;font-size:12.5px}.dRow button.on{background:#8a5a3a;color:#fff}#drawTitle{width:100%;padding:9px 11px;border-radius:10px;border:1.5px solid rgba(140,96,60,.3);background:#fffaf0;font:inherit}
+#bikeHud{position:fixed;left:50%;top:calc(92px + env(safe-area-inset-top));transform:translateX(-50%);z-index:40;padding:8px 14px;border-radius:20px;font-weight:800;font-size:17px;display:flex;gap:10px;align-items:center;box-shadow:0 4px 14px rgba(0,0,0,.2)}#bikeHud button{border:0;border-radius:12px;padding:4px 10px;background:#8a5a3a;color:#fff;font-size:12.5px}
+/* ===== 입장 화면 (매트) ===== */
+#intro{--i1:#DCC2AB;--i2:#B0BEAB;--i3:#C9D3C4;--i4:rgba(70,80,64,.18);--ink:#33402f;--sealBg:#B0BEAB;--sealFg:#fffaf2;--sealSh:#8f9e8a;--cardSh:rgba(90,100,80,.22);background:var(--i1)!important;color:var(--ink,#2a2a2a)}
+#intro>*:not(.ideco){position:relative;z-index:1}
+.ideco{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+.ideco .bl{position:absolute;border-radius:50%;background:var(--i2)}.ideco .b1{width:120vmax;height:120vmax;left:-62vmax;top:-78vmax}.ideco .b2{width:70vmax;height:70vmax;right:-34vmax;bottom:-30vmax;background:var(--i3,var(--i2));opacity:.85}.ideco .b3{width:22vmax;height:22vmax;right:8vw;top:12vh;background:var(--i3,var(--i2));opacity:.55}
+.ideco .grain{position:absolute;inset:0;opacity:.18;mix-blend-mode:multiply;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .25 0 0 0 0 .2 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E")}
+.ideco .roof{position:absolute;left:0;right:0;bottom:0;width:100%;height:auto;color:var(--i4,rgba(0,0,0,.14))}
+.ideco i{position:absolute;font-style:normal;font-size:clamp(22px,6vw,34px);filter:saturate(.75);opacity:.9;animation:iFl 6s ease-in-out infinite}
+@keyframes iFl{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-12px) rotate(6deg)}}
+.ideco .dots{position:absolute;inset:0;background-image:radial-gradient(var(--i4,rgba(0,0,0,.12)) 1.4px,transparent 1.6px);background-size:26px 26px;opacity:.5;-webkit-mask:linear-gradient(180deg,#000 0,transparent 40%);mask:linear-gradient(180deg,#000 0,transparent 40%)}
+#intro .seal{background:var(--sealBg,#fff)!important;border:0!important;box-shadow:0 6px 0 var(--sealSh,rgba(0,0,0,.12))!important;color:var(--sealFg,#2a2a2a);font-size:34px}
+#intro h2,#intro .hj,#intro p{text-shadow:none!important;color:var(--ink)}
+#intro p{opacity:.85}
+#intro .card.paper{box-shadow:0 10px 0 var(--cardSh,rgba(0,0,0,.1)),0 18px 40px rgba(0,0,0,.08)!important;border:0}
+#loadTxt{color:var(--ink);opacity:.8}
+.ichips{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:-8px 0 16px}.ichips span{background:rgba(255,255,255,.55);color:var(--ink);border-radius:20px;padding:4px 11px;font-size:12px;font-weight:700}
+#intro:has(#stepNick:not([hidden])) .ichips{display:none}
+#shop .sheet,#shop button,#shop b,#shop small,#shop .sh span{font-family:'Orbit',sans-serif!important;letter-spacing:-.01em}.snk b{font-size:14.5px;font-weight:400}.shopCoin b{font-weight:400}
+#intro .card.paper{color:#3a2a1e}#intro .card.paper h3,#intro .card.paper label,#intro .card.paper .msg{color:#3a2a1e}
 </style>
 </head>
 <body>
@@ -440,6 +471,11 @@ body.seated #hint,body.seated #action{display:none!important}
   </div>
 </div></div>
 
+<div id="shop" class="modal"><div class="sheet paper"><div class="grip"></div>
+  <div class="sh"><span></span><span>🍭 달달 과자점</span><button class="x" data-close>×</button></div><div id="shopBody"></div></div></div>
+<div id="gallery" class="modal"><div class="sheet paper"><div class="grip"></div>
+  <div class="sh"><span></span><span>🖼️ 학당 갤러리</span><button class="x" data-close>×</button></div>
+  <div class="tabs" id="galTabs"><button data-gt="wall">걸린 그림</button><button data-gt="draw">그리기</button></div><div id="galBody"></div></div></div>
 <div id="quotes" class="modal"><div class="sheet paper"><div class="grip"></div>
   <div class="sh"><button class="back" data-back>‹ 설정</button><span>📜 오늘의 문장</span><button class="x" data-close>×</button></div>
   <div class="tabs" id="qTabs"><button data-qt="today">오늘</button><button data-qt="mine">내 문장들</button><button data-qt="all">모두의 문장</button></div>
@@ -549,16 +585,13 @@ body.seated #hint,body.seated #action{display:none!important}
 <div id="toast" class="paper"></div><div id="fade"></div>
 
 <div id="intro">
+  <div class="ideco" aria-hidden="true"><div class="bl b1"></div><div class="bl b2"></div><div class="bl b3"></div><div class="dots"></div><i style="left:8%;top:9%;animation-delay:0.0s">🌿</i><i style="left:82%;top:7%;animation-delay:0.7s">📚</i><i style="left:14%;top:30%;animation-delay:1.4s">🍵</i><i style="left:88%;top:34%;animation-delay:2.1s">🕯️</i><i style="left:6%;top:62%;animation-delay:2.8s">🌙</i><i style="left:90%;top:66%;animation-delay:3.5s">✨</i><i style="left:20%;top:86%;animation-delay:4.2s">🪷</i><i style="left:76%;top:88%;animation-delay:4.9s">🍃</i><svg class="roof" viewBox="0 0 400 90" preserveAspectRatio="none"><path fill="currentColor" d="M0 90V70h30l20-14h60l20 14h20V52l18-12h104l18 12v18h20l20-14h60l20 14h30v20Z"/></svg><div class="grain"></div></div>
   <div class="seal">學</div>
   <h2>몽원학당</h2>
   <div class="hj">M O N G W O N</div>
   <p>등불 아래 마법사를 길러내는 동양풍 학당.<br>함께 읽고, 함께 기록해요.</p>
-  <div class="card paper" id="stepPw">
-    <label>입장 암호</label>
-    <input id="pwIn" type="password" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="암호를 적어 주세요" enterkeyhint="go">
-    <div class="msg" id="pwMsg"></div>
-    <button class="primary" id="pwGo">대문 두드리기</button>
-  </div>
+  <div class="ichips"><span>📖 함께 읽기</span><span>🖋️ 오늘의 문장</span><span>🌿 쉼</span></div>
+  <div class="card paper" id="stepPw" hidden style="display:none"><input id="pwIn" type="hidden"><div class="msg" id="pwMsg"></div><button id="pwGo" hidden></button></div>
   <div class="card paper" id="stepNick" hidden>
     <h3>처음 오셨군요!</h3>
     <label>학당에서 불릴 닉네임 (12자까지)</label>
@@ -586,7 +619,7 @@ body.seated #hint,body.seated #action{display:none!important}
 <script>
 (async function(){
   try{await Promise.race([Promise.all([document.fonts.load('800 80px "Nanum Myeongjo"','雲書學堂閣基礎魔法靈藥溫和寮體力勅令符天地玄黃第一講藥草園天下大將軍地女'),document.fonts.load('30px "Gowun Batang"','가나다 마법')]),new Promise(r=>setTimeout(r,2500))]);}catch(e){}
-  try{for(const s of ['core.js','avatars.js','wardrobe.js','emotes.js','pets.js','spaces.js','sound.js','prologue.js','app.js','social.js','garden.js','quotes.js']){await new Promise((res,rej)=>{const el=document.createElement('script');el.src=s;el.onload=res;el.onerror=()=>rej(new Error(s+' 불러오기 실패'));document.body.appendChild(el);});}}
+  try{for(const s of ['core.js','avatars.js','wardrobe.js','emotes.js','pets.js','spaces.js','sound.js','prologue.js','app.js','social.js','garden.js','quotes.js','campus.js']){await new Promise((res,rej)=>{const el=document.createElement('script');el.src=s;el.onload=res;el.onerror=()=>rej(new Error(s+' 불러오기 실패'));document.body.appendChild(el);});}}
   catch(e){document.getElementById('loadTxt').textContent='학당을 열지 못했어요: '+e.message;}
 })();
 window.addEventListener('error',e=>{const l=document.getElementById('loadTxt');if(l)l.textContent='오류: '+e.message;});
