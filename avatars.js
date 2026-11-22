@@ -193,12 +193,12 @@ function makeAvatar(id,look){if(id==='shiba')id='sapsal';const cfg=AVMAP[id]||AV
   return A;}
 function animateAvatar(A,ph,amt,t,sit){const B=A.bob;
   if(sit){B.position.y=Math.sin(t*1.6)*.01;B.rotation.z=0;A.legs.forEach(l=>l.g.rotation.x=A.cfg.type==='bird'?0:PI/2.1);const rd=A.reading&&A.book&&A.book.visible;
-    A.arms.forEach(a=>{if(a.wing){a.g.rotation.z=rd?a.s*.5:0;a.g.rotation.x=rd?-.6:0;return;}a.g.rotation.x=rd?1.32+Math.sin(t*.8+a.s)*.03:1.0;a.g.rotation.z=a.s*(rd?.08:.3);});if(A.head){A.head.rotation.x=rd?.34+Math.sin(t*.5)*.03:.12;A.head.rotation.y=rd?Math.sin(t*.35)*.12:0;}
+    A.arms.forEach(a=>{if(a.wing){a.g.rotation.order='YXZ';a.g.rotation.y=rd?a.s*1.2+Math.sin(t*.8+a.s)*.04:0;a.g.rotation.z=rd?-a.s*.35:0;a.g.rotation.x=rd?.25:0;return;}a.g.rotation.x=rd?1.32+Math.sin(t*.8+a.s)*.03:1.0;a.g.rotation.z=a.s*(rd?.08:.3);});if(A.head){A.head.rotation.x=rd?.34+Math.sin(t*.5)*.03:.12;A.head.rotation.y=rd?Math.sin(t*.35)*.12:0;}
     if(A.book){if(rd){A.book.position.y=A.bookY+.14;A.book.position.z=A.bookZ-.02;A.book.rotation.x=-1.0+Math.sin(t*.7)*.03;const k=(t%5)/5;if(A.page){A.pageM.visible=k<.22;A.page.rotation.z=k<.22?k/.22*PI:0;}}else{A.book.position.y=A.bookY;A.book.position.z=A.bookZ;A.book.rotation.x=-.5;if(A.pageM)A.pageM.visible=false;}}return;}
   if(A.head)A.head.rotation.y=0;
   const hopY=A.hop?Math.abs(Math.sin(ph))*.2*amt:Math.abs(Math.sin(ph))*.05*amt;B.position.y=hopY+Math.sin(t*2)*.012;B.rotation.z=Math.sin(ph)*A.waddle*amt;
   A.legs.forEach(l=>l.g.rotation.x=Math.sin(ph+l.ph)*.6*amt);
-  A.arms.forEach(a=>{if(a.wing){a.g.rotation.z=a.s*(Math.abs(Math.sin(ph*1.6))*.8*amt+Math.sin(t*2.5)*.06);return;}a.g.rotation.x=Math.sin(ph+a.ph)*.6*amt;a.g.rotation.z=a.s*(A.cfg.type==='human'?.18:.35);});
+  A.arms.forEach(a=>{if(a.wing){a.g.rotation.y=0;a.g.rotation.x=0;a.g.rotation.z=a.s*(Math.abs(Math.sin(ph*1.6))*.8*amt+Math.sin(t*2.5)*.06);return;}a.g.rotation.x=Math.sin(ph+a.ph)*.6*amt;a.g.rotation.z=a.s*(A.cfg.type==='human'?.18:.35);});
   A.tails.forEach((tg,i)=>{tg.rotation.z=Math.sin(t*3+i)*.25;});
   if(A.skirt)A.skirt.rotation.z=Math.sin(ph)*.04*amt;
   if(A.head){A.head.rotation.x=Math.sin(t*1.3)*.03;A.head.rotation.z=Math.sin(t*.9)*.05*(1-amt);}}
