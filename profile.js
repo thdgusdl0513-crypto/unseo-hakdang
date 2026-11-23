@@ -1,7 +1,7 @@
 /* 내 캐릭터 지키기 · 닉네임+비밀번호(학생) / 선생님 코드(선생님)로 어느 기기에서든 같은 캐릭터 */
 (function(){
 const $q=s=>document.querySelector(s);
-const KEYS=['fishBook','coinSpent','snacks','giftsSeen','clockCol','stampPick','csMe'];
+const KEYS=['mb','lettersRead','lettersSent','fishBook','coinSpent','snacks','giftsSeen','clockCol','stampPick','csMe'];
 async function sha(t){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');}
 const keyOf=(nick,pw)=>sha('hakdang|'+(window.CLOUD_BASE||'')+'|'+String(nick).trim().toLowerCase()+'|'+String(pw));
 const tkeyOf=code=>sha('hakdang-teacher|'+(window.CLOUD_BASE||'')+'|'+String(code));

@@ -70,6 +70,30 @@
         ".validate": "$k.matches(/^[0-9a-f]{64}$/) && (!newData.exists() || newData.child('nick').isString())"
       }
     },
+    "letters": {
+      "$mb": {
+        ".read": "auth != null && root.child('members').child(auth.uid).child('mb').val() === $mb",
+        ".indexOn": [
+          "ts"
+        ],
+        "$id": {
+          ".write": "auth != null && ((!data.exists() && newData.child('by').val() === auth.uid) || (!newData.exists() && root.child('members').child(auth.uid).child('mb').val() === $mb))",
+          ".validate": "!newData.exists() || (newData.child('t').isString() && newData.child('t').val().length <= 500 && newData.child('from').isString() && newData.child('from').val().length <= 12)"
+        }
+      }
+    },
+    "plans": {
+      "$mb": {
+        ".read": "auth != null && (root.child('members').child(auth.uid).child('mb').val() === $mb || root.child('members').child(auth.uid).child('admin').val() === 'happy_life')",
+        ".indexOn": [
+          "ts"
+        ],
+        "$day": {
+          ".write": "auth != null && root.child('members').child(auth.uid).child('mb').val() === $mb",
+          ".validate": "$day.matches(/^\\d{4}-\\d{2}-\\d{2}$/)"
+        }
+      }
+    },
     "warns": {
       ".read": "auth != null",
       ".indexOn": [
@@ -155,6 +179,30 @@
           ".read": "auth != null",
           ".write": "auth != null",
           ".validate": "$k.matches(/^[0-9a-f]{64}$/) && (!newData.exists() || newData.child('nick').isString())"
+        }
+      },
+      "letters": {
+        "$mb": {
+          ".read": "auth != null && root.child('cheongdo').child('members').child(auth.uid).child('mb').val() === $mb",
+          ".indexOn": [
+            "ts"
+          ],
+          "$id": {
+            ".write": "auth != null && ((!data.exists() && newData.child('by').val() === auth.uid) || (!newData.exists() && root.child('cheongdo').child('members').child(auth.uid).child('mb').val() === $mb))",
+            ".validate": "!newData.exists() || (newData.child('t').isString() && newData.child('t').val().length <= 500 && newData.child('from').isString() && newData.child('from').val().length <= 12)"
+          }
+        }
+      },
+      "plans": {
+        "$mb": {
+          ".read": "auth != null && (root.child('cheongdo').child('members').child(auth.uid).child('mb').val() === $mb || root.child('cheongdo').child('members').child(auth.uid).child('admin').val() === 'happy_life')",
+          ".indexOn": [
+            "ts"
+          ],
+          "$day": {
+            ".write": "auth != null && root.child('cheongdo').child('members').child(auth.uid).child('mb').val() === $mb",
+            ".validate": "$day.matches(/^\\d{4}-\\d{2}-\\d{2}$/)"
+          }
         }
       },
       "warns": {
@@ -243,6 +291,30 @@
           ".read": "auth != null",
           ".write": "auth != null",
           ".validate": "$k.matches(/^[0-9a-f]{64}$/) && (!newData.exists() || newData.child('nick').isString())"
+        }
+      },
+      "letters": {
+        "$mb": {
+          ".read": "auth != null && root.child('songhyeon').child('members').child(auth.uid).child('mb').val() === $mb",
+          ".indexOn": [
+            "ts"
+          ],
+          "$id": {
+            ".write": "auth != null && ((!data.exists() && newData.child('by').val() === auth.uid) || (!newData.exists() && root.child('songhyeon').child('members').child(auth.uid).child('mb').val() === $mb))",
+            ".validate": "!newData.exists() || (newData.child('t').isString() && newData.child('t').val().length <= 500 && newData.child('from').isString() && newData.child('from').val().length <= 12)"
+          }
+        }
+      },
+      "plans": {
+        "$mb": {
+          ".read": "auth != null && (root.child('songhyeon').child('members').child(auth.uid).child('mb').val() === $mb || root.child('songhyeon').child('members').child(auth.uid).child('admin').val() === 'happy_life')",
+          ".indexOn": [
+            "ts"
+          ],
+          "$day": {
+            ".write": "auth != null && root.child('songhyeon').child('members').child(auth.uid).child('mb').val() === $mb",
+            ".validate": "$day.matches(/^\\d{4}-\\d{2}-\\d{2}$/)"
+          }
         }
       },
       "warns": {

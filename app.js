@@ -135,7 +135,7 @@ function nearestSeat(maxD){let best=-1,bd=maxD;const p=me.root.position;SP.seats
 function sitDrop(A){const F=A&&A.fit;return F?Math.min(.32,(F.legTop||.22)*.82):.25;}
 function petAnchor(root){const ry=root.rotation.y;return {position:{x:root.position.x-Math.sin(ry)*1.25,z:root.position.z-Math.cos(ry)*1.25},rotation:{y:ry}};}
 function placeOnSeat(){const s=SP.seats[ST.sitting];me.root.position.set(s.x,Math.max(0,s.h-sitDrop(me)),s.z);me.root.rotation.y=s.ry;}
-function sitDown(i){if(i<0)return;ST.sitting=i;path=[];placeOnSeat();try{camYaw=SP.seats[i].ry+PI+.45;}catch(e){}const RD=!!((ROOMS[ST.space]&&ROOMS[ST.space].study)||(SP.seats[i]&&SP.seats[i].read));me.book&&(me.book.visible=RD);pushPresence(true);if(RD)showTimer(true);else if(SP.seats[i]&&SP.seats[i].spa)toast('♨️ 따끈따끈~ 온천에 몸을 담갔어요');setGuide(true);}
+function sitDown(i){if(i<0)return;ST.sitting=i;path=[];placeOnSeat();try{camYaw=SP.seats[i].ry+PI+.45;}catch(e){}camDist=8;pitch=.3;const RD=!!((ROOMS[ST.space]&&ROOMS[ST.space].study)||(SP.seats[i]&&SP.seats[i].read));me.book&&(me.book.visible=RD);pushPresence(true);if(RD)showTimer(true);else if(SP.seats[i]&&SP.seats[i].spa)toast('♨️ 따끈따끈~ 온천에 몸을 담갔어요');setGuide(true);}
 function standUp(force){if(ST.sitting<0)return;if(!force&&TM.run){toast('타이머가 돌아가는 중이에요<small>일시정지하거나 기록한 뒤 일어나 주세요</small>');return;}const s=SP&&SP.seats[ST.sitting];ST.sitting=-1;if(s){me.root.position.set(s.x-Math.sin(s.ry)*-.0,0,s.z);}me.root.position.y=0;if(me.book)me.book.visible=false;if(force){TM.run=false;TM.acc=0;TM.done=false;}showTimer(false);pushPresence(true);setGuide(true);}
 const TM={mode:0,run:false,start:0,acc:0,done:false};let TMMINI=false;
 /* 오늘 집중 시간 (캐릭터 이름표) */
@@ -161,7 +161,7 @@ const _sfV=new THREE.Vector3();function placeSitFloat(){if(!document.body.classL
 $('#tmBook').addEventListener('change',()=>{LS.set('lastBook',$('#tmBook').value.trim());pushPresence(true);});
 
 /* ---------- camera ---------- */
-let camDist=8,pitch=.42,camYaw=0,yawCur=0,poseUntil=0;const clampD=d=>Math.max(3,Math.min(16,d));const camT=new THREE.Vector3(),want=new THREE.Vector3(),lookW=new THREE.Vector3();
+let camDist=8,pitch=.42,camYaw=0,yawCur=0,poseUntil=0;const clampD=d=>Math.max(2.5,Math.min(ST.space==='campus'?24:16,d));const camT=new THREE.Vector3(),want=new THREE.Vector3(),lookW=new THREE.Vector3();
 function hold(id,fn){const b=$(id);let iv=null;const st=e=>{e.preventDefault();fn();iv=setInterval(fn,60);};const sp=()=>{clearInterval(iv);iv=null;};b.addEventListener('pointerdown',st);b.addEventListener('pointerup',sp);b.addEventListener('pointerleave',sp);b.addEventListener('pointercancel',sp);}
 hold('#zin',()=>camDist=clampD(camDist-.35));hold('#zout',()=>camDist=clampD(camDist+.35));hold('#pup',()=>pitch=Math.min(1.25,pitch+.04));hold('#pdn',()=>pitch=Math.max(.08,pitch-.04));
 $('#recenter').addEventListener('click',()=>{camDist=8;pitch=.42;camYaw=0;});
@@ -169,10 +169,10 @@ hold('#rotL',()=>{camYaw+=.08;poseUntil=0;});hold('#rotR',()=>{camYaw-=.08;poseU
 function showFace(ms){path=[];poseUntil=performance.now()+(ms||4200);}
 function updateCam(dt,snap){const p=me.root.position;const pose=performance.now()<poseUntil;let yaw=camYaw,d=ST.space==='campus'?camDist:Math.min(camDist,10),pt=pitch,ly=1.1,ahead=1.4;
   const seatedV=ST.sitting>=0&&document.body.classList.contains('seated');
-  if(!pose&&ST.sitting>=0){d=seatedV?6.2:Math.min(d,5.5);pt=seatedV?.3:Math.min(pt,.32);ly=seatedV?p.y+.05:p.y+me.h*.5;ahead=0;}
+  if(!pose&&ST.sitting>=0){if(seatedV){const top=p.y+me.h+(TM.run||elapsed()>0?1.9:.6),bot=p.y-.15,half=(top-bot)/2*1.3;const fit=half/Math.tan(camera.fov*Math.PI/360)/Math.max(.6,Math.min(1,camera.aspect*1.6));d=Math.max(2.2,fit*(camDist/8));pt=Math.max(.02,Math.min(1.1,pitch));ly=(top+bot)/2;}else{d=Math.min(d,5.5);pt=Math.min(pt,.32);ly=p.y+me.h*.5;}ahead=0;}
   if(pose){if(ST.sitting>=0){yaw=SP.seats[ST.sitting].ry+PI+.45;}d=ST.sitting>=0?(seatedV?6.2:4.8):3.3;pt=ST.sitting>=0?.3:.14;ly=ST.sitting>=0?(seatedV?p.y+.05:p.y+me.h*.45):p.y+me.h*.6;ahead=0;}
   let dy=yaw-yawCur;dy=Math.atan2(Math.sin(dy),Math.cos(dy));yawCur+=snap?dy:dy*Math.min(1,dt*(pose?3.5:8));
-  want.set(p.x+Math.sin(yawCur)*Math.cos(pt)*d,p.y+.8+Math.sin(pt)*d,p.z+Math.cos(yawCur)*Math.cos(pt)*d);
+  want.set(p.x+Math.sin(yawCur)*Math.cos(pt)*d,(seatedV&&!pose?ly:p.y+.8)+Math.sin(pt)*d,p.z+Math.cos(yawCur)*Math.cos(pt)*d);
   if(ST.space!=='campus'){want.y=Math.min(want.y,4.1);want.x=Math.max(-7.4,Math.min(7.4,want.x));want.z=Math.max(-6.5,want.z);}
   lookW.set(p.x-Math.sin(yawCur)*ahead,ly,p.z-Math.cos(yawCur)*ahead);
   if(snap){camera.position.copy(want);camT.copy(lookW);}else{const k=pose?1-Math.pow(.02,dt):1-Math.pow(.002,dt);camera.position.lerp(want,k);camT.lerp(lookW,1-Math.pow(.0008,dt));}camera.lookAt(camT);try{fadeOcc(p);}catch(e){}}
@@ -559,3 +559,9 @@ const shotName=()=>{const d=new Date();return `몽원학당_${d.getFullYear()}${
 $('#shotBtn').addEventListener('click',takeShot);$('#camShot').addEventListener('click',takeShot);
 $('#shotShare').addEventListener('click',async()=>{if(!shotBlob)return;const f=new File([shotBlob],shotName(),{type:'image/jpeg'});try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'몽원학당'});return;}}catch(e){if(e&&e.name==='AbortError')return;}$('#shotDl').click();});
 $('#shotDl').addEventListener('click',()=>{if(!shotUrl)return;const a=document.createElement('a');a.href=shotUrl;a.download=shotName();document.body.appendChild(a);a.click();a.remove();});
+
+/* 🔍 화면 확대·축소 버튼 (앉아서 집중할 때도, 친구들과 사진 찍을 때도) */
+(function(){const z=document.createElement('div');z.id='zoomCtl';z.innerHTML='<button id="zcIn" class="paper" aria-label="확대">＋</button><button id="zcOut" class="paper" aria-label="축소">－</button><button id="zcUp" class="paper" aria-label="위에서 보기">⤒</button><button id="zcDn" class="paper" aria-label="옆에서 보기">⤓</button>';
+  const hud=document.getElementById('shotBtn');(hud&&hud.parentNode||document.body).appendChild(z);
+  const st=document.createElement('style');st.textContent='#zoomCtl{position:absolute;right:72px;bottom:calc(14px + env(safe-area-inset-bottom) + var(--mmLift,0px));display:grid;grid-template-columns:40px 40px;gap:6px;pointer-events:auto;z-index:2;transition:bottom .3s}#zoomCtl button{width:40px;height:40px;border-radius:50%;font-size:20px;font-weight:800;display:grid;place-items:center;border:0;cursor:pointer;color:var(--ink);padding:0}@media (max-width:420px){#zoomCtl{right:62px;grid-template-columns:36px 36px;gap:5px}#zoomCtl button{width:36px;height:36px;font-size:18px}}body.kbOpen #zoomCtl{display:none}';document.head.appendChild(st);
+  hold('#zcIn',()=>camDist=clampD(camDist-.3));hold('#zcOut',()=>camDist=clampD(camDist+.3));hold('#zcUp',()=>pitch=Math.min(1.25,pitch+.035));hold('#zcDn',()=>pitch=Math.max(.02,pitch-.035));})();

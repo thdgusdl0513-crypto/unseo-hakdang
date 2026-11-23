@@ -20,10 +20,10 @@
 
   /* ---------- db (Firestore 비슷한 모양으로 감싸기) ---------- */
   const ROOTS={members:'members',stamps:'stamps',likes:'likes',profiles:'profiles'};
-  const pathOf=col=>ROOTS[col]||('data/'+col);
+  const pathOf=col=>ROOTS[col]||(col.split('/')[0]==='letters'?col:('data/'+col));
   const mkDoc=(id,v)=>({id,exists:v!=null,data:()=>v==null?undefined:v,metadata:{fromCache:false,hasPendingWrites:false}});
   const errOf=e=>({code:/permission/i.test(String(e&&e.message||e))?'invalid_argument':'unavailable',message:String(e&&e.message||e)});
-  function docRef(path){const parts=path.split('/');const top=parts[0];const ref=R(top==='members'||top==='profiles'||top==='stamps'||top==='likes'?path:'data/'+path);
+  function docRef(path){const parts=path.split('/');const top=parts[0];const ref=R(top==='members'||top==='letters'||top==='profiles'||top==='stamps'||top==='likes'?path:'data/'+path);
     return {id:parts[parts.length-1],path,
       set:o=>(top==='members'?ref.update(o):ref.set(o)).catch(e=>{throw errOf(e);}),
       update:o=>ref.update(o).catch(e=>{throw errOf(e);}),
