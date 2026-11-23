@@ -1,16 +1,8 @@
 /* 몽원학당 · app: state, data, room, UI, loop */
 const STUDY=['basics','potion','herbs','training','library'];
 /* 보여 주는 캐릭터 목록만 제한하고, 기존 AVMAP/ID와 저장 포맷은 유지합니다. */
-const AVATAR_GROUPS=[
-  {key:'student',name:'학생',main:'girl',ids:['girl','boy']},
-  {key:'cat',name:'고양이',main:'cat-black',ids:['cat-black','cat-white','cat-cheese','cat-tuxedo']},
-  {key:'sapsal',name:'삽살개',main:'sapsal',ids:['sapsal']},
-  {key:'jindo',name:'진돗개',main:'jindo',ids:['jindo']},
-  {key:'bird',name:'오목눈이',main:'bird',ids:['bird']},
-  {key:'western-dragon',name:'서양용',main:'western-dragon',ids:['western-dragon']},
-  {key:'eastern-dragon',name:'동양용',main:'eastern-dragon',ids:['eastern-dragon']},
-  {key:'dino',name:'공룡',main:'dino',ids:['dino','dino-triceratops','dino-stegosaurus','dino-tyrannosaurus','dino-ankylosaurus']}
-];
+/* 캐릭터는 예전(원래) 목록 그대로: 하나씩 따로 고르기 */
+const AVATAR_GROUPS=(()=>{const out=[];let dino=null;AVATARS.forEach(a=>{if(a.type==='dino'){if(!dino){dino={key:'dino',name:'공룡',main:a.id,ids:[]};out.push(dino);}dino.ids.push(a.id);}else out.push({key:a.id,name:a.name,main:a.id,ids:[a.id]});});return out;})();
 const AVATAR_GROUP_BY_ID=Object.fromEntries(AVATAR_GROUPS.flatMap(g=>g.ids.map(id=>[id,g])));
 const SELECTABLE_PET_ORDER=['none','haetae','kkachi','jangseung','phoenix','cerberus','gumiho'];
 const SELECTABLE_PET_IDS=new Set(SELECTABLE_PET_ORDER);
