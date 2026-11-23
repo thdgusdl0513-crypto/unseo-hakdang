@@ -131,7 +131,7 @@ function applyLook(A,look){look=look||DEFAULT_LOOK;A.look=look;const F=A.fit;if(
   /* ----- accessories ----- */
   (look.a||[]).forEach(id=>buildAcc(A,id,colOf(look,id)));}
 
-function headAnchor(A){const g=new THREE.Group();const S=A.headS||[1,1,1];g.scale.set(S[0],S[1],S[2]);A.head.add(g);return {g,r:A.headR||.4};}
+function headAnchor(A){const g=new THREE.Group();const S=A.headS||[1,1,1];g.scale.set(S[0],S[1],S[2]);g.position.y=(A.headAnchorLift||A.accAnchorLift||0);A.head.add(g);return {g,r:A.headR||.4};}
 function buildHat(A,id,col){const C=d=>col!=null?col:d;const {g,r}=headAnchor(A);const blk=std(0x1e1a18,{emissive:0x060504});
   if(id==='beanie'){const m=cloth(C(0xe0a84a),'knit');const cap=new THREE.Mesh(new THREE.SphereGeometry(r*1.06,24,12,0,PI*2,0,PI*.46),m);cap.position.y=r*.34;g.add(cap);const rim=new THREE.Mesh(new THREE.TorusGeometry(r*.99,r*.085,8,28),m);rim.rotation.x=PI/2;rim.position.y=r*.4;g.add(rim);sph(g,r*.2,cloth(0xfbf6ec),0,r*1.4,0);}
   else if(id==='beret'){const m=cloth(C(0xb8283a));const b=sph(g,r*1.05,m,r*.15,r*.62,.02,1.12,.36,1.1);b.rotation.z=-.25;cyl(g,.02,.02,.06,6,m,r*.1,r*.92,0);}

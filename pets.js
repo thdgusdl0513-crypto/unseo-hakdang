@@ -1,6 +1,7 @@
 /* 몽원학당 · 반려 친구 (해태, 도깨비, 까치, 천하대장군, 지하여장군) — 주인을 졸졸 따라다녀요 */
 const PETS=[
  {id:'none',name:'데리고 다니지 않기'},
+ {id:'jangseung',name:'장승',type:'pet',k:'totem',desc:'한 쌍이 함께 있는 장승 · PNG 친구'},
  {id:'haetae',name:'해태',type:'pet',k:'dog',desc:'불을 막아 주는 수호 동물'},
  {id:'dokkaebi',name:'도깨비',type:'pet',k:'goblin',desc:'방망이 든 장난꾸러기'},
  {id:'kkachi',name:'까치',type:'pet',k:'bird',eyeRing:true,desc:'반가운 소식을 물어 오는 새'},

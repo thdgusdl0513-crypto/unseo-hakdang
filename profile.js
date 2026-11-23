@@ -10,8 +10,8 @@ let saveT=null;
 async function saveProfile(now){const k=LS.get('pkey','');if(!k||!DB||MYID==='me')return;clearTimeout(saveT);const go=async()=>{try{await DB.doc('profiles/'+k).set(snap());}catch(e){}};if(now)await go();else saveT=setTimeout(go,1500);}
 function applyProfile(p){if(!p)return;if(p.nick){ST.nick=String(p.nick).slice(0,12);LS.set('nick',ST.nick);}
   if(typeof p.look==='string'){ST.look=lookParse(p.look);LS.set('look',p.look);}
-  if(p.pet&&PETMAP[p.pet]){ST.pet=p.pet;LS.set('pet',p.pet);try{setPet(p.pet,true);}catch(e){}}
-  if(p.av&&AVMAP[p.av]){ST.avatar=p.av;LS.set('avatar',p.av);}
+  if(p.pet){const pet=cleanPetSelection(p.pet);ST.pet=pet;LS.set('pet',pet);try{setPet(pet,true);}catch(e){}}
+  if(p.av){const avatar=cleanAvatarSelection(p.av);ST.avatar=avatar;LS.set('avatar',avatar);}
   if(p.fx){ST.fx=p.fx;LS.set('fx',p.fx);}
   if(p.ex&&typeof p.ex==='object')KEYS.forEach(k=>{if(p.ex[k]!=null)LS.set(k,p.ex[k]);});
   try{setAvatar(ST.avatar||'girl');}catch(e){}try{saveMember();}catch(e){}try{pushPresence(true);updateMe();}catch(e){}}

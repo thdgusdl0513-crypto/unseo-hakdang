@@ -411,7 +411,7 @@ body.seated #hint,body.seated #action{display:none!important}
 
 
 .me-card .av{display:grid;place-items:center;width:54px;height:54px;flex:none;border-radius:18px;background:rgba(255,253,245,.72);overflow:hidden}.me-card .av img{width:52px;height:52px;object-fit:contain}
-#introAvColorBox:empty,#avColorBox:empty{display:none}#introAvColorBox{padding:7px 10px;margin:8px 0;background:rgba(255,252,245,.74);border-radius:12px;max-height:190px;overflow-y:auto}#avColorBox{padding:7px 8px;margin:8px 0 14px;border:1px solid rgba(140,96,60,.16);border-radius:14px}
+#introAvColorBox:empty,#avColorBox:empty{display:none}#introAvColorBox{padding:7px 10px;margin:8px 0;background:rgba(255,252,245,.74);border-radius:12px;max-height:290px;overflow-y:auto}#avColorBox{padding:7px 8px;margin:8px 0 14px;border:1px solid rgba(140,96,60,.16);border-radius:14px}
 
 /* 공룡 종류 선택: 캐릭터 생성 / 닉네임·캐릭터 설정 모두 사용 */
 .dinoOptions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:9px 0 14px}
@@ -421,7 +421,10 @@ body.seated #hint,body.seated #action{display:none!important}
 .dinoOptions button small{font-size:11px;line-height:1.25;word-break:keep-all}
 /* 원본 놀이마당·화분은 설정에서 항상 접근 가능 */
 #menuGrid [data-open="games"],#menuGrid [data-open="garden"]{display:flex!important;visibility:visible!important}
+.note .bEdit{right:30px;font-size:14px;top:5px}.note p{padding-right:34px}.note.editing{transform:none!important}.bEdT{width:100%;box-sizing:border-box;min-height:90px;border:1px dashed rgba(106,74,42,.5);border-radius:6px;background:rgba(255,255,255,.55);font:inherit;font-size:14px;line-height:1.55;padding:6px;resize:vertical;color:inherit;user-select:text;-webkit-user-select:text}.bEdB{display:flex;gap:6px;justify-content:flex-end;margin-top:6px}.note .bEdB button{position:static;font-size:13px;border-radius:10px;padding:5px 12px;background:rgba(255,255,255,.7);color:#5a3a20}.note .bEdB .bEdS{background:#d98a4a;color:#fff}
 </style>
+  <link rel="stylesheet" href="assets/companions/companion-animations.css?v=20261123-fix4">
+  <link rel="stylesheet" href="focus-companions.css?v=20261123-fix4">
 </head>
 <body>
 <span class="fw" style="font-family:'Nanum Myeongjo';font-weight:800">雲書學堂閣基礎魔法靈藥溫和寮體力勅令符天地玄黃第一講藥草園天下大將軍地女</span><span class="fw" style="font-family:'Gowun Batang'">가나다 마법</span><span class="fw" style="font-family:'Gowun Dodum'">가나다</span>
@@ -435,7 +438,7 @@ body.seated #hint,body.seated #action{display:none!important}
   <div id="bigTitle"><small id="zEn"></small><h1 id="zTitle"></h1></div>
   <div id="chatWrap"><div id="chatLog"></div></div>
   <div id="mini" class="paper" aria-label="작은 지도"><canvas id="miniC" width="208" height="208"></canvas><b id="miniN"></b></div>
-  <div id="sitFloat"><button id="sfTime" class="paper"></button><button id="sfUp" class="paper">일어나기</button></div>
+  <div id="sitFloat"><div id="focusCompanionMini" class="fc-mini" hidden aria-hidden="true"><img id="focusCompanionMiniImage" class="companion-image" src="assets/companions/characters/haetae.png" alt="" data-character="haetae" data-state="idle" decoding="async"></div><button id="sfTime" class="paper"></button><button id="sfUp" class="paper">일어나기</button></div>
   <button id="shotBtn" class="paper" aria-label="사진 찍기">📸</button>
   <button id="lightBtn" class="paper" aria-label="조명" hidden>💡</button>
   <div id="bottom">
@@ -444,6 +447,14 @@ body.seated #hint,body.seated #action{display:none!important}
     <div id="timer" class="paper">
       <div class="tmTop"><span id="tmSub"></span><em id="tmTag"></em></div>
       <div id="tmTime">0:00</div><div id="tmHint"></div>
+      <section id="focusCompanion" class="fc-panel" aria-label="집중 반려 친구" data-state="idle">
+        <div class="fc-inline">
+          <div class="fc-portrait" id="focusCompanionPortrait" aria-hidden="true"><img id="focusCompanionImage" class="companion-image" src="assets/companions/characters/haetae.png" alt="" data-character="haetae" data-state="idle" loading="eager" decoding="async"></div>
+          <div class="fc-description"><b id="focusCompanionName">반려 친구</b><small id="focusCompanionStatus" aria-live="polite">함께 공부할 친구를 골라요</small></div>
+          <button type="button" class="fc-edit" id="focusCompanionChange" aria-controls="focusCompanionChoices" aria-expanded="false">친구 선택</button>
+        </div>
+        <div id="focusCompanionChoices" class="fc-choices" hidden aria-label="반려 친구 고르기"></div>
+      </section>
       <input id="tmBook" maxlength="60" placeholder="읽는 책 · 공부할 내용 (선택)">
       <div id="tmCols"></div>
       <div class="tmRow"><div id="tmModes"><button data-m="0">자유</button><button data-m="25">25분</button><button data-m="50">50분</button></div><button id="tmGo">시작</button></div>
@@ -484,9 +495,9 @@ body.seated #hint,body.seated #action{display:none!important}
   <div class="sh"><button class="back" data-back>‹ 설정</button><button class="x" data-close>×</button></div>
   <div class="sec">닉네임</div>
   <input id="nickEdit" maxlength="12" placeholder="학당에서 불릴 이름"><button class="primary" id="nickSave">닉네임 저장</button>
-  <div class="sec">캐릭터 · 모두 한복과 갓을 써요</div>
+  <div class="sec">메인 캐릭터 · 8종류에서 골라요</div>
   <div class="avGrid" id="avGrid"></div>
-  <div class="sec">반려 친구 · 졸졸 따라다녀요</div>
+  <div class="sec">반려 친구 · 6종류 중 선택해요</div>
   <div class="avGrid" id="petGrid"></div>
 </div></div>
 
@@ -628,7 +639,7 @@ body.seated #hint,body.seated #action{display:none!important}
     <h3>처음 오셨군요!</h3>
     <label>학당에서 불릴 닉네임 (12자까지)</label>
     <input id="nickIn" maxlength="12" placeholder="예: 책벌레 송현">
-    <label>캐릭터 · 한복과 갓 차림</label>
+    <label>메인 캐릭터 · 8종류 중 선택</label>
     <div class="avGrid" id="introAv"></div>
     <div class="msg" id="nickMsg"></div>
     <button class="primary" id="nickGo" style="margin-top:8px">입학하기</button>
@@ -723,7 +734,7 @@ body.seated #hint,body.seated #action{display:none!important}
 <script>
 (async function(){
   try{await Promise.race([Promise.all([document.fonts.load('800 80px "Nanum Myeongjo"','雲書學堂閣基礎魔法靈藥溫和寮體力勅令符天地玄黃第一講藥草園天下大將軍地女'),document.fonts.load('30px "Gowun Batang"','가나다 마법')]),new Promise(r=>setTimeout(r,2500))]);}catch(e){}
-  try{for(const s of ['core.js','avatars.js','wardrobe.js','emotes.js','pets.js','spaces.js','sound.js','prologue.js','app.js','profile.js','letters.js','social.js','garden.js','quotes.js','campus.js']){await new Promise((res,rej)=>{const el=document.createElement('script');el.src=s+'?v=1123sdrefactor1';el.onload=res;el.onerror=()=>rej(new Error(s+' 불러오기 실패'));document.body.appendChild(el);});}}
+  try{for(const s of ['core.js','avatars.js','wardrobe.js','emotes.js','pets.js','spaces.js','sound.js','prologue.js','app.js','focus-companions.js','profile.js','letters.js','social.js','garden.js','quotes.js','campus.js']){await new Promise((res,rej)=>{const el=document.createElement('script');el.src=s+'?v=20261123-faces';el.onload=res;el.onerror=()=>rej(new Error(s+' 불러오기 실패'));document.body.appendChild(el);});}}
   catch(e){document.getElementById('loadTxt').textContent='학당을 열지 못했어요: '+e.message;}
 })();
 window.addEventListener('error',e=>{const l=document.getElementById('loadTxt');if(l)l.textContent='오류: '+e.message;});
