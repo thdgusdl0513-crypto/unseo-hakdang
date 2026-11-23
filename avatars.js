@@ -1,4 +1,4 @@
-/* 몽원학당 · characters: chibi hanbok + gat, bipedal animals, drawn faces with expressions */
+/* 송현학당 · characters: chibi hanbok + gat, bipedal animals, drawn faces with expressions */
 const EYE=std(0x1a1414),SCARF=std(0xc4584a,{emissive:0x3a1008}),IVORY=std(0xfbf6ec,{emissive:0x4a463c}),PINKPAD=std(0xf2a6ae,{emissive:0x401818});
 const GATM=new THREE.MeshToonMaterial({color:0x1a1512,gradientMap:GRAD,transparent:true,opacity:.84,depthWrite:false}),BEAD=std(0xe0a64a,{emissive:0x3a2008});
 const fur=c=>std(c,{emissive:new THREE.Color(c).multiplyScalar(.16)});
@@ -16,43 +16,71 @@ const AVATARS=[
  {id:'frog',name:'개구리',emo:'🐸',type:'frog'},
  {id:'turtle',name:'거북이',emo:'🐢',type:'turtle'},
  {id:'bird',name:'흰 오목눈이',emo:'🐦',type:'bird'},
- {id:'peacock',name:'공작',emo:'🦚',type:'bird',peacock:true,bc:0x2f6fc0,lc:0x2e8a6a,beak:'#4a4a52'},
- {id:'crane',name:'학',emo:'🕊️',type:'bird',crane:true,bc:0xfbfaf6,lc:0x26262c,beak:'#c8b46a'},
- {id:'duck',name:'오리',emo:'🦆',type:'bird',duck:true,bc:0xffe27a,lc:0xf28a2a,beak:'#f28a2a'},
- {id:'mandarin',name:'원앙',emo:'🦆',type:'bird',mandarin:true,bc:0xe89a4a,lc:0xe0702a,beak:'#d8402a'},
- {id:'cheongryong',name:'청룡 · 사방신',emo:'🐉',type:'beast',sp:'dragon',c:0x3f93ad,b:0xf4e8bc,ear:'none',horn:'antler',tail:'dragon',vest:0x2a4a7a,god:true},
+ {id:'crane',name:'학',emo:'🪽',type:'bird',crane:true,bc:0xf9f7f2,lc:0x22252c,beak:'#2e2a24',crest:0xcf2e2e},
+ {id:'duck',name:'오리',emo:'🦆',type:'bird',duck:true,bc:0xfcfbf5,lc:0xf28a2a,beak:'#ef8a2c'},
+ {id:'mandarin',name:'원앙',emo:'🪿',type:'bird',mandarin:true,bc:0xf4e2b2,lc:0x2a7a66,beak:'#de4f33'},
+ {id:'peacock',name:'공작',emo:'🦚',type:'bird',peacock:true,bc:0x1166c7,lc:0x12a18a,beak:'#80816a'},
+ {id:'jujak',name:'주작',emo:'🔥',type:'bird',phoenix:true,bc:0xec5b3f,lc:0xf2b040,beak:'#f39a2f',god:true},
+ {id:'eastern-dragon',name:'동양용',emo:'🐉',type:'beast',sp:'dragon',c:0xd76860,b:0xf3d0a3,ear:'none',horn:'antler',tail:'dragon',vest:0xd76860,dragonColor:true,dragonStyle:'east',noGat:true,god:true},
+ {id:'western-dragon',name:'서양용',emo:'🐲',type:'beast',sp:'dragon',c:0xd76860,b:0xf3d0a3,ear:'none',tail:'dragon',vest:0xd76860,dragonColor:true,dragonStyle:'west',noGat:true,god:true},
+ {id:'cheongryong',name:'청룡 · 사방신',emo:'🐉',type:'beast',sp:'dragon',c:0x3f93ad,b:0xf4e8bc,ear:'none',horn:'antler',tail:'dragon',vest:0x2a4a7a,god:true,noGat:true},
  {id:'baekho',name:'백호 · 사방신',emo:'🐯',type:'beast',sp:'cat',c:0xfbf8f2,b:0xffffff,ear:'round',eye:'#5aa0d8',tail:'long',mask:'tiger',tiger:true,vest:0x6a7a8a,god:true},
- {id:'jujak',name:'주작 · 사방신',emo:'🐦‍🔥',type:'bird',phoenix:true,beak:'#d89a2a',god:true},
  {id:'hyeonmu',name:'현무 · 사방신',emo:'🐢',type:'turtle',dark:true,god:true}];
 const AVMAP=Object.fromEntries(AVATARS.map(a=>[a.id,a]));
 const FACES=[['base','🙂','기본'],['smile','😊','웃음'],['joy','🤩','신남'],['wow','😮','놀람'],['sleepy','😪','졸림'],['shy','😳','부끄'],['focus','📖','집중']];
 
 /* ---------- drawn faces ---------- */
 const FACE_CACHE={};
-/* 손그림 거북이의 점눈·말랑한 볼·작은 고양이 미소를 공유하는 새로운 얼굴 질감 */
-function faceTex(cfg,expr){
- const key='village-2026|'+cfg.id+'|'+expr;if(FACE_CACHE[key])return FACE_CACHE[key];
- const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');g.lineCap='round';g.lineJoin='round';
- const x0=128,ey=124,ex=42;const blush=expr==='shy'?'#ef9f9d':'#efb5a9';
- for(const s of [-1,1]){
-  const cx=x0+s*78,cy=157;const rg=g.createRadialGradient(cx,cy,3,cx,cy,37);rg.addColorStop(0,expr==='shy'?'rgba(242,140,144,.67)':'rgba(246,172,157,.54)');rg.addColorStop(.58,'rgba(246,180,157,.33)');rg.addColorStop(1,'rgba(246,180,157,0)');g.fillStyle=rg;g.beginPath();g.arc(cx,cy,37,0,Math.PI*2);g.fill();
- }
- g.fillStyle='#292922';g.strokeStyle='#292922';g.lineWidth=7;
- for(const s of [-1,1]){
-  const x=x0+s*ex;
-  if(expr==='smile'||expr==='sleepy'||expr==='shy'){
-   g.beginPath();g.arc(x,ey+2,10,Math.PI*1.1,Math.PI*1.9);g.stroke();
-  }else if(expr==='blink'){g.beginPath();g.moveTo(x-9,ey+2);g.quadraticCurveTo(x,ey+7,x+9,ey+2);g.stroke();}
-  else{g.beginPath();g.ellipse(x,ey,10,12,0,0,Math.PI*2);g.fill();g.fillStyle='rgba(255,255,255,.8)';g.beginPath();g.arc(x+3,ey-4,2.1,0,Math.PI*2);g.fill();g.fillStyle='#292922';}
- }
- g.lineWidth=7.5;g.strokeStyle='#292922';g.beginPath();
- if(expr==='wow'){g.fillStyle='#292922';g.ellipse(x0,168,9,11,0,0,Math.PI*2);g.fill();}
- else if(expr==='joy'){g.fillStyle='#8f5751';g.ellipse(x0,166,17,13,0,0,Math.PI);g.fill();g.stroke();}
- else{g.moveTo(100,166);g.bezierCurveTo(113,178,120,169,128,165);g.bezierCurveTo(137,176,146,175,156,162);g.stroke();}
- if(cfg.stripe||cfg.tiger){g.lineWidth=5;g.strokeStyle=cfg.tiger?'rgba(76,83,84,.5)':'rgba(187,121,65,.45)';for(const dx of [-16,0,16]){g.beginPath();g.moveTo(128+dx,63);g.lineTo(128+dx*.7,81);g.stroke();}}
- if(expr==='sleepy'){g.font='bold 25px sans-serif';g.fillStyle='#90a5b1';g.fillText('z',192,73);}
- const t=new THREE.CanvasTexture(c);t.anisotropy=4;FACE_CACHE[key]=t;return t;
-}
+function faceTex(cfg,expr){const key=cfg.id+'|'+expr;if(FACE_CACHE[key])return FACE_CACHE[key];
+  const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');g.lineCap=g.lineJoin='round';
+  const K=cfg.type==='human'?'human':cfg.type==='beast'?cfg.sp:cfg.type==='pet'?cfg.k:cfg.type;
+  const ink=K==='human'?'#2a1c16':'#33241c';const big=K==='human';
+  const ex={human:40,cat:36,dog:36,frog:46,turtle:34,bird:24,dragon:38,totem:44,goblin:38}[K],ey={human:132,cat:122,dog:118,frog:104,turtle:124,bird:118,dragon:112,totem:108,goblin:124}[K];
+  const er=K==='totem'?[13,15]:K==='goblin'?[12,14]:big?[14,18]:K==='bird'?[7,8]:cfg.mask==='sapsal'?[8,10]:[10,12];
+  // markings
+  if(cfg.mask==='corgi'){g.fillStyle='#fff';g.beginPath();g.ellipse(128,182,72,52,0,0,PI*2);g.fill();g.beginPath();g.moveTo(118,60);g.quadraticCurveTo(128,40,138,60);g.lineTo(150,150);g.lineTo(106,150);g.closePath();g.fill();}
+  if(cfg.mask==='shiba'){g.fillStyle='#fbefe0';g.beginPath();g.ellipse(128,178,66,44,0,0,PI*2);g.fill();[-1,1].forEach(s=>{g.beginPath();g.ellipse(128+s*ex,ey-26,9,6,0,0,PI*2);g.fill();});}
+  if(cfg.mask==='jindo'){g.fillStyle='#ecd6b4';g.beginPath();g.ellipse(128,176,52,34,0,0,PI*2);g.fill();}
+  if(cfg.stripe){g.strokeStyle='#d07a2a';g.lineWidth=6;[-16,0,16].forEach(dx=>{g.beginPath();g.moveTo(128+dx,40);g.lineTo(128+dx*.8,72);g.stroke();});}
+  if(cfg.mask==='tuxedo'){g.fillStyle='#fff';g.beginPath();g.ellipse(128,186,70,50,0,0,PI*2);g.fill();g.beginPath();g.moveTo(122,70);g.quadraticCurveTo(128,58,134,70);g.lineTo(146,150);g.lineTo(110,150);g.closePath();g.fill();}
+  if(cfg.mask==='tiger'){g.fillStyle='#3a3036';[[-14,40,6,26],[0,34,7,30],[14,40,6,26]].forEach(s=>{g.beginPath();g.ellipse(128+s[0],s[1]+s[3]/2,s[2],s[3]/2,0,0,PI*2);g.fill();});[-1,1].forEach(s=>[0,16].forEach(dy=>{g.beginPath();g.ellipse(128+s*96,150+dy,20,4.5,s*.25,0,PI*2);g.fill();}));}
+  if(K==='totem'){g.fillStyle=cfg.blushC||'#f08a8a';[-1,1].forEach(s=>{g.beginPath();g.ellipse(128+s*84,150,18,11,0,0,PI*2);g.fill();});g.strokeStyle='#3a2416';g.lineWidth=7;[-1,1].forEach(s=>{g.beginPath();g.moveTo(128+s*20,ey-36);g.quadraticCurveTo(128+s*46,ey-50,128+s*72,ey-34);g.stroke();});}
+  if(K==='goblin'){g.strokeStyle='#3a2416';g.lineWidth=8;[-1,1].forEach(s=>{g.beginPath();g.moveTo(128+s*18,ey-30);g.lineTo(128+s*58,ey-38);g.stroke();});}
+  // blush
+  g.fillStyle=expr==='shy'?'#f08a96':'#f7b8bc';[-1,1].forEach(s=>{g.beginPath();g.ellipse(128+s*(ex+(big?26:22)),ey+(big?30:26),big?20:16,big?11:9,0,0,PI*2);g.fill();});
+  if(expr==='shy'){g.strokeStyle='#d8606e';g.lineWidth=2.5;[-1,1].forEach(s=>{for(let k=0;k<3;k++){const x=128+s*(ex+18)+k*8-8;g.beginPath();g.moveTo(x,ey+24);g.lineTo(x-5,ey+36);g.stroke();}});}
+  // eyes
+  g.fillStyle=ink;g.strokeStyle=ink;g.lineWidth=big?6:5;
+  const dotEye=(x,scale)=>{scale=scale||1;if(cfg.eye){g.fillStyle=cfg.eye;g.beginPath();g.ellipse(x,ey,er[0]*1.15*scale,er[1]*1.15*scale,0,0,PI*2);g.fill();g.fillStyle=ink;g.beginPath();g.ellipse(x,ey,er[0]*.45*scale,er[1]*.95*scale,0,0,PI*2);g.fill();}
+    else{if(cfg.eyeRing||K==='totem'){g.fillStyle='#fff';g.beginPath();g.ellipse(x,ey,er[0]*1.6*scale,er[1]*1.5*scale,0,0,PI*2);g.fill();}g.fillStyle=ink;g.beginPath();g.ellipse(x,ey,er[0]*scale,er[1]*scale,0,0,PI*2);g.fill();}
+    g.fillStyle='#fff';g.beginPath();g.arc(x+er[0]*.35*scale,ey-er[1]*.4*scale,Math.max(2.5,er[0]*.35*scale),0,PI*2);g.fill();if(big){g.beginPath();g.arc(x-er[0]*.35,ey+er[1]*.45,2.5,0,PI*2);g.fill();}g.fillStyle=ink;};
+  [-1,1].forEach(s=>{const x=128+s*ex;
+    if(expr==='base')dotEye(x);
+    else if(expr==='wow')dotEye(x,1.3);
+    else if(expr==='joy'){dotEye(x,1.15);g.fillStyle='#fff8d0';star(g,x+er[0]*.1,ey-er[1]*.15,big?7:4.5);g.fillStyle=ink;}
+    else if(expr==='smile'||expr==='blink'&&false){g.beginPath();g.arc(x,ey+4,er[0]*.95,PI*1.1,PI*1.9);g.stroke();}
+    else if(expr==='blink'){g.beginPath();g.arc(x,ey-er[1]*.6,er[0]*.95,PI*.15,PI*.85);g.stroke();}
+    else if(expr==='sleepy'){g.beginPath();g.moveTo(x-er[0],ey+2);g.quadraticCurveTo(x,ey+8,x+er[0],ey+2);g.stroke();}
+    else if(expr==='shy'){g.beginPath();g.moveTo(x-s*er[0]*.9,ey-er[1]*.6);g.lineTo(x+s*er[0]*.7,ey);g.lineTo(x-s*er[0]*.9,ey+er[1]*.6);g.stroke();}
+    else if(expr==='focus'){g.save();g.beginPath();g.rect(x-er[0]*1.5,ey,er[0]*3,er[1]*2);g.clip();dotEye(x);g.restore();g.beginPath();g.moveTo(x-er[0]*1.1,ey+1);g.lineTo(x+er[0]*1.1,ey+1);g.stroke();}});
+  if(expr==='sleepy'){g.font='bold 30px sans-serif';g.fillStyle='#5a6ea0';g.fillText('z',196,70);g.font='bold 20px sans-serif';g.fillText('z',214,48);}
+  // nose / mouth
+  const my={human:176,cat:160,dog:162,frog:150,turtle:166,bird:150,dragon:160,totem:178,goblin:178}[K];
+  g.strokeStyle=ink;g.fillStyle=ink;g.lineWidth=4.5;
+  const open=expr==='joy'||expr==='smile'&&K!=='human';
+  if(K==='dog'){g.beginPath();g.ellipse(128,my-14,12,8,0,0,PI*2);g.fill();}
+  if(K==='cat'){g.fillStyle='#e88a9a';g.beginPath();g.moveTo(121,my-14);g.lineTo(135,my-14);g.lineTo(128,my-6);g.closePath();g.fill();g.fillStyle=ink;g.strokeStyle='rgba(60,40,30,.55)';g.lineWidth=2.5;[-1,1].forEach(s=>[0,10].forEach(dy=>{g.beginPath();g.moveTo(128+s*34,my-8+dy);g.lineTo(128+s*70,my-14+dy*1.4);g.stroke();}));g.strokeStyle=ink;g.lineWidth=4.5;}
+  if(K==='dragon'){[-1,1].forEach(s=>{g.beginPath();g.ellipse(128+s*12,my-18,4,5,0,0,PI*2);g.fill();});}
+  if(K==='bird'){g.fillStyle=cfg.beak||'#3a2a20';g.beginPath();g.moveTo(118,my-16);g.lineTo(138,my-16);g.lineTo(128,my-2);g.closePath();g.fill();}
+  else if(expr==='wow'){g.beginPath();g.ellipse(128,my+2,8,10,0,0,PI*2);g.fill();}
+  else if(K==='frog'){g.lineWidth=6;g.beginPath();g.moveTo(60,my-6);g.quadraticCurveTo(128,my+(open?44:28),196,my-6);g.stroke();if(open){g.fillStyle='#e86a7a';g.beginPath();g.moveTo(80,my+2);g.quadraticCurveTo(128,my+38,176,my+2);g.closePath();g.fill();}}
+  else if(K==='cat'||K==='dog'){if(open){g.fillStyle='#e86a7a';g.beginPath();g.arc(128,my+2,12,0,PI);g.fill();}g.beginPath();g.arc(118,my,10,PI*.05,PI*.95);g.stroke();g.beginPath();g.arc(138,my,10,PI*.05,PI*.95);g.stroke();}
+  else if(K==='totem'||K==='goblin'){g.fillStyle='#8a2a2a';g.beginPath();g.moveTo(84,my-8);g.quadraticCurveTo(128,my+(open?46:30),172,my-8);g.closePath();g.fill();g.fillStyle='#fff';[-1,1].forEach(s=>{g.beginPath();g.moveTo(128+s*20,my-6);g.lineTo(128+s*30,my-6);g.lineTo(128+s*25,my+8);g.closePath();g.fill();});}
+  else if(K==='dragon'){if(open){g.fillStyle='#e86a7a';g.beginPath();g.arc(128,my+2,14,0,PI);g.fill();}g.beginPath();g.arc(128,my-8,22,PI*.2,PI*.8);g.stroke();}
+  else if(K==='turtle'){g.fillStyle='#e8707a';g.beginPath();g.ellipse(128,my,open?13:10,open?11:7,0,0,PI*2);g.fill();}
+  else{ if(expr==='joy'){g.fillStyle='#d8606a';g.beginPath();g.arc(128,my-4,14,0,PI);g.fill();}else if(expr==='shy'||expr==='sleepy'||expr==='focus'){g.beginPath();g.moveTo(120,my);g.lineTo(136,my);g.stroke();}else{g.beginPath();g.arc(128,my-8,10,PI*.2,PI*.8);g.stroke();}}
+  if(cfg.mask==='sapsal'){g.fillStyle='#ef9a86';g.beginPath();g.ellipse(128,my+16,11,15,0,0,PI*2);g.fill();g.strokeStyle='rgba(200,110,96,.7)';g.lineWidth=2;g.beginPath();g.moveTo(128,my+6);g.lineTo(128,my+20);g.stroke();}
+  const t=new THREE.CanvasTexture(c);t.anisotropy=4;FACE_CACHE[key]=t;return t;}
 function star(g,x,y,r){g.beginPath();for(let i=0;i<10;i++){const a=i/10*PI*2-PI/2,rr=i%2?r*.45:r;g[i?'lineTo':'moveTo'](x+Math.cos(a)*rr,y+Math.sin(a)*rr);}g.closePath();g.fill();}
 function faceDecal(head,r,cfg,sx,sy,sz,lift){const geo=new THREE.SphereGeometry(r*1.022,36,26,PI*1.5-PI*.42,PI*.84,PI*.5-PI*.34,PI*.66);
   const m=new THREE.MeshToonMaterial({map:faceTex(cfg,'base'),alphaTest:.3,gradientMap:GRAD,emissive:0x2a2420});
@@ -68,6 +96,9 @@ function goreum(p,y,z,col){sph(p,.05,col||SCARF,.07,y,z);box(p,.05,.3,.02,col||S
 function avatarBook(A,y,z){const b=new THREE.Group();b.position.set(0,y,z);[-1,1].forEach(s=>{const h=new THREE.Group();h.rotation.z=s*.25;b.add(h);box(h,.22,.02,.3,std(0x3a5a8a),s*.12,-.012,0);box(h,.2,.03,.28,std(0xfbf4e2,{emissive:0x6a5a40}),s*.11,.008,0);});const pg=new THREE.Group();pg.position.set(0,.03,0);b.add(pg);const pm=box(pg,.19,.006,.26,std(0xffffff,{emissive:0x7a6a50}),.1,0,0);pm.visible=false;A.page=pg;A.pageM=pm;A.bookY=y;A.bookZ=z;b.rotation.x=-.5;b.visible=false;A.bob.add(b);A.book=b;}
 
 /* ---------- builders ---------- */
+
+function lookPick(look,key,def){try{const i=look&&look.c&&look.c[key];return i&&window.PALETTE&&PALETTE[i]?PALETTE[i][1]:def;}catch(e){return def;}}
+function glowMat(hex){return std(hex,{emissive:new THREE.Color(hex).multiplyScalar(.22)});}
 function makeAvatar(id,look){if(id==='shiba')id='sapsal';const cfg=AVMAP[id]||AVATARS[0];const A={id,cfg,garb:[],legWear:[],sleeves:[],root:new THREE.Group(),bob:new THREE.Group(),legs:[],arms:[],tails:[],hop:false,waddle:0,h:2.2,face:null,expr:'base',blinkAt:performance.now()+2000+Math.random()*3000};A.root.add(A.bob);
   const sh=new THREE.Mesh(new THREE.PlaneGeometry(1.2,1.2),new THREE.MeshBasicMaterial({map:TEX.shadow,transparent:true,depthWrite:false}));sh.rotation.x=-PI/2;sh.position.y=.03;A.root.add(sh);
   const B=A.bob;
@@ -89,10 +120,10 @@ function makeAvatar(id,look){if(id==='shiba')id='sapsal';const cfg=AVMAP[id]||AV
       for(let k=0;k<5;k++){const a=-.6+k*.3;sph(head,.1,hair,Math.sin(a)*.3,.3+Math.cos(k*1.7)*.025,-Math.cos(a)*.27,1.1,.6,.8);}sph(head,.08,hair,.05,.42,-.05);}
     A.gat=makeGat(head,.33,1.02,-.1);avatarBook(A,.98,-.42);A.h=2.4;A.waddle=.03;
     A.fit={y0:.42,y1:1.17,r1:.2,r0:.25,neck:1.15,legTop:.36,legLen:.3,legR:.1,sleeve:[.1,1.9,-.17],human:true};A.headR=.4;A.headS=[1,.96,.95];}
-  else if(cfg.type==='beast'){const F=fur(cfg.c),Bl=fur(cfg.b);
+  else if(cfg.type==='beast'){const bodyHex=cfg.dragonColor?lookPick(look,'av',cfg.c):cfg.c, bellyHex=cfg.dragonColor?lookPick(look,'av2',cfg.b):cfg.b, vestHex=cfg.dragonColor?bodyHex:cfg.vest; const F=fur(bodyHex),Bl=fur(bellyHex);
     [-1,1].forEach((s,i)=>{const g=new THREE.Group();g.position.set(s*.16,.3,0);B.add(g);sph(g,.12,F,0,-.1,0,1,1.25,1);sph(g,.12,Bl,0,-.24,-.05,1,.55,1.35);const pad=new THREE.Mesh(new THREE.CircleGeometry(.05,10),PINKPAD);pad.position.set(0,-.25,.06);pad.rotation.x=PI/2.2;g.add(pad);A.legs.push({g,ph:i?PI:0});});
     sph(B,.35,F,0,.56,0,1,1.05,.92);sph(B,.25,Bl,0,.54,-.15,1,1.15,.7);
-    const n0=B.children.length;const vest=new THREE.Mesh(new THREE.CylinderGeometry(.31,.37,.34,24,1,true,PI+.55,PI*2-1.1),std(cfg.vest,{side:THREE.DoubleSide,emissive:new THREE.Color(cfg.vest).multiplyScalar(.15)}));vest.position.y=.68;B.add(vest);
+    const n0=B.children.length;const vest=new THREE.Mesh(new THREE.CylinderGeometry(.31,.37,.34,24,1,true,PI+.55,PI*2-1.1),std(vestHex,{side:THREE.DoubleSide,emissive:new THREE.Color(vestHex).multiplyScalar(.15)}));vest.position.y=.68;B.add(vest);
     const col=new THREE.Mesh(new THREE.TorusGeometry(.2,.04,6,20),IVORY);col.rotation.x=PI/2;col.position.y=.86;B.add(col);goreum(B,.8,-.26);A.garb=B.children.slice(n0);
     [-1,1].forEach((s,i)=>{const g=new THREE.Group();g.position.set(s*.32,.76,0);g.rotation.z=s*.4;B.add(g);sph(g,.085,F,0,-.13,0,1,1.7,1);sph(g,.075,Bl,0,-.27,0);A.arms.push({g,ph:i?0:PI,s});});
     const head=new THREE.Group();head.position.y=1.18;B.add(head);A.head=head;
@@ -107,6 +138,8 @@ function makeAvatar(id,look){if(id==='shiba')id='sapsal';const cfg=AVMAP[id]||AV
       const W=std(0xe6b850,{emissive:0x3a2a08});[-1,1].forEach(s=>{for(let i=0;i<5;i++){sph(head,.022,W,s*(.22+i*.06),-.1-i*.035-i*i*.006,-.36+i*.04);}});
       const M=std(0x2a6a80,{emissive:0x081a20});for(let i=0;i<5;i++){const c=new THREE.Mesh(new THREE.ConeGeometry(.07,.2,6),M);c.position.set(0,.32-i*.12,.28+i*.05);c.rotation.x=.9;head.add(c);}
       for(let i=0;i<4;i++){const c=new THREE.Mesh(new THREE.ConeGeometry(.06,.16,6),M);c.position.set(0,.85-i*.13,.3);c.rotation.x=.6;B.add(c);}}
+    if(cfg.dragonStyle==='east'){const whisk=glowMat(0xf5e7cf),hornM=glowMat(0xe8c98a),mane=glowMat(0x7e1822);[-1,1].forEach(s=>{const w1=box(head,.012,.012,.34,whisk,s*.26,-.02,-.22);w1.rotation.y=-s*.55;w1.rotation.z=s*.18;const w2=box(head,.01,.01,.26,whisk,s*.24,.06,-.18);w2.rotation.y=-s*.85;w2.rotation.z=s*.3;const hb=new THREE.Mesh(new THREE.ConeGeometry(.07,.24,6),hornM);hb.position.set(s*.17,.28,-.02);hb.rotation.z=-s*.35;hb.rotation.x=.15;head.add(hb);});for(let i=0;i<6;i++){const c=new THREE.Mesh(new THREE.ConeGeometry(.045,.16,5),mane);c.position.set(0,.28-i*.12,.18+i*.06);c.rotation.x=.9;head.add(c);}}
+    else if(cfg.dragonStyle==='west'){const hornM=glowMat(0xd9c18a),wingM=fur(bodyHex),memM=fur(bellyHex),spk=glowMat(0xf0d4a8);[-1,1].forEach(s=>{const h1=new THREE.Mesh(new THREE.ConeGeometry(.08,.22,6),hornM);h1.position.set(s*.14,.24,.02);h1.rotation.z=-s*.25;head.add(h1);const h2=new THREE.Mesh(new THREE.ConeGeometry(.06,.16,6),hornM);h2.position.set(s*.23,.18,-.06);h2.rotation.z=-s*.55;head.add(h2);const wg=new THREE.Group();wg.position.set(s*.34,.92,.14);wg.rotation.set(.08,0,-s*.35);B.add(wg);sph(wg,.14,wingM,0,.08,0,1,.9,1.5);sph(wg,.12,wingM,s*.04,.34,.02,1,.75,1.2);const mem=box(wg,.2,.34,.03,memM,s*.02,.2,.02);mem.rotation.z=s*.2;});for(let i=0;i<5;i++){const c=new THREE.Mesh(new THREE.ConeGeometry(.05,.16,5),spk);c.position.set(0,.2-i*.12,.2+i*.04);c.rotation.x=.9;head.add(c);}}
     if(cfg.tiger){const S=std(0x3a3036);[[.35,.68],[.33,.52],[.3,.36]].forEach((p,i)=>[-1,1].forEach(s=>{const m=sph(B,.06,S,s*p[0],p[1],.06,.35,.55,2.2);m.rotation.y=s*.4;}));[.68,.52].forEach(y=>{const m=sph(B,.05,S,0,y,.32,2.2,.4,.4);});}
     if(cfg.fluffy){for(let i=0;i<8;i++){const a=i/8*PI*2;sph(head,.12,F,Math.cos(a)*.32,.24+Math.sin(i)*.04,Math.sin(a)*.25);}for(let i=0;i<6;i++){const a=i/6*PI*2;sph(B,.12,F,Math.cos(a)*.3,.45,Math.sin(a)*.26);}sph(head,.07,std(0xff8fb0),.24,.32,-.12);}
     if(cfg.shaggy){const sf=fur(0xf6f3ec),sg=fur(0xe2ddd2);for(let i=0;i<22;i++){const a=i/22*PI*2;if(Math.sin(a)<-.55)continue;const m=sph(head,.1,i%3?sf:sg,Math.cos(a)*R(.34,.44),R(-.2,.2),Math.sin(a)*R(.3,.38),1,R(2,2.8),1);m.rotation.z=R(-.2,.2);}
@@ -119,7 +152,7 @@ function makeAvatar(id,look){if(id==='shiba')id='sapsal';const cfg=AVMAP[id]||AV
     else if(cfg.tail==='dragon'){tg.rotation.x=.2;for(let i=0;i<7;i++){const r=.12-i*.012;sph(tg,r,i%2?F:fur(0x358aa2),0,.05+i*.08+Math.sin(i*.8)*.02,.06+i*.1-i*i*.008);}const tuft=std(0xe6b850,{emissive:0x3a2a08});for(let k=0;k<4;k++)sph(tg,.06,tuft,R(-.05,.05),.62+R(-.04,.04),.5+R(-.04,.04));}
     else sph(tg,.17,F,0,.1,.02);
     if(cfg.tiger&&cfg.tail==='long'){const S=std(0x3a3036);[.18,.3,.42].forEach(y=>{const r=new THREE.Mesh(new THREE.TorusGeometry(.068,.016,6,14),S);r.rotation.x=PI/2;r.position.set(0,y,.03);tg.add(r);});}
-    A.gat=makeGat(head,.37,.9,-.12);avatarBook(A,.78,-.4);A.h=2.0;A.waddle=.08;
+    A.gat=cfg.noGat?null:makeGat(head,.37,.9,-.12);avatarBook(A,.78,-.4);A.h=2.0;A.waddle=.08;
     A.fit={y0:.28,y1:.88,r1:.33,r0:.4,neck:.86,legTop:.3,legLen:.2,legR:.135,sleeve:[.1,1.3,-.08]};A.headR=.42;A.headS=[1.1,.94,1];}
   else if(cfg.type==='frog'){const gr=std(0x8cc65a,{emissive:0x1a2810}),pale=std(0xd8eca0,{emissive:0x2a3018});
     [-1,1].forEach((s,i)=>{const g=new THREE.Group();g.position.set(s*.2,.28,0);B.add(g);sph(g,.12,gr,0,-.08,0,1,1.2,1);sph(g,.13,gr,s*.04,-.24,-.07,1.2,.45,1.5);A.legs.push({g,ph:i?PI:0});});
@@ -141,12 +174,16 @@ function makeAvatar(id,look){if(id==='shiba')id='sapsal';const cfg=AVMAP[id]||AV
       const nk=sph(B,.06,sk,.38,.8,-.08,1,2,1);nk.rotation.z=-.4;}
     A.gat=makeGat(head,.36,.88,-.1);avatarBook(A,.78,-.42);A.h=2.0;A.waddle=.1;
     A.fit={y0:.3,y1:.84,r1:.31,r0:.37,neck:.84,legTop:.26,legLen:.18,legR:.13,sleeve:[.1,1.3,-.08],openBack:true};A.headR=.42;A.headS=[1,.95,.98];}
-  else{ // bird (흰 오목눈이)
+  else{ // bird (오목눈이/학/오리/원앙/공작/주작)
     const ph=cfg.phoenix;const wh=ph?std(0xe4553c,{emissive:0x3a0c06}):cfg.bc!=null?std(cfg.bc,{emissive:new THREE.Color(cfg.bc).multiplyScalar(.14)}):std(0xfbf8f2,{emissive:0x4a4844}),br=ph?std(0xf2b040,{emissive:0x3a2406}):cfg.lc!=null?std(cfg.lc,{emissive:new THREE.Color(cfg.lc).multiplyScalar(.12)}):std(0x7a5a46,{emissive:0x140c08});
     [-1,1].forEach((s,i)=>{const g=new THREE.Group();g.position.set(s*.14,.22,-.02);B.add(g);cyl(g,.022,.022,.2,5,br,0,-.08,0);[-.4,0,.4].forEach(a=>{const t=box(g,.02,.02,.09,br,Math.sin(a)*.04,-.18,-.04);t.rotation.y=a;});A.legs.push({g,ph:i?PI:0});});
     const head=new THREE.Group();head.position.y=.68;B.add(head);A.head=head;sph(head,.52,wh,0,0,0,1,.95,.95);A.face=faceDecal(head,.52,cfg,1,.95,.95,0);
     for(let i=0;i<14;i++){const a=rnd()*PI*2,y=R(-.35,.2);sph(head,.12,wh,Math.cos(a)*.42,y,Math.sin(a)*.4*(Math.sin(a)<0?.0:.9)+(Math.sin(a)<0?.1:0));}
     [-1,1].forEach((s,i)=>{const g=new THREE.Group();g.position.set(s*.46,.78,.04);B.add(g);sph(g,.2,wh,s*.12,-.04,0,1.2,.5,.85).rotation.z=s*.5;sph(g,.1,br,s*.04,.02,.02,1.2,.5,.8).rotation.z=s*.6;A.arms.push({g,ph:0,s,wing:true});});
+    if(cfg.crane){const neck=sph(B,.18,wh,0,.9,-.08,.75,1.9,.75);neck.rotation.x=.08;sph(head,.09,std(cfg.crest||0xcf2e2e,{emissive:0x4a0808}),0,.48,-.06,1,.42,1);}
+    if(cfg.duck){sph(head,.06,wh,-.16,.16,-.02,1,1.15,.8);sph(head,.06,wh,.16,.16,-.02,1,1.15,.8);}
+    if(cfg.mandarin){const pu=std(0x6b3d86,{emissive:0x1b0d25}),or=std(0xe7832b,{emissive:0x3a1406}),bl=std(0x1f3d87,{emissive:0x08102a});sph(B,.24,pu,0,.48,-.18,1.1,.7,.45);[-1,1].forEach(s=>{const sail=new THREE.Mesh(new THREE.ConeGeometry(.11,.27,4),or);sail.position.set(s*.34,.93,.18);sail.rotation.z=-s*.22;B.add(sail);});sph(head,.28,or,0,.22,.22,1,.55,1.1);sph(head,.18,bl,0,.04,.34,1,.5,1);}
+    if(cfg.peacock){const crest=std(0x1d56a5,{emissive:0x081733});[-.1,0,.1].forEach((x,i)=>{cyl(head,.008,.008,.22,4,crest,x,.58,.02).rotation.z=-x*1.6;sph(head,.038,crest,x*1.6,.72,.02);});}
     if(ph){const cols=[0xf2b040,0xe4553c,0xf08a30,0x3aa0a0,0xf2b040];cols.forEach((c,i)=>{const a=(i-2)*.28;const g=new THREE.Group();g.position.set(0,.5,.45);g.rotation.set(-1.1,a,0);B.add(g);sph(g,.08,std(c,{emissive:new THREE.Color(c).multiplyScalar(.2)}),0,.42,0,1,4.2,.35);sph(g,.06,std(0x2a7a8a,{emissive:0x0a2024}),0,.82,0,1,1,.4);});
       [-.12,0,.12].forEach((x,i)=>{const c=new THREE.Mesh(new THREE.ConeGeometry(.05,.28,6),i===1?br:wh);c.position.set(x,.5,.3);c.rotation.x=.7;head.add(c);sph(head,.04,br,x,.62,.42);});}
     else if(cfg.peacock){const fan=new THREE.Group();fan.position.set(0,.55,.42);fan.rotation.x=.28;B.add(fan);const fe=std(0x2e8a5a,{emissive:0x0a2a1a}),eg=std(0xe6c050,{emissive:0x3a2a08}),eb=std(0x1e4aa8,{emissive:0x081a3a}),ek=std(0x1a1a3a);
@@ -162,8 +199,6 @@ function makeAvatar(id,look){if(id==='shiba')id='sapsal';const cfg=AVMAP[id]||AV
     const n0=B.children.length;const col=new THREE.Mesh(new THREE.TorusGeometry(.26,.04,6,20),IVORY);col.rotation.x=PI/2;col.position.y=.3;col.scale.set(1.3,1.3,1);B.add(col);
     A.garb=B.children.slice(n0);A.gat=makeGat(head,.42,.78,-.1);A.hop=true;avatarBook(A,.5,-.62);A.h=1.95;
     A.fit={y0:.24,y1:.66,r1:.55,r0:.4,neck:.62,bird:true,cy:.68,br:.54};A.headR=.52;A.headS=[1,.95,.95];}
-  // 모든 종족을 말랑한 동글 얼굴의 같은 마을 친구처럼 표현해요.
-  if(A.head){A.head.scale.multiplyScalar(cfg.type==='human'?1.05:1.075);}
   A.setFace=function(expr){if(!A.face||A.expr===expr)return;A.expr=expr;A.face.material.map=faceTex(cfg,expr);};
   if(typeof applyLook==='function'&&look)applyLook(A,look);
   return A;}

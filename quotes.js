@@ -48,14 +48,14 @@ async function cardImage(q){const W=1080,H=1350;const c=document.createElement('
   x.fillStyle='rgba(140,96,60,.06)';for(let i=0;i<500;i++){x.fillRect(Math.random()*W,Math.random()*H,2,2);}
   x.strokeStyle='#b0874a';x.lineWidth=4;x.strokeRect(50,50,W-100,H-100);x.lineWidth=1.5;x.strokeRect(66,66,W-132,H-132);
   x.fillStyle='#c4384a';x.beginPath();x.roundRect?x.roundRect(W-200,100,96,96,14):x.rect(W-200,100,96,96);x.fill();x.fillStyle='#fff';x.font='bold 60px serif';x.textAlign='center';x.textBaseline='middle';x.fillText('文',W-152,150);
-  x.fillStyle='#8a6a4a';x.font='36px "Gowun Dodum",serif';x.textAlign='left';x.fillText('오늘의 문장',120,150);
-  x.fillStyle='#2a2018';let fs=58;x.font=`${fs}px "Gowun Dodum","Gowun Dodum",serif`;let lines=wrap(x,'「 '+q.text+' 」',W-260);
-  while(lines.length*fs*1.65>700&&fs>34){fs-=4;x.font=`${fs}px "Gowun Dodum","Gowun Dodum",serif`;lines=wrap(x,'「 '+q.text+' 」',W-260);}
+  x.fillStyle='#8a6a4a';x.font='36px "Nanum Myeongjo",serif';x.textAlign='left';x.fillText('오늘의 문장',120,150);
+  x.fillStyle='#2a2018';let fs=58;x.font=`${fs}px "Nanum Myeongjo","Gowun Batang",serif`;let lines=wrap(x,'「 '+q.text+' 」',W-260);
+  while(lines.length*fs*1.65>700&&fs>34){fs-=4;x.font=`${fs}px "Nanum Myeongjo","Gowun Batang",serif`;lines=wrap(x,'「 '+q.text+' 」',W-260);}
   let y=Math.max(300,(H-lines.length*fs*1.65)/2-60);lines.forEach(l=>{x.fillText(l,130,y);y+=fs*1.65;});
-  y+=30;x.fillStyle='#6a4a30';x.font='38px "Gowun Dodum",serif';if(q.book){x.fillText(`— 『${q.book}』${q.page?' '+q.page+'쪽':''}`,130,y);y+=70;}
-  if(q.note){x.fillStyle='#7a6a5a';x.font='32px "Gowun Dodum",serif';wrap(x,'💭 '+q.note,W-260).slice(0,4).forEach(l=>{x.fillText(l,130,y);y+=50;});}
+  y+=30;x.fillStyle='#6a4a30';x.font='38px "Nanum Myeongjo",serif';if(q.book){x.fillText(`— 『${q.book}』${q.page?' '+q.page+'쪽':''}`,130,y);y+=70;}
+  if(q.note){x.fillStyle='#7a6a5a';x.font='32px "Gowun Batang",serif';wrap(x,'💭 '+q.note,W-260).slice(0,4).forEach(l=>{x.fillText(l,130,y);y+=50;});}
   const nm=q.by===MYID?(ST.nick||'나'):nameOf(q.by);const acad=(document.title||'').split('·')[0].trim()||'학당';
-  x.fillStyle='#8a6a4a';x.font='34px "Gowun Dodum",serif';x.textAlign='right';x.fillText(`${nm} · ${dayLabel(q.day||dayKey(q.ts)).replace('오늘',dayKey(q.ts).replace(/-/g,'.'))}`,W-130,H-150);x.font='28px "Gowun Dodum",serif';x.fillText(acad,W-130,H-105);
+  x.fillStyle='#8a6a4a';x.font='34px "Gowun Batang",serif';x.textAlign='right';x.fillText(`${nm} · ${dayLabel(q.day||dayKey(q.ts)).replace('오늘',dayKey(q.ts).replace(/-/g,'.'))}`,W-130,H-150);x.font='28px "Gowun Batang",serif';x.fillText(acad,W-130,H-105);
   return new Promise(r=>c.toBlob(r,'image/png'));}
 async function shareCard(q){const blob=await cardImage(q);if(!blob)return;const f=new File([blob],`오늘의문장_${q.day||dayKey(q.ts)}.png`,{type:'image/png'});
   try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'오늘의 문장'});return;}}catch(e){if(e&&e.name==='AbortError')return;}

@@ -12,10 +12,10 @@ const KINDS={
  monstera:{n:'몬스테라',i:'🍃',d:'자라면 잎에 구멍이 숭숭'},
  cactus:{n:'선인장',i:'🌵',d:'다 자라면 꽃이 피어요'},
  sansevieria:{n:'산세베리아',i:'🗡️',d:'쭉쭉 뻗는 칼 모양 잎'}};
-const POTS={basic:'토분',ongi:'옹기',celadon:'청자',round:'동글 화분',square:'네모 화분',basket:'라탄 바구니'};
+const POTS={basic:'도토리 토분',ongi:'포근 옹기',celadon:'새싹 청자',round:'동글 낮잠 화분',square:'작은 벽돌 화분',basket:'피크닉 라탄 바구니'};
 const POTFIX={ongi:1,celadon:1,basket:1};
 const PCOL=[['청','#2a62a8'],['적','#c8392f'],['황','#e3b021'],['백','#f4f0e4'],['흑','#2c2c31'],['토','#c8743f'],['분홍','#f2b0c2'],['민트','#9fd4bd'],['라벤더','#b9a6e0'],['하늘','#8fc0e6']];
-const DECO={saucer:'🍽️ 받침',ribbon:'🎀 리본',heart:'💗 하트',tag:'🏷️ 이름표',pebble:'🪨 조약돌',butterfly:'🦋 나비',ladybug:'🐞 무당벌레',lights:'✨ 꼬마전구',cat:'🐱 고양이'};
+const DECO={saucer:'🍽️ 찻잔 받침',ribbon:'🎀 리본',heart:'💗 하트',tag:'🏷️ 이름표',pebble:'🪨 징검돌',butterfly:'🦋 나비',ladybug:'🐞 무당벌레',lights:'✨ 반딧불 전구',cat:'🐱 고양이 장식'};
 const MAXDECO=4;
 const TALK=['고마워요! 💚','쑥쑥 자랄게요!','오늘도 같이 공부해요 📖','햇살이 좋아요 ☀️','간지러워요~ 😆','물맛 최고!','책 읽어 주면 더 잘 자라요','헤헤 🌱'];
 /* ---------- 저장 ---------- */
@@ -101,7 +101,7 @@ function potArt(p){const pot=p.pot||'basic';const col=POTFIX[pot]?null:PCOL[p.pc
 function decoArt(p,layer){const d=p.d||[];let s='';const st=stage(p);const topY=SOILY-[6,16,32,46,56][st];
   if(layer==='under'&&d.includes('saucer'))s+=`<ellipse cx="60" cy="151" rx="37" ry="5.5" fill="${shade(potArt(p).col,-.2)}"/><ellipse cx="60" cy="150" rx="33" ry="3" fill="rgba(255,255,255,.18)"/>`;
   if(layer==='soil'){if(d.includes('pebble'))s+=`<ellipse cx="47" cy="${SOILY+.5}" rx="3.2" ry="2" fill="#b8b2a8"/><ellipse cx="54" cy="${SOILY+1.8}" rx="2.4" ry="1.6" fill="#d8d2c6"/><ellipse cx="71" cy="${SOILY+1}" rx="3" ry="1.9" fill="#9a958c"/><ellipse cx="66" cy="${SOILY+2.2}" rx="2" ry="1.3" fill="#e2ddd2"/>`;
-    if(d.includes('tag'))s+=`<path d="M84 ${SOILY+1}L84 80" stroke="#a07a4a" stroke-width="1.6"/><rect x="72" y="71" width="25" height="12" rx="2" fill="#f6e6c4" stroke="#a07a4a" stroke-width=".9"/><text x="84.5" y="79.3" font-size="6.2" text-anchor="middle" fill="#5a3a20" font-family="Gowun Dodum,serif">${esc(String(p.n||'').slice(0,5))}</text>`;}
+    if(d.includes('tag'))s+=`<path d="M84 ${SOILY+1}L84 80" stroke="#a07a4a" stroke-width="1.6"/><rect x="72" y="71" width="25" height="12" rx="2" fill="#f6e6c4" stroke="#a07a4a" stroke-width=".9"/><text x="84.5" y="79.3" font-size="6.2" text-anchor="middle" fill="#5a3a20" font-family="Gowun Batang,serif">${esc(String(p.n||'').slice(0,5))}</text>`;}
   if(layer==='front'){if(d.includes('ribbon'))s+=`<g transform="translate(60 ${p.pot==='square'?118:116})"><path d="M0 0C-6 -7 -15 -5 -13 1C-11 6 -5 3 0 0Z" fill="#e8556d"/><path d="M0 0C6 -7 15 -5 13 1C11 6 5 3 0 0Z" fill="#e8556d"/><path d="M-1 1L-6 11L-3 10L-1 13Z M1 1L6 11L3 10L1 13Z" fill="#d43f5a"/><circle r="2.6" fill="#c8304a"/></g>`;
     if(d.includes('heart'))s+=`<path d="M44 132c-2.5 -3.5 -7.5 -1 -5 2.5l5 5l5 -5c2.5 -3.5 -2.5 -6 -5 -2.5Z" fill="#ff7aa2" stroke="#fff" stroke-width="1.2"/>`;
     if(d.includes('ladybug')&&st>=1)s+=`<g transform="translate(${st>=3?50:55} ${SOILY-Math.max(6,(SOILY-topY)*.45)})"><circle r="3.2" fill="#d92e2e"/><circle cx="0" cy="-3" r="1.6" fill="#222"/><path d="M0 -2V3" stroke="#222" stroke-width=".6"/><circle cx="-1.4" cy="0" r=".7" fill="#222"/><circle cx="1.4" cy="1" r=".7" fill="#222"/></g>`;

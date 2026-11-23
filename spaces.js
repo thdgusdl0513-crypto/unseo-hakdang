@@ -14,6 +14,8 @@ function makeSeason(month,tod){const [key,name,ico]=MONTHS[month];const S={month
   S.sunColor=tod==='day'?0xfff2dc:tod==='dusk'?0xffb37a:0x9fb6dc;S.night=tod!=='day';
   return S;}
 function autoTod(){const h=new Date().getHours();return h>=6&&h<17?'day':h>=17&&h<19?'dusk':'night';}
+const __EXT_TEX_LOADER=new THREE.TextureLoader();
+function extTex(url){const t=__EXT_TEX_LOADER.load(url);try{t.colorSpace=THREE.SRGBColorSpace;}catch(e){}t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping;return t;}
 
 function windowTex(S){return ctex(128,160,(g,w,h)=>{const gr=g.createLinearGradient(0,0,0,h);const c=new THREE.Color(S.sky);gr.addColorStop(0,'#'+c.clone().multiplyScalar(S.night?1.6:1).getHexString());gr.addColorStop(1,'#'+c.clone().lerp(new THREE.Color(S.night?0x223344:0xffffff),.35).getHexString());g.fillStyle=gr;g.fillRect(0,0,w,h);
   if(S.night){g.fillStyle='#f4ecd0';g.beginPath();g.arc(92,34,12,0,PI*2);g.fill();for(let i=0;i<20;i++){g.fillStyle='rgba(255,250,230,.8)';g.fillRect(rnd()*w,rnd()*h*.5,1.5,1.5);}}
@@ -267,6 +269,7 @@ function buildRoom(id,S){reseed(id.length*97+3);let sp;
    const bt=textTex([{t:'靈藥 · 마법약 수업',y:60,f:'800 46px '},{t:'오늘의 조제 — 집중의 물약',y:130,f:'34px ',ff:FS},{t:'솥 앞 의자에 앉아 타이머를 시작하세요',y:190,f:'26px ',ff:FS}],{bg:'#1c2a22',fg:'#cfeedd',border:'#4a3020'});const board=new THREE.Mesh(new THREE.PlaneGeometry(4.4,2.2),new THREE.MeshBasicMaterial({map:bt}));board.position.set(0,3.6,-6.98);G.add(board);
    for(let i=0;i<10;i++){const h=new THREE.Group();h.position.set(R(-7,7),4.55,R(-5,5));G.add(h);cyl(h,.01,.01,.4,3,MAT.woodDark,0,.2,0);for(let k=0;k<5;k++)sph(h,.07,std([0x5a7a3a,0x7a6a3a,0x8a4a3a][k%3]),R(-.08,.08),-.1-k*.06,R(-.08,.08),.6,1.6,.6);}
  }else if(id==='basics'){sp=roomShell(id,S,{floor:TEX.floorWarm,wains:MAT.wood,lights:[[0xffd0a0,1.3,0,4,0]]});const G=sp.G,T=sp.tick;
+   const classBg=new THREE.Mesh(new THREE.PlaneGeometry(6.2,3.6),new THREE.MeshBasicMaterial({map:extTex('assets/theme/classroom-bg.png')}));classBg.position.set(0,2.78,-7.01);G.add(classBg);
    const bt=textTex([{t:'第一講 · 마법학 기초',y:56,f:'800 44px '},{t:'기(氣)의 흐름과 주문의 첫걸음',y:120,f:'32px ',ff:FS},{t:'“서두르지 말고, 멈추지 말라.”',y:185,f:'30px ',ff:FS}],{bg:'#1f3a2e',fg:'#eef2e2',border:'#5a3a24',extra:(g)=>{g.strokeStyle='rgba(255,255,255,.35)';g.lineWidth=2;g.beginPath();g.arc(450,200,40,0,PI*2);g.stroke();g.beginPath();g.arc(450,200,22,0,PI*2);g.stroke();}});
    const board=new THREE.Mesh(new THREE.PlaneGeometry(5.6,2.8),new THREE.MeshBasicMaterial({map:bt}));board.position.set(0,2.9,-6.97);G.add(board);box(G,5.9,.12,.2,MAT.woodDark,0,1.45,-6.9);
    box(G,.9,1.1,.6,MAT.woodDark,2.8,.55,-5.3);sp.obs.push({x:2.8,z:-5.3,r:.7});
@@ -293,6 +296,7 @@ function buildRoom(id,S){reseed(id.length*97+3);let sp;
    const rack=new THREE.Group();rack.position.set(-5.6,0,-6.5);G.add(rack);box(rack,2.4,.1,.3,MAT.woodDark,0,2.2,0);box(rack,2.4,.1,.3,MAT.woodDark,0,.4,0);for(let i=0;i<6;i++)cyl(rack,.035,.035,2.2,6,MAT.woodLight,-1+i*.4,1.3,.1);
    for(let i=0;i<5;i++){const b=new THREE.Group();b.position.set(-7.3+i*.25,0,4+i%2*.4);G.add(b);for(let k=0;k<3;k++)cyl(b,.05,.05,3,6,std(0x6a9a4a),R(-.2,.2),1.5,R(-.2,.2));}
  }else if(id==='library'){sp=roomShell(id,S,{floor:TEX.floorDark,wains:MAT.woodDark,wallH:5.5,lights:[[0xffc890,1.2,-4,4.2,0,'desk',.35],[0xffc890,1.2,4,4.2,0,'desk',.35],[0x7fe0ff,1.4,0,2.6,-4.6]],windows:[]});const G=sp.G,T=sp.tick;
+   const libraryBg=new THREE.Mesh(new THREE.PlaneGeometry(15.2,5.1),new THREE.MeshBasicMaterial({map:extTex('assets/theme/library-bg.png')}));libraryBg.position.set(0,2.72,-7.02);G.add(libraryBg);
    [-5.6,-1.9,1.9,5.6].forEach(x=>bookshelf(G,x,-6.6,0,3.6,4.8));[-1,1].forEach(s=>[-4.4,-.6,3.2].forEach(z=>bookshelf(G,s*7.6,z,-s*PI/2,3.6,4.4)));
    [[-3.4,-1],[3.4,-1],[-3.4,3],[3.4,3]].forEach(p=>{box(G,2.6,.1,1.3,MAT.wood,p[0],.78,p[1]);[[-1.15,-.5],[1.15,-.5],[-1.15,.5],[1.15,.5]].forEach(q=>box(G,.08,.76,.08,MAT.woodDark,p[0]+q[0],.38,p[1]+q[1]));
      const lamp=new THREE.Group();lamp.position.set(p[0],.83,p[1]);G.add(lamp);cyl(lamp,.04,.08,.4,8,MAT.gold,0,.2,0);const sh=new THREE.Mesh(new THREE.ConeGeometry(.2,.16,14,1,true),emis(0x2e7a4a,.5));sh.position.y=.45;sh.rotation.x=PI;sh.userData.lamp='desk';lamp.add(sh);const lg=glow(0xffe0a0,1.5,.7);lg.position.y=.38;lg.userData.lamp='desk';lamp.add(lg);
@@ -316,10 +320,10 @@ function buildRoom(id,S){reseed(id.length*97+3);let sp;
    const tw=new THREE.Group();tw.position.set(5,0,4.8);G.add(tw);box(tw,1.6,1.6,.5,wd2,0,.8,0);for(let r=0;r<2;r++)for(let i=0;i<3;i++){const t=cyl(tw,.16,.16,.4,10,std([0xf6b8c8,0xb8d8f6,0xf6ecd0][(i+r)%3]),-.45+i*.45,.55+r*.7,-.05);t.rotation.z=PI/2;}sp.obs.push({x:5,z:4.8,r:.9});
    const sg=textTex([{t:'汗蒸幕',y:70,f:'800 76px '}],{w:360,h:130,bg:'#5a2a14',fg:'#ffd8a0',border:'#2a1408'});const sgm=new THREE.Mesh(new THREE.PlaneGeometry(2.4,.86),new THREE.MeshBasicMaterial({map:sg}));sgm.position.set(0,4.2,-6.1);G.add(sgm);
    const hg2=new THREE.Group();hg2.position.set(-6.9,2.4,-2);hg2.rotation.y=PI/2;G.add(hg2);box(hg2,.5,.8,.08,wd2,0,0,0);cyl(hg2,.06,.12,.3,8,std(0xf2d8a0,{transparent:true,opacity:.7}),0,.12,.06);cyl(hg2,.12,.06,.3,8,std(0xf2d8a0,{transparent:true,opacity:.7}),0,-.12,.06);
- }else{ // dorm — cozy study lounge
+ }else{ // dorm — cozy traditional study lounge
    sp=roomShell(id,S,{floor:TEX.floorWarm,wallMat:std(0xf2e2c4),wains:std(0x8a5a3a),wallH:5.6,lights:[[0xffd4a8,1.2,0,3.6,-.6,'desk',.25],[0xffd0a0,.7,-6,2.2,-4.4,'desk',0],[S.night?0x8a7ac8:0xffa070,.7,3.5,3,-5.5]],windows:[]});const G=sp.G,T=sp.tick;
    // big window with city view
-   const wt=cityWindowTex(S);const win=new THREE.Mesh(new THREE.PlaneGeometry(8,4.4),new THREE.MeshBasicMaterial({map:wt}));win.position.set(3.4,2.95,-6.98);G.add(win);
+   const wt=extTex('assets/theme/dorm-bg.png');const win=new THREE.Mesh(new THREE.PlaneGeometry(8,4.4),new THREE.MeshBasicMaterial({map:wt}));win.position.set(3.4,2.95,-6.98);G.add(win);
    for(let i=0;i<=5;i++)box(G,.09,4.6,.12,std(0x3a3a44),-.6+i*1.6,2.95,-6.93);[.75,2.95,5.15].forEach(y=>box(G,8.2,.09,.12,std(0x3a3a44),3.4,y,-6.93));box(G,8.4,.14,.5,MAT.wood,3.4,.75,-6.75);
    const fl=[];for(let i=0;i<22;i++){const gl=glow([0xffd890,0xffb070][i%2],.35,.9);gl.position.set(-.5+i*.37,5.05-Math.sin(i/21*PI)*.35,-6.8);G.add(gl);fl.push(gl);}T.push(t=>fl.forEach((g,i)=>g.material.opacity=.55+.4*Math.sin(t*2+i)));
    // mezzanine railing + ivy
