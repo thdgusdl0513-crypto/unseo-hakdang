@@ -94,9 +94,9 @@ function petFollow(P,owner,dt,t,bounds){if(!P)return;const o=owner.position,ry=o
 
 /* small 3D thumbnails for the pickers */
 const THUMBS={};let thumbR=null;
-function thumbOf(kind,id){const key=kind+':'+id;if(THUMBS[key]!==undefined)return THUMBS[key];
+function thumbOf(kind,id,look){const isDragon=kind==='av'&&!!(AVMAP[id]&&AVMAP[id].dragonColor);const key=kind+':'+id+(isDragon&&look?'|'+lookStr(look):'');if(THUMBS[key]!==undefined)return THUMBS[key];
   try{if(!thumbR){thumbR=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});thumbR.setPixelRatio(1);thumbR.setSize(160,160);}
     const sc=new THREE.Scene();sc.add(new THREE.HemisphereLight(0xfff4e0,0x8a6a4a,1.05));const dl=new THREE.DirectionalLight(0xffffff,.7);dl.position.set(2,4,-5);sc.add(dl);
-    const obj=kind==='pet'?makePet(id):makeAvatar(id);if(!obj){THUMBS[key]='';return '';}sc.add(obj.root);if(obj.setFace)obj.setFace('smile');
-    const h=obj.h||2;const cam=new THREE.PerspectiveCamera(30,1,.1,50);cam.position.set(0,h*.55,-h*1.55-.4);cam.lookAt(0,h*.47,0);thumbR.render(sc,cam);THUMBS[key]=thumbR.domElement.toDataURL('image/png');
+    const obj=kind==='pet'?makePet(id):makeAvatar(id,isDragon?look:null);if(!obj){THUMBS[key]='';return '';}sc.add(obj.root);if(obj.setFace)obj.setFace('smile');
+    const h=obj.h||2;const cam=new THREE.PerspectiveCamera(30,1,.1,50);cam.position.set(0,h*.55,-h*(isDragon?2.22:1.55)-(isDragon?.55:.4));cam.lookAt(0,h*.47,0);thumbR.render(sc,cam);THUMBS[key]=thumbR.domElement.toDataURL('image/png');
   }catch(e){THUMBS[key]='';}return THUMBS[key];}
