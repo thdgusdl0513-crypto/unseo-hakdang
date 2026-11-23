@@ -63,6 +63,15 @@
         }
       }
     },
+    "warns": {
+      ".read": "auth != null",
+      ".indexOn": [
+        "ts"
+      ],
+      "$id": {
+        ".write": "(auth != null && !data.exists() && newData.child('by').val() === auth.uid) || (auth != null && root.child('members').child(auth.uid).child('admin').val() === 'happy_life' && !newData.exists())"
+      }
+    },
     "dm": {
       "$uid": {
         ".read": "auth != null && auth.uid === $uid",
@@ -132,6 +141,15 @@
           "$uid": {
             ".write": "auth != null && auth.uid === $uid"
           }
+        }
+      },
+      "warns": {
+        ".read": "auth != null",
+        ".indexOn": [
+          "ts"
+        ],
+        "$id": {
+          ".write": "(auth != null && !data.exists() && newData.child('by').val() === auth.uid) || (auth != null && root.child('cheongdo').child('members').child(auth.uid).child('admin').val() === 'happy_life' && !newData.exists())"
         }
       },
       "dm": {
@@ -204,6 +222,15 @@
           "$uid": {
             ".write": "auth != null && auth.uid === $uid"
           }
+        }
+      },
+      "warns": {
+        ".read": "auth != null",
+        ".indexOn": [
+          "ts"
+        ],
+        "$id": {
+          ".write": "(auth != null && !data.exists() && newData.child('by').val() === auth.uid) || (auth != null && root.child('songhyeon').child('members').child(auth.uid).child('admin').val() === 'happy_life' && !newData.exists())"
         }
       },
       "dm": {
