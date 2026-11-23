@@ -129,7 +129,7 @@ function applyLook(A,look){look=look||DEFAULT_LOOK;A.look=look;const F=A.fit;if(
   const gat=A.gat;if(gat&&look.h!=='gat'){gat.visible=false;if(look.h!=='none')buildHat(A,look.h,cH);
     if(['beanie','cap','jobawi','beret','apprentice','wizard'].includes(look.h)&&A.head){const lim=(A.headR||.4)*.3;A.head.children.forEach(m=>{if(!m.isMesh||m===A.face||m===gat)return;if(m.position.y>lim)m.visible=false;});}}else if(gat&&cH!=null){gat.traverse(m=>{if(m.isMesh&&m.material===GATM){m.material=GATM.clone();m.material.color.setHex(cH);m.material.emissive&&m.material.emissive.setHex(new THREE.Color(cH).multiplyScalar(.12).getHex());}});}
   /* ----- accessories ----- */
-  (look.a||[]).forEach(id=>buildAcc(A,id,colOf(look,id)));}
+  (look.a||[]).forEach(id=>buildAcc(A,id,colOf(look,id)));if(typeof softenAvatar==='function')softenAvatar(A);}
 
 function headAnchor(A){const g=new THREE.Group();const S=A.headS||[1,1,1];g.scale.set(S[0],S[1],S[2]);g.position.y=(A.headAnchorLift||A.accAnchorLift||0);A.head.add(g);return {g,r:A.headR||.4};}
 function buildHat(A,id,col){const C=d=>col!=null?col:d;const {g,r}=headAnchor(A);const blk=std(0x1e1a18,{emissive:0x060504});

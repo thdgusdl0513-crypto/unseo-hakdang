@@ -2,7 +2,7 @@
 const STUDY=['basics','potion','herbs','training','library'];
 /* 보여 주는 캐릭터 목록만 제한하고, 기존 AVMAP/ID와 저장 포맷은 유지합니다. */
 /* 캐릭터는 예전(원래) 목록 그대로: 하나씩 따로 고르기 */
-const AVATAR_GROUPS=(()=>{const out=[];let dino=null;AVATARS.forEach(a=>{if(a.type==='dino'){if(!dino){dino={key:'dino',name:'공룡',main:a.id,ids:[]};out.push(dino);}dino.ids.push(a.id);}else out.push({key:a.id,name:a.name,main:a.id,ids:[a.id]});});return out;})();
+const AVATAR_GROUPS=(()=>{const out=[],G={};const kind=a=>a.type==='dino'?['dino','공룡']:(a.sp==='cat'&&!a.god)?['cat','고양이']:(a.sp==='dog'&&!a.god)?['dog','강아지']:null;AVATARS.forEach(a=>{const k=kind(a);if(k){if(!G[k[0]]){G[k[0]]={key:k[0],name:k[1],main:a.id,ids:[]};out.push(G[k[0]]);}G[k[0]].ids.push(a.id);}else out.push({key:a.id,name:a.name,main:a.id,ids:[a.id]});});return out;})();
 const AVATAR_GROUP_BY_ID=Object.fromEntries(AVATAR_GROUPS.flatMap(g=>g.ids.map(id=>[id,g])));
 const SELECTABLE_PET_ORDER=['none','haetae','kkachi','jangseung','phoenix','cerberus','gumiho'];
 const SELECTABLE_PET_IDS=new Set(SELECTABLE_PET_ORDER);
@@ -500,9 +500,9 @@ function updateMe(){const a=AVMAP[ST.avatar]||AVMAP.girl||AVATARS[0];if(!a)retur
 function avColorRow(key,label){const cur=(ST.look.c&&ST.look.c[key])||0;return `<div class="cRow"><span>${label}</span><div class="cSw">${PALETTE.map((p,i)=>`<button data-avc="${key}" data-ci="${i}" class="${i===cur?'on':''}${i?'':' def'}" title="${p[0]}" style="${i?`background:#${p[1].toString(16).padStart(6,'0')}`:''}"></button>`).join('')}</div></div>`;}
 function variantPicker(){const cur=AVMAP[ST.avatar||'girl'];if(!cur)return '';
  const group=AVATAR_GROUP_BY_ID[cur.id];if(!group||group.ids.length<2)return '';
- const title=group.key==='dino'?'공룡 종류':group.key==='student'?'학생 선택':'고양이 종류';
+ const title=group.key==='dino'?'공룡 종류':group.key==='student'?'학생 선택':group.key==='dog'?'강아지 종류':'고양이 종류';
  const hint=group.key==='dino'?'기본은 브라키오사우루스 · 다른 공룡도 선택할 수 있어요':
-            group.key==='student'?'여학생과 남학생 중 선택해요':'원하는 털 색상을 선택해요';
+            group.key==='student'?'여학생과 남학생 중 선택해요':group.key==='dog'?'코기·진돗개·삽살개·말티즈 중에서 골라요':'원하는 털 색상을 선택해요';
  return `<div class="sec">${title} <small>${hint}</small></div>`+
  `<div class="dinoOptions avatarVariants">${group.ids.map(id=>{const a=AVMAP[id];if(!a)return '';const im=thumbOf('av',id,avatarUsesLook(a)?ST.look:null);
    return `<button type="button" data-avatar-variant="${id}" class="${id===cur.id?'on':''}">${im?`<img src="${im}" alt="">`:`<span>${a.emo||'✨'}</span>`}<small>${a.name}</small></button>`;}).join('')}</div>`;}
