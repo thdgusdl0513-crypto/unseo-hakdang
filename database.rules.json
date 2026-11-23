@@ -63,6 +63,13 @@
         }
       }
     },
+    "profiles": {
+      "$k": {
+        ".read": "auth != null",
+        ".write": "auth != null",
+        ".validate": "$k.matches(/^[0-9a-f]{64}$/) && (!newData.exists() || newData.child('nick').isString())"
+      }
+    },
     "warns": {
       ".read": "auth != null",
       ".indexOn": [
@@ -141,6 +148,13 @@
           "$uid": {
             ".write": "auth != null && auth.uid === $uid"
           }
+        }
+      },
+      "profiles": {
+        "$k": {
+          ".read": "auth != null",
+          ".write": "auth != null",
+          ".validate": "$k.matches(/^[0-9a-f]{64}$/) && (!newData.exists() || newData.child('nick').isString())"
         }
       },
       "warns": {
@@ -222,6 +236,13 @@
           "$uid": {
             ".write": "auth != null && auth.uid === $uid"
           }
+        }
+      },
+      "profiles": {
+        "$k": {
+          ".read": "auth != null",
+          ".write": "auth != null",
+          ".validate": "$k.matches(/^[0-9a-f]{64}$/) && (!newData.exists() || newData.child('nick').isString())"
         }
       },
       "warns": {
