@@ -666,7 +666,7 @@ body.seated #hint,body.seated #action{display:none!important}
 })();
 </script>
 
-<link rel="stylesheet" href="hakdang-theme.css?v=20261123storybook3">
+<link rel="stylesheet" href="hakdang-theme.css?v=20261123b">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -676,7 +676,7 @@ body.seated #hint,body.seated #action{display:none!important}
 <script>
 (async function(){
   try{await Promise.race([Promise.all([document.fonts.load('700 80px "Gowun Dodum"','雲書學堂閣基礎魔法靈藥溫和寮體力勅令符天地玄黃第一講藥草園天下大將軍地女'),document.fonts.load('30px "Gowun Dodum"','가나다 마법')]),new Promise(r=>setTimeout(r,2500))]);}catch(e){}
-  try{for(const s of ['core.js','avatars.js','wardrobe.js','emotes.js','pets.js','hakdang-ui.js','spaces.js','sound.js','prologue.js','app.js','profile.js','letters.js','social.js','garden.js','quotes.js','campus.js']){await new Promise((res,rej)=>{const el=document.createElement('script');el.src=s+'?v=1123storybook3';el.onload=res;el.onerror=()=>rej(new Error(s+' 불러오기 실패'));document.body.appendChild(el);});}}
+  try{for(const s of ['core.js','avatars.js','wardrobe.js','emotes.js','pets.js','hakdang-ui.js','spaces.js','sound.js','prologue.js','app.js','profile.js','letters.js','social.js','garden.js','quotes.js','campus.js']){await new Promise((res,rej)=>{const el=document.createElement('script');el.src=s+'?v=1123village';el.onload=res;el.onerror=()=>rej(new Error(s+' 불러오기 실패'));document.body.appendChild(el);});}}
   catch(e){document.getElementById('loadTxt').textContent='학당을 열지 못했어요: '+e.message;}
 })();
 window.addEventListener('error',e=>{const l=document.getElementById('loadTxt');if(l)l.textContent='오류: '+e.message;});
