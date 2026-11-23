@@ -4,6 +4,8 @@ const ST={look:lookParse(LS.get('look','')),space:'campus',pet:LS.get('pet','non
 function curMonth(){return ST.seasonPick==='auto'?new Date().getMonth()+1:+ST.seasonPick;}
 function curTod(){return ST.todPick==='auto'?autoTod():ST.todPick;}
 if(ST.avatar==='shiba'){ST.avatar='sapsal';LS.set('avatar','sapsal');}
+// Restore a valid avatar before startup/UI reads it; keep all other saved student data intact.
+if(ST.avatar && !AVMAP[ST.avatar]){LS.set('avatarPriorUnknown',ST.avatar);ST.avatar='girl';LS.set('avatar','girl');}
 /* ---------- real weather (Open-Meteo, no key) ---------- */
 const CITIES={'서울':[37.5665,126.978],'인천':[37.456,126.705],'수원':[37.263,127.029],'천안':[36.815,127.114],'아산':[36.79,127.002],'청양':[36.459,126.802],'대전':[36.351,127.385],'대구':[35.871,128.601],'광주':[35.16,126.851],'부산':[35.18,129.076],'강릉':[37.752,128.876],'제주':[33.499,126.531]};
 let WX=LS.get('wxCache',null);ST.wxPick=LS.get('wxPick','auto');
@@ -50,7 +52,7 @@ const fmtClock=ms=>{const s=Math.max(0,Math.floor(ms/1000)),h=Math.floor(s/3600)
 const myClock=makeGlassClock();scene.add(myClock.sprite);
 const myLabel=makeLabel('나',{bg:'rgba(255,226,180,.95)',line:'rgba(200,120,60,.9)',fg:'#6a3010'});scene.add(myLabel.sprite);
 const myBubble=makeBubble();scene.add(myBubble.sprite);
-function setAvatar(id){const p=me.root.position.clone(),r=me.root.rotation.y;scene.remove(me.root);me=makeAvatar(id,ST.look);me.root.position.copy(p);me.root.rotation.y=r;scene.add(me.root);ST.avatar=id;LS.set('avatar',id);saveMember();updateMe();pushPresence(true);if(ST.sitting>=0)placeOnSeat();}
+function setAvatar(id){if(!AVMAP[id])id='girl';const p=me.root.position.clone(),r=me.root.rotation.y;scene.remove(me.root);me=makeAvatar(id,ST.look);me.root.position.copy(p);me.root.rotation.y=r;scene.add(me.root);ST.avatar=id;LS.set('avatar',id);saveMember();updateMe();pushPresence(true);if(ST.sitting>=0)placeOnSeat();}
 
 /* ---------- spaces ---------- */
 let SP=null;const cache={};
@@ -287,17 +289,25 @@ function openSheet(id){closeSheets();if(id==='books'){recTab='books';id='records
 function closeSheets(){$$('.modal').forEach(m=>m.classList.remove('show'));}
 $$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m||e.target.closest('[data-close]'))closeSheets();else if(e.target.closest('[data-back]'))openSheet('menu');}));
 $('#menuBtn').addEventListener('click',()=>openSheet('menu'));
+document.querySelectorAll('.featureShortcut [data-open]').forEach(b=>b.addEventListener('click',()=>openSheet(b.dataset.open)));
 $$('#menuGrid [data-open]').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.open==='records')recTab='me';openSheet(b.dataset.open);}));
-function updateMe(){const a=AVMAP[ST.avatar||'girl'];const im=thumbOf('av',a.id,a.dragonColor?ST.look:null);$('#meEmo').innerHTML=im?`<img src="${im}" alt="${esc(a.name)} 캐릭터 얼굴">`:a.emo;$('#meNick').textContent=ST.nick||'이름 없는 학생';$('#meAv').textContent=a.name+(a.noGat?'':' · 갓 착용');}
+function avatarUsesLook(a){return !!(a&&(a.dragonColor||a.type==='dino'));}
+function updateMe(){const a=AVMAP[ST.avatar]||AVMAP.girl||AVATARS[0];if(!a)return;const im=thumbOf('av',a.id,avatarUsesLook(a)?ST.look:null);$('#meEmo').innerHTML=im?`<img src="${im}" alt="${esc(a.name)} 캐릭터 얼굴">`:a.emo;$('#meNick').textContent=ST.nick||'이름 없는 학생';$('#meAv').textContent=a.name+((a.noGat||a.type==='dino')?'':' · 갓 착용');}
 function avColorRow(key,label){const cur=(ST.look.c&&ST.look.c[key])||0;return `<div class="cRow"><span>${label}</span><div class="cSw">${PALETTE.map((p,i)=>`<button data-avc="${key}" data-ci="${i}" class="${i===cur?'on':''}${i?'':' def'}" title="${p[0]}" style="${i?`background:#${p[1].toString(16).padStart(6,'0')}`:''}"></button>`).join('')}</div></div>`;}
+function dinosaurPicker(){const cur=AVMAP[ST.avatar||'girl'];if(!cur||cur.type!=='dino')return '';
+ const all=AVATARS.filter(x=>x.type==='dino');
+ return `<div class="sec">공룡 종류 <small>기본은 브라키오사우루스 · 다른 공룡도 선택할 수 있어요</small></div>`+
+ `<div class="dinoOptions">${all.map(d=>{const im=thumbOf('av',d.id);return `<button type="button" data-dino="${d.id}" class="${d.id===cur.id?'on':''}">${im?`<img src="${im}" alt="">`:'<span>🦕</span>'}<small>${d.name}</small></button>`;}).join('')}</div>`;}
 function dragonColorPanel(){const a=AVMAP[ST.avatar||'girl'];if(!a||!a.dragonColor)return '';const rows=a.dragonStyle==='west'?[['av','몸 색'],['av2','배 · 날개 색']]:[['av','몸 색'],['av2','배 · 뿔 색']];return `<div class="sec">용 색 고르기 <small>용 캐릭터에서만 보여요</small></div>${rows.map(r=>avColorRow(r[0],r[1])).join('')}`;}
+function dinosaurColorPanel(){const a=AVMAP[ST.avatar||'girl'];if(!a||a.type!=='dino')return '';const nm={brachio:'배 색',trike:'배 · 프릴 색',stego:'배 · 등판 색',rex:'배 색',anky:'배 · 등갑 색'}[a.species||'brachio']||'보조 색';const rows=[['av','몸 색'],['av2',nm]];return `<div class="sec">공룡 색 고르기 <small>공룡 캐릭터에서만 보여요</small></div>${rows.map(r=>avColorRow(r[0],r[1])).join('')}`;}
 function ensureAfter(anchorId,boxId){const a=document.getElementById(anchorId);if(!a)return null;let b=document.getElementById(boxId);if(!b){b=document.createElement('div');b.id=boxId;a.insertAdjacentElement('afterend',b);}return b;}
-function renderAvatarColorBoxes(){const h=dragonColorPanel();const b1=ensureAfter('avGrid','avColorBox');if(b1)b1.innerHTML=h;const b2=ensureAfter('introAv','introAvColorBox');if(b2)b2.innerHTML=h;}
-function renderAvatars(){const html=AVATARS.map(a=>{const im=thumbOf('av',a.id,a.dragonColor?ST.look:null);return `<button data-av="${a.id}" class="${a.id===(ST.avatar||'girl')?'on':''}${a.god?' god':''}">${im?`<img src="${im}" alt="">`:`<span>${a.emo}</span>`}${a.name}</button>`;}).join('');const pg=$('#petGrid');if(pg)pg.innerHTML=PETS.map(p=>{const im=p.id==='none'?'':thumbOf('pet',p.id);return `<button data-pet="${p.id}" class="${p.id===(ST.pet||'none')?'on':''}">${im?`<img src="${im}" alt="">`:'<span>🚶</span>'}${p.name}${p.desc?`<small>${p.desc}</small>`:''}</button>`;}).join('');$('#avGrid').innerHTML=html;const ia=$('#introAv');if(ia)ia.innerHTML=html;renderAvatarColorBoxes();}
+function renderAvatarColorBoxes(){const h=dragonColorPanel()+dinosaurColorPanel()+dinosaurPicker();const b1=ensureAfter('avGrid','avColorBox');if(b1)b1.innerHTML=h;const b2=ensureAfter('introAv','introAvColorBox');if(b2)b2.innerHTML=h;}
+function renderAvatars(){const html=AVATARS.filter(a=>!a.dinoVariant).map(a=>{const im=thumbOf('av',a.id,avatarUsesLook(a)?ST.look:null);return `<button data-av="${a.id}" class="${a.id===(ST.avatar||'girl')?'on':''}${a.god?' god':''}">${im?`<img src="${im}" alt="">`:`<span>${a.emo}</span>`}${a.name}</button>`;}).join('');const pg=$('#petGrid');if(pg)pg.innerHTML=PETS.map(p=>{const im=p.id==='none'?'':thumbOf('pet',p.id);return `<button data-pet="${p.id}" class="${p.id===(ST.pet||'none')?'on':''}">${im?`<img src="${im}" alt="">`:'<span>🚶</span>'}${p.name}${p.desc?`<small>${p.desc}</small>`:''}</button>`;}).join('');$('#avGrid').innerHTML=html;const ia=$('#introAv');if(ia)ia.innerHTML=html;renderAvatarColorBoxes();}
 $('#nickSave').addEventListener('click',()=>{const v=$('#nickEdit').value.trim().slice(0,12);if(!v){$('#nickEdit').focus();return;}ST.nick=v;LS.set('nick',v);saveMember();pushPresence(true);updateMe();toast('닉네임을 「'+esc(v)+'」(으)로 바꿨어요');});
 $('#avGrid').addEventListener('click',e=>{const b=e.target.closest('[data-av]');if(!b)return;setAvatar(b.dataset.av);renderAvatars();toast(AVMAP[b.dataset.av].name+'(으)로 변신했어요');});
 $('#petGrid').addEventListener('click',e=>{const b=e.target.closest('[data-pet]');if(!b)return;setPet(b.dataset.pet);renderAvatars();toast(b.dataset.pet==='none'?'혼자 다니기로 했어요':PETMAP[b.dataset.pet].name+'이(가) 졸졸 따라와요');});
 $('#introAv').addEventListener('click',e=>{const b=e.target.closest('[data-av]');if(!b)return;ST.avatar=b.dataset.av;setAvatar(b.dataset.av);renderAvatars();});
+document.addEventListener('click',e=>{const d=e.target.closest('[data-dino]');if(!d)return;const id=d.dataset.dino;if(!AVMAP[id]||AVMAP[id].type!=='dino')return;setAvatar(id);renderAvatars();});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-avc]');if(!b)return;const L=Object.assign({},ST.look,{a:ST.look.a.slice(),c:Object.assign({},ST.look.c||{})});const i=+b.dataset.ci;if(i>0)L.c[b.dataset.avc]=i;else delete L.c[b.dataset.avc];setLook(L);renderAvatars();});
 $('#mapList').addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(!b)return;closeSheets();const id=b.dataset.go;if(id===ST.space)return;enterSpace(id);});
 const mSel=$('#seasonSel');mSel.innerHTML='<option value="auto">자동 (오늘 날짜)</option>'+Object.entries(MONTHS).map(([m,v])=>`<option value="${m}">${m}월 · ${v[1]}</option>`).join('');mSel.value=ST.seasonPick;
@@ -362,6 +372,7 @@ function renderColors(){const el=$('#wCol');if(!el)return;const L=ST.look;let h=
   if(wTab==='top')h=swRow('t','상의 색');else if(wTab==='bottom')h=swRow('b','하의 색');else if(wTab==='hat')h=L.h==='none'?'':swRow('h','모자 색');
   else if(wTab==='acc')h=L.a.length?L.a.map(a=>swRow(a,(ACCS.find(x=>x[0]===a)||['',''])[1])).join(''):'<div class="empty">소품을 고르면 여기서 색을 바꿀 수 있어요</div>';
   const av=AVMAP[ST.avatar||'girl']; if(av&&av.dragonColor){const extra=(av.dragonStyle==='west'?[['av','몸 색'],['av2','배 · 날개 색']]:[['av','몸 색'],['av2','배 · 뿔 색']]).map(r=>swRow(r[0],r[1])).join(''); h=(h?h:'<div class="empty">옷이나 소품을 고르지 않아도 용 색은 바꿀 수 있어요</div>') + extra;}
+  if(av&&av.type==='dino'){const nm={brachio:'배 색',trike:'배 · 프릴 색',stego:'배 · 등판 색',rex:'배 색',anky:'배 · 등갑 색'}[av.species||'brachio']||'보조 색';const extra=[['av','몸 색'],['av2',nm]].map(r=>swRow(r[0],r[1])).join(''); h=(h?h:'<div class="empty">옷을 고르지 않아도 공룡 색은 바꿀 수 있어요</div>') + extra;}
   el.innerHTML=h?`<div class="sec">색 고르기 <small>맨 앞 동그라미는 기본 색</small></div>${h}`:'';}
 function setLook(L){ST.look=L;LS.set('look',lookStr(L));setAvatar(ST.avatar||'girl');renderWardrobe();renderAvatarColorBoxes();}
 $('#wTabs').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(!b)return;wTab=b.dataset.t;renderWardrobe();});

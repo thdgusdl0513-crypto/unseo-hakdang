@@ -12,10 +12,10 @@ const KINDS={
  monstera:{n:'몬스테라',i:'🍃',d:'자라면 잎에 구멍이 숭숭'},
  cactus:{n:'선인장',i:'🌵',d:'다 자라면 꽃이 피어요'},
  sansevieria:{n:'산세베리아',i:'🗡️',d:'쭉쭉 뻗는 칼 모양 잎'}};
-const POTS={basic:'도토리 토분',ongi:'포근 옹기',celadon:'새싹 청자',round:'동글 낮잠 화분',square:'작은 벽돌 화분',basket:'피크닉 라탄 바구니'};
+const POTS={basic:'토분',ongi:'옹기',celadon:'청자',round:'동글 화분',square:'네모 화분',basket:'라탄 바구니'};
 const POTFIX={ongi:1,celadon:1,basket:1};
 const PCOL=[['청','#2a62a8'],['적','#c8392f'],['황','#e3b021'],['백','#f4f0e4'],['흑','#2c2c31'],['토','#c8743f'],['분홍','#f2b0c2'],['민트','#9fd4bd'],['라벤더','#b9a6e0'],['하늘','#8fc0e6']];
-const DECO={saucer:'🍽️ 찻잔 받침',ribbon:'🎀 리본',heart:'💗 하트',tag:'🏷️ 이름표',pebble:'🪨 징검돌',butterfly:'🦋 나비',ladybug:'🐞 무당벌레',lights:'✨ 반딧불 전구',cat:'🐱 고양이 장식'};
+const DECO={saucer:'🍽️ 받침',ribbon:'🎀 리본',heart:'💗 하트',tag:'🏷️ 이름표',pebble:'🪨 조약돌',butterfly:'🦋 나비',ladybug:'🐞 무당벌레',lights:'✨ 꼬마전구',cat:'🐱 고양이'};
 const MAXDECO=4;
 const TALK=['고마워요! 💚','쑥쑥 자랄게요!','오늘도 같이 공부해요 📖','햇살이 좋아요 ☀️','간지러워요~ 😆','물맛 최고!','책 읽어 주면 더 잘 자라요','헤헤 🌱'];
 /* ---------- 저장 ---------- */

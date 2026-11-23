@@ -94,7 +94,7 @@ function petFollow(P,owner,dt,t,bounds){if(!P)return;const o=owner.position,ry=o
 
 /* small 3D thumbnails for the pickers */
 const THUMBS={};let thumbR=null;
-function thumbOf(kind,id,look){const isDragon=kind==='av'&&!!(AVMAP[id]&&AVMAP[id].dragonColor);const key=kind+':'+id+(isDragon&&look?'|'+lookStr(look):'');if(THUMBS[key]!==undefined)return THUMBS[key];
+function thumbOf(kind,id,look){const isDragon=kind==='av'&&!!(AVMAP[id]&&(AVMAP[id].dragonColor||AVMAP[id].type==='dino'));const key=kind+':'+id+(isDragon&&look?'|'+lookStr(look):'');if(THUMBS[key]!==undefined)return THUMBS[key];
   try{if(!thumbR){thumbR=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});thumbR.setPixelRatio(1);thumbR.setSize(160,160);}
     const sc=new THREE.Scene();sc.add(new THREE.HemisphereLight(0xfff4e0,0x8a6a4a,1.05));const dl=new THREE.DirectionalLight(0xffffff,.7);dl.position.set(2,4,-5);sc.add(dl);
     const obj=kind==='pet'?makePet(id):makeAvatar(id,isDragon?look:null);if(!obj){THUMBS[key]='';return '';}sc.add(obj.root);if(obj.setFace)obj.setFace('smile');

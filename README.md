@@ -60,3 +60,11 @@ GitHub에 올리고 Vercel로 배포하면 `○○.vercel.app` 주소로 함께 
 - 닉네임과 기록은 기기(브라우저)마다 따로 기억돼요. 같은 사람이 다른 기기로 들어오면 새 학생으로 시작해요.
 - 기숙사 대화는 접속한 사람끼리만 실시간으로 보이고, 지난 대화는 화면에 다시 불러오지 않아요.
 - Firebase 무료 요금제(Spark)는 친구 몇 명이 쓰기에 충분해요.
+
+
+## SD 캐릭터 2단계 리팩토링 (2026-11-23)
+- `avatars.js`는 1단계 공통 베이스(`buildSDBase`, `createSDFaceTexture`, `attachSDFace`)와 2단계 종족별 파츠(`sdBuildSpecies`)로 구성됩니다.
+- 기존 28종 ID, `makeAvatar` / `animateAvatar` / `faceTick` 및 `A.head`, `A.arms`, `A.legs`, `A.fit`, `A.garb`를 유지합니다.
+- `pets.js`의 썸네일 캐시 키는 공룡 색상 변경도 반영합니다.
+- 기존 화분 가꾸기, 미니게임, Firebase 설정을 삭제하지 않았습니다.
+- 체크: 문법, 28종 모델 생성과 표정·의상 호출을 모의 3D 환경에서 확인했습니다. 실제 모바일 WebGL 외형은 배포 전 확인이 필요합니다.
