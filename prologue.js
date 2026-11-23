@@ -5,7 +5,7 @@ const css=`
 #pro{position:fixed;inset:0;z-index:70;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 20%,#3a2a4a 0%,#1a1220 70%,#0c0810 100%);opacity:0;transition:opacity .45s;font-family:'Gowun Dodum',sans-serif;color:#2a1c14;-webkit-user-select:none;user-select:none;touch-action:pan-y}
 #pro.on{opacity:1}
 #pro .top{position:absolute;top:calc(12px + env(safe-area-inset-top));left:14px;right:14px;display:flex;justify-content:space-between;align-items:center;color:#f6e8d0;font-size:13px}
-#pro .top b{font-family:'Nanum Myeongjo',serif;letter-spacing:.12em;font-size:14px}
+#pro .top b{font-family:'Gowun Dodum',serif;letter-spacing:.12em;font-size:14px}
 #pro .voice:not(.lit){animation:glow 1.4s ease-in-out infinite}
 #pro .skip.lit{background:#f2d79a;color:#2a1c14;border-color:#f2d79a}
 #pro .page.cur .voicehint{animation:glow 1.2s infinite}
@@ -38,7 +38,7 @@ const css=`
 #pro .lan{position:absolute;top:-4px;width:26px;height:40px;border-radius:40%;background:radial-gradient(#ffe7a0,#e87a3a);box-shadow:0 0 22px #ffb860;transform-origin:50% -20px}
 #pro .page.cur .lan{animation:sw 2.8s ease-in-out infinite}
 @keyframes sw{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg)}}
-#pro .title{position:absolute;left:0;right:0;top:20%;text-align:center;color:#fff4e2;font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:34px;letter-spacing:.2em;text-shadow:0 3px 14px rgba(40,10,0,.6)}
+#pro .title{position:absolute;left:0;right:0;top:20%;text-align:center;color:#fff4e2;font-family:'Gowun Dodum',serif;font-weight:800;font-size:34px;letter-spacing:.2em;text-shadow:0 3px 14px rgba(40,10,0,.6)}
 #pro .title small{display:block;font-size:13px;letter-spacing:.3em;font-weight:400;opacity:.85;margin-top:6px}
 #pro .tap{position:absolute;width:56px;height:56px;border-radius:50%;border:4px solid #fff;opacity:0;z-index:3}
 #pro .page.cur .tap{animation:rip 1.6s ease-out infinite}
@@ -58,7 +58,7 @@ const css=`
 #pro .ui{position:absolute;width:52px;height:52px;border-radius:50%;background:#fbf3e2;border:3px solid #2a1c14;display:grid;place-items:center;font-size:26px;z-index:3;box-shadow:2px 3px 0 rgba(0,0,0,.3)}
 #pro .page.cur .glow{animation:glow 1.2s ease-in-out infinite}
 @keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(255,210,90,.0),2px 3px 0 rgba(0,0,0,.3)}50%{box-shadow:0 0 0 10px rgba(255,210,90,.55),2px 3px 0 rgba(0,0,0,.3)}}
-#pro .seal{position:absolute;width:84px;height:84px;border-radius:50%;border:6px double #c4384a;color:#c4384a;font:800 40px 'Nanum Myeongjo',serif;display:grid;place-items:center;transform:scale(2.2) rotate(-12deg);opacity:0;z-index:4;background:rgba(255,255,255,.4)}
+#pro .seal{position:absolute;width:84px;height:84px;border-radius:50%;border:6px double #c4384a;color:#c4384a;font:800 40px 'Gowun Dodum',serif;display:grid;place-items:center;transform:scale(2.2) rotate(-12deg);opacity:0;z-index:4;background:rgba(255,255,255,.4)}
 #pro .page.cur .seal{animation:stamp .5s cubic-bezier(.3,1.5,.5,1) forwards;animation-delay:1.1s}
 @keyframes stamp{to{transform:scale(1) rotate(-12deg);opacity:1}}
 #pro .conf{position:absolute;width:8px;height:14px;top:-20px;opacity:0;z-index:5}

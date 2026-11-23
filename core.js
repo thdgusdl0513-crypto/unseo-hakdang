@@ -21,7 +21,7 @@ const hemi=new THREE.HemisphereLight(0xa8b8c0,0x4a3020,.7);scene.add(hemi);
 const sun=new THREE.DirectionalLight(0xffe2b8,.8);sun.position.set(-14,26,10);scene.add(sun);
 
 /* ---------- textures ---------- */
-const F='"Nanum Myeongjo",serif', FS='"Gowun Batang",serif';
+const F='"Gowun Dodum",serif', FS='"Gowun Dodum",serif';
 function ctex(w,h,draw,rep){const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');draw(g,w,h);const t=new THREE.CanvasTexture(c);t.anisotropy=4;if(rep){t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(rep[0],rep[1]);}return t;}
 const TEX={};
 TEX.glow=ctex(128,128,g=>{const r=g.createRadialGradient(64,64,0,64,64,64);r.addColorStop(0,'rgba(255,255,255,1)');r.addColorStop(.22,'rgba(255,255,255,.6)');r.addColorStop(.55,'rgba(255,255,255,.15)');r.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=r;g.fillRect(0,0,128,128);});

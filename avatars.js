@@ -29,56 +29,30 @@ const FACES=[['base','🙂','기본'],['smile','😊','웃음'],['joy','🤩','�
 
 /* ---------- drawn faces ---------- */
 const FACE_CACHE={};
-function faceTex(cfg,expr){const key=cfg.id+'|'+expr;if(FACE_CACHE[key])return FACE_CACHE[key];
-  const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');g.lineCap=g.lineJoin='round';
-  const K=cfg.type==='human'?'human':cfg.type==='beast'?cfg.sp:cfg.type==='pet'?cfg.k:cfg.type;
-  const ink=K==='human'?'#2a1c16':'#33241c';const big=K==='human';
-  const ex={human:40,cat:36,dog:36,frog:46,turtle:34,bird:24,dragon:38,totem:44,goblin:38}[K],ey={human:132,cat:122,dog:118,frog:104,turtle:124,bird:118,dragon:112,totem:108,goblin:124}[K];
-  const er=K==='totem'?[13,15]:K==='goblin'?[12,14]:big?[14,18]:K==='bird'?[7,8]:cfg.mask==='sapsal'?[8,10]:[10,12];
-  // markings
-  if(cfg.mask==='corgi'){g.fillStyle='#fff';g.beginPath();g.ellipse(128,182,72,52,0,0,PI*2);g.fill();g.beginPath();g.moveTo(118,60);g.quadraticCurveTo(128,40,138,60);g.lineTo(150,150);g.lineTo(106,150);g.closePath();g.fill();}
-  if(cfg.mask==='shiba'){g.fillStyle='#fbefe0';g.beginPath();g.ellipse(128,178,66,44,0,0,PI*2);g.fill();[-1,1].forEach(s=>{g.beginPath();g.ellipse(128+s*ex,ey-26,9,6,0,0,PI*2);g.fill();});}
-  if(cfg.mask==='jindo'){g.fillStyle='#ecd6b4';g.beginPath();g.ellipse(128,176,52,34,0,0,PI*2);g.fill();}
-  if(cfg.stripe){g.strokeStyle='#d07a2a';g.lineWidth=6;[-16,0,16].forEach(dx=>{g.beginPath();g.moveTo(128+dx,40);g.lineTo(128+dx*.8,72);g.stroke();});}
-  if(cfg.mask==='tuxedo'){g.fillStyle='#fff';g.beginPath();g.ellipse(128,186,70,50,0,0,PI*2);g.fill();g.beginPath();g.moveTo(122,70);g.quadraticCurveTo(128,58,134,70);g.lineTo(146,150);g.lineTo(110,150);g.closePath();g.fill();}
-  if(cfg.mask==='tiger'){g.fillStyle='#3a3036';[[-14,40,6,26],[0,34,7,30],[14,40,6,26]].forEach(s=>{g.beginPath();g.ellipse(128+s[0],s[1]+s[3]/2,s[2],s[3]/2,0,0,PI*2);g.fill();});[-1,1].forEach(s=>[0,16].forEach(dy=>{g.beginPath();g.ellipse(128+s*96,150+dy,20,4.5,s*.25,0,PI*2);g.fill();}));}
-  if(K==='totem'){g.fillStyle=cfg.blushC||'#f08a8a';[-1,1].forEach(s=>{g.beginPath();g.ellipse(128+s*84,150,18,11,0,0,PI*2);g.fill();});g.strokeStyle='#3a2416';g.lineWidth=7;[-1,1].forEach(s=>{g.beginPath();g.moveTo(128+s*20,ey-36);g.quadraticCurveTo(128+s*46,ey-50,128+s*72,ey-34);g.stroke();});}
-  if(K==='goblin'){g.strokeStyle='#3a2416';g.lineWidth=8;[-1,1].forEach(s=>{g.beginPath();g.moveTo(128+s*18,ey-30);g.lineTo(128+s*58,ey-38);g.stroke();});}
-  // blush
-  g.fillStyle=expr==='shy'?'#f08a96':'#f7b8bc';[-1,1].forEach(s=>{g.beginPath();g.ellipse(128+s*(ex+(big?26:22)),ey+(big?30:26),big?20:16,big?11:9,0,0,PI*2);g.fill();});
-  if(expr==='shy'){g.strokeStyle='#d8606e';g.lineWidth=2.5;[-1,1].forEach(s=>{for(let k=0;k<3;k++){const x=128+s*(ex+18)+k*8-8;g.beginPath();g.moveTo(x,ey+24);g.lineTo(x-5,ey+36);g.stroke();}});}
-  // eyes
-  g.fillStyle=ink;g.strokeStyle=ink;g.lineWidth=big?6:5;
-  const dotEye=(x,scale)=>{scale=scale||1;if(cfg.eye){g.fillStyle=cfg.eye;g.beginPath();g.ellipse(x,ey,er[0]*1.15*scale,er[1]*1.15*scale,0,0,PI*2);g.fill();g.fillStyle=ink;g.beginPath();g.ellipse(x,ey,er[0]*.45*scale,er[1]*.95*scale,0,0,PI*2);g.fill();}
-    else{if(cfg.eyeRing||K==='totem'){g.fillStyle='#fff';g.beginPath();g.ellipse(x,ey,er[0]*1.6*scale,er[1]*1.5*scale,0,0,PI*2);g.fill();}g.fillStyle=ink;g.beginPath();g.ellipse(x,ey,er[0]*scale,er[1]*scale,0,0,PI*2);g.fill();}
-    g.fillStyle='#fff';g.beginPath();g.arc(x+er[0]*.35*scale,ey-er[1]*.4*scale,Math.max(2.5,er[0]*.35*scale),0,PI*2);g.fill();if(big){g.beginPath();g.arc(x-er[0]*.35,ey+er[1]*.45,2.5,0,PI*2);g.fill();}g.fillStyle=ink;};
-  [-1,1].forEach(s=>{const x=128+s*ex;
-    if(expr==='base')dotEye(x);
-    else if(expr==='wow')dotEye(x,1.3);
-    else if(expr==='joy'){dotEye(x,1.15);g.fillStyle='#fff8d0';star(g,x+er[0]*.1,ey-er[1]*.15,big?7:4.5);g.fillStyle=ink;}
-    else if(expr==='smile'||expr==='blink'&&false){g.beginPath();g.arc(x,ey+4,er[0]*.95,PI*1.1,PI*1.9);g.stroke();}
-    else if(expr==='blink'){g.beginPath();g.arc(x,ey-er[1]*.6,er[0]*.95,PI*.15,PI*.85);g.stroke();}
-    else if(expr==='sleepy'){g.beginPath();g.moveTo(x-er[0],ey+2);g.quadraticCurveTo(x,ey+8,x+er[0],ey+2);g.stroke();}
-    else if(expr==='shy'){g.beginPath();g.moveTo(x-s*er[0]*.9,ey-er[1]*.6);g.lineTo(x+s*er[0]*.7,ey);g.lineTo(x-s*er[0]*.9,ey+er[1]*.6);g.stroke();}
-    else if(expr==='focus'){g.save();g.beginPath();g.rect(x-er[0]*1.5,ey,er[0]*3,er[1]*2);g.clip();dotEye(x);g.restore();g.beginPath();g.moveTo(x-er[0]*1.1,ey+1);g.lineTo(x+er[0]*1.1,ey+1);g.stroke();}});
-  if(expr==='sleepy'){g.font='bold 30px sans-serif';g.fillStyle='#5a6ea0';g.fillText('z',196,70);g.font='bold 20px sans-serif';g.fillText('z',214,48);}
-  // nose / mouth
-  const my={human:176,cat:160,dog:162,frog:150,turtle:166,bird:150,dragon:160,totem:178,goblin:178}[K];
-  g.strokeStyle=ink;g.fillStyle=ink;g.lineWidth=4.5;
-  const open=expr==='joy'||expr==='smile'&&K!=='human';
-  if(K==='dog'){g.beginPath();g.ellipse(128,my-14,12,8,0,0,PI*2);g.fill();}
-  if(K==='cat'){g.fillStyle='#e88a9a';g.beginPath();g.moveTo(121,my-14);g.lineTo(135,my-14);g.lineTo(128,my-6);g.closePath();g.fill();g.fillStyle=ink;g.strokeStyle='rgba(60,40,30,.55)';g.lineWidth=2.5;[-1,1].forEach(s=>[0,10].forEach(dy=>{g.beginPath();g.moveTo(128+s*34,my-8+dy);g.lineTo(128+s*70,my-14+dy*1.4);g.stroke();}));g.strokeStyle=ink;g.lineWidth=4.5;}
-  if(K==='dragon'){[-1,1].forEach(s=>{g.beginPath();g.ellipse(128+s*12,my-18,4,5,0,0,PI*2);g.fill();});}
-  if(K==='bird'){g.fillStyle=cfg.beak||'#3a2a20';g.beginPath();g.moveTo(118,my-16);g.lineTo(138,my-16);g.lineTo(128,my-2);g.closePath();g.fill();}
-  else if(expr==='wow'){g.beginPath();g.ellipse(128,my+2,8,10,0,0,PI*2);g.fill();}
-  else if(K==='frog'){g.lineWidth=6;g.beginPath();g.moveTo(60,my-6);g.quadraticCurveTo(128,my+(open?44:28),196,my-6);g.stroke();if(open){g.fillStyle='#e86a7a';g.beginPath();g.moveTo(80,my+2);g.quadraticCurveTo(128,my+38,176,my+2);g.closePath();g.fill();}}
-  else if(K==='cat'||K==='dog'){if(open){g.fillStyle='#e86a7a';g.beginPath();g.arc(128,my+2,12,0,PI);g.fill();}g.beginPath();g.arc(118,my,10,PI*.05,PI*.95);g.stroke();g.beginPath();g.arc(138,my,10,PI*.05,PI*.95);g.stroke();}
-  else if(K==='totem'||K==='goblin'){g.fillStyle='#8a2a2a';g.beginPath();g.moveTo(84,my-8);g.quadraticCurveTo(128,my+(open?46:30),172,my-8);g.closePath();g.fill();g.fillStyle='#fff';[-1,1].forEach(s=>{g.beginPath();g.moveTo(128+s*20,my-6);g.lineTo(128+s*30,my-6);g.lineTo(128+s*25,my+8);g.closePath();g.fill();});}
-  else if(K==='dragon'){if(open){g.fillStyle='#e86a7a';g.beginPath();g.arc(128,my+2,14,0,PI);g.fill();}g.beginPath();g.arc(128,my-8,22,PI*.2,PI*.8);g.stroke();}
-  else if(K==='turtle'){g.fillStyle='#e8707a';g.beginPath();g.ellipse(128,my,open?13:10,open?11:7,0,0,PI*2);g.fill();}
-  else{ if(expr==='joy'){g.fillStyle='#d8606a';g.beginPath();g.arc(128,my-4,14,0,PI);g.fill();}else if(expr==='shy'||expr==='sleepy'||expr==='focus'){g.beginPath();g.moveTo(120,my);g.lineTo(136,my);g.stroke();}else{g.beginPath();g.arc(128,my-8,10,PI*.2,PI*.8);g.stroke();}}
-  if(cfg.mask==='sapsal'){g.fillStyle='#ef9a86';g.beginPath();g.ellipse(128,my+16,11,15,0,0,PI*2);g.fill();g.strokeStyle='rgba(200,110,96,.7)';g.lineWidth=2;g.beginPath();g.moveTo(128,my+6);g.lineTo(128,my+20);g.stroke();}
-  const t=new THREE.CanvasTexture(c);t.anisotropy=4;FACE_CACHE[key]=t;return t;}
+/* 손그림 거북이의 점눈·말랑한 볼·작은 고양이 미소를 공유하는 새로운 얼굴 질감 */
+function faceTex(cfg,expr){
+ const key='village-2026|'+cfg.id+'|'+expr;if(FACE_CACHE[key])return FACE_CACHE[key];
+ const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');g.lineCap='round';g.lineJoin='round';
+ const x0=128,ey=124,ex=42;const blush=expr==='shy'?'#ef9f9d':'#efb5a9';
+ for(const s of [-1,1]){
+  const cx=x0+s*78,cy=157;const rg=g.createRadialGradient(cx,cy,3,cx,cy,37);rg.addColorStop(0,expr==='shy'?'rgba(242,140,144,.67)':'rgba(246,172,157,.54)');rg.addColorStop(.58,'rgba(246,180,157,.33)');rg.addColorStop(1,'rgba(246,180,157,0)');g.fillStyle=rg;g.beginPath();g.arc(cx,cy,37,0,Math.PI*2);g.fill();
+ }
+ g.fillStyle='#292922';g.strokeStyle='#292922';g.lineWidth=7;
+ for(const s of [-1,1]){
+  const x=x0+s*ex;
+  if(expr==='smile'||expr==='sleepy'||expr==='shy'){
+   g.beginPath();g.arc(x,ey+2,10,Math.PI*1.1,Math.PI*1.9);g.stroke();
+  }else if(expr==='blink'){g.beginPath();g.moveTo(x-9,ey+2);g.quadraticCurveTo(x,ey+7,x+9,ey+2);g.stroke();}
+  else{g.beginPath();g.ellipse(x,ey,10,12,0,0,Math.PI*2);g.fill();g.fillStyle='rgba(255,255,255,.8)';g.beginPath();g.arc(x+3,ey-4,2.1,0,Math.PI*2);g.fill();g.fillStyle='#292922';}
+ }
+ g.lineWidth=7.5;g.strokeStyle='#292922';g.beginPath();
+ if(expr==='wow'){g.fillStyle='#292922';g.ellipse(x0,168,9,11,0,0,Math.PI*2);g.fill();}
+ else if(expr==='joy'){g.fillStyle='#8f5751';g.ellipse(x0,166,17,13,0,0,Math.PI);g.fill();g.stroke();}
+ else{g.moveTo(100,166);g.bezierCurveTo(113,178,120,169,128,165);g.bezierCurveTo(137,176,146,175,156,162);g.stroke();}
+ if(cfg.stripe||cfg.tiger){g.lineWidth=5;g.strokeStyle=cfg.tiger?'rgba(76,83,84,.5)':'rgba(187,121,65,.45)';for(const dx of [-16,0,16]){g.beginPath();g.moveTo(128+dx,63);g.lineTo(128+dx*.7,81);g.stroke();}}
+ if(expr==='sleepy'){g.font='bold 25px sans-serif';g.fillStyle='#90a5b1';g.fillText('z',192,73);}
+ const t=new THREE.CanvasTexture(c);t.anisotropy=4;FACE_CACHE[key]=t;return t;
+}
 function star(g,x,y,r){g.beginPath();for(let i=0;i<10;i++){const a=i/10*PI*2-PI/2,rr=i%2?r*.45:r;g[i?'lineTo':'moveTo'](x+Math.cos(a)*rr,y+Math.sin(a)*rr);}g.closePath();g.fill();}
 function faceDecal(head,r,cfg,sx,sy,sz,lift){const geo=new THREE.SphereGeometry(r*1.022,36,26,PI*1.5-PI*.42,PI*.84,PI*.5-PI*.34,PI*.66);
   const m=new THREE.MeshToonMaterial({map:faceTex(cfg,'base'),alphaTest:.3,gradientMap:GRAD,emissive:0x2a2420});
@@ -188,6 +162,8 @@ function makeAvatar(id,look){if(id==='shiba')id='sapsal';const cfg=AVMAP[id]||AV
     const n0=B.children.length;const col=new THREE.Mesh(new THREE.TorusGeometry(.26,.04,6,20),IVORY);col.rotation.x=PI/2;col.position.y=.3;col.scale.set(1.3,1.3,1);B.add(col);
     A.garb=B.children.slice(n0);A.gat=makeGat(head,.42,.78,-.1);A.hop=true;avatarBook(A,.5,-.62);A.h=1.95;
     A.fit={y0:.24,y1:.66,r1:.55,r0:.4,neck:.62,bird:true,cy:.68,br:.54};A.headR=.52;A.headS=[1,.95,.95];}
+  // 모든 종족을 말랑한 동글 얼굴의 같은 마을 친구처럼 표현해요.
+  if(A.head){A.head.scale.multiplyScalar(cfg.type==='human'?1.05:1.075);}
   A.setFace=function(expr){if(!A.face||A.expr===expr)return;A.expr=expr;A.face.material.map=faceTex(cfg,expr);};
   if(typeof applyLook==='function'&&look)applyLook(A,look);
   return A;}

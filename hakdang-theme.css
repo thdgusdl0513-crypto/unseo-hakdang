@@ -1,0 +1,44 @@
+/* 학당 2026 가을 리디자인 · 모든 브라우저에서 읽기 쉬운 둥근 고딕 */
+:root{--paper:#fbf7ed;--paper2:#f2eadc;--ink:#443b33;--ink2:#776b60;--amber:#b98969;--amber2:#dba881;--teal:#6e9b8c;--rose:#d08b82;--shadow:0 12px 30px rgba(52,42,32,.16)}
+html,body,button,input,textarea,select{font-family:'Gowun Dodum','Apple SD Gothic Neo','Malgun Gothic',sans-serif!important;letter-spacing:-.015em}
+#intro h2,#bigTitle h1,.sh,.me-card b,.card h3,#chip b,#tmTime{font-family:'Gowun Dodum','Apple SD Gothic Neo',sans-serif!important;font-weight:700!important;letter-spacing:-.035em}
+.paper{background-color:var(--paper);background-image:radial-gradient(rgba(139,157,125,.065) 1px,transparent 1px);border-color:rgba(128,113,91,.28);box-shadow:var(--shadow)}
+.modal{background:rgba(44,52,43,.37)}
+.sheet{background:linear-gradient(155deg,#fffdf7,#f7f1e8)!important;border-color:rgba(121,110,87,.25);border-radius:28px 28px 0 0;box-shadow:0 -18px 55px rgba(35,39,32,.16)}
+#menu .sheet{padding:12px 14px max(24px,env(safe-area-inset-bottom));}
+#menu .sheet::before{content:'';display:block;height:150px;margin:0 0 13px;border-radius:20px;background:#dce6d7 url('hakdang-scene.webp') no-repeat center 44%;background-size:cover;box-shadow:inset 0 -12px 15px rgba(30,40,22,.11);}
+#menu .sheet .grip{position:sticky;top:0;z-index:2}
+#menu .sh{font-size:19px;color:#3d443c;margin:1px 4px 12px;}
+#menu .me-card{background:#fffdf6;border:1px solid rgba(133,157,121,.35);border-radius:19px;padding:9px 12px;min-height:76px;gap:13px;margin-bottom:12px;box-shadow:0 3px 10px rgba(71,86,56,.06)}
+#menu .me-card .av{display:grid;place-items:center;flex:none;width:60px;height:60px;border:1px solid #d3dec6;border-radius:50%;background:#e7efd9;overflow:hidden;line-height:0;font-size:0}
+#menu .me-card .av img{width:100%;height:100%;object-fit:cover;display:block;}
+#menu .me-card b{font-size:18px}
+#menu .me-card small{font-size:11.5px;display:block;margin-top:3px}
+#menuGrid{display:grid;grid-template-columns:1fr;gap:0;margin-top:2px;border:1px solid rgba(132,149,124,.22);border-radius:21px;background:rgba(255,255,255,.82);overflow:hidden;}
+#menuGrid button{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;position:relative;gap:13px;width:100%;min-height:56px;padding:8px 14px;border:0;border-radius:0;background:none;box-shadow:none;text-align:left;font-size:14.5px;font-weight:700;color:#4a453f;letter-spacing:-.01em}
+#menuGrid button:not(:last-child){border-bottom:1px solid rgba(120,127,105,.15)}
+#menuGrid button:hover,#menuGrid button:focus-visible{background:#f3f7ed}
+#menuGrid button:focus-visible{outline:2px solid #83a590;outline-offset:-2px}
+#menuGrid button::after{content:'›';color:#9da293;font-size:25px;line-height:1;position:absolute;right:14px;font-weight:400}
+#menuGrid button>span.menu-icon{width:37px;height:37px;flex:none;display:grid;place-items:center;border-radius:12px;background:#f7f2e8;font-size:0;line-height:0}
+#menuGrid button:nth-child(5n+2)>span.menu-icon{background:#eef5eb}
+#menuGrid button:nth-child(5n+4)>span.menu-icon{background:#f8eded}
+#menuGrid .hkd-svg{width:29px;height:29px;max-width:100%}
+#menuGrid button.on{background:#f0f6eb;border-color:rgba(121,154,120,.36)}
+#menuGrid button[hidden]{display:none!important}
+#menuGrid .tileDot,#menuGrid .ltB{position:absolute;right:36px;top:12px;z-index:1}
+#menuGrid button>em{font-style:normal;font-weight:700}
+#menuGrid button#sndTile>em{display:inline!important}
+#intro{background:linear-gradient(rgba(51,56,48,.24),rgba(44,50,42,.65)),url('hakdang-scene.webp') center/cover no-repeat!important;color:#fffaf2}
+#intro .seal{background:#f7f0d5;color:#547a5a;box-shadow:0 4px 25px rgba(0,0,0,.18);border-color:#eedcb4}
+#intro h2{font-size:34px;letter-spacing:.1em!important;text-shadow:0 2px 16px #37452c}
+#intro p{text-shadow:0 1px 8px #2d3b29}
+#intro .card,#intro .paper{background:rgba(255,251,239,.96)}
+#stage::after{content:'';position:absolute;inset:auto 0 0;z-index:1;height:115px;background:url('hakdang-flowers.svg') no-repeat left bottom/160px auto;opacity:.38;pointer-events:none}
+.avGrid button{border-color:rgba(128,156,123,.28);background:#fffdf7;border-radius:17px}
+.avGrid button.on{background:#eaf4e2;border:2px solid #86a78b}
+.avGrid button img{border-radius:16px;background:#eef2e6}
+#menu .me-card .av .hkd-fallback{width:100%;height:100%;}
+@media(min-width:800px){#menu .sheet{max-width:540px;max-height:94vh;max-height:94dvh;border-radius:26px;margin-bottom:3vh}}
+@media(max-height:700px){#menu .sheet::before{height:104px}}
+@media(prefers-reduced-motion:reduce){#menu .sheet{animation:none}}

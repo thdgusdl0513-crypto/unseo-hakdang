@@ -78,7 +78,7 @@ function tick(){if(!actx||!SND.on)return;const t=actx.currentTime;
 function chime(){if(!actx||!SND.on)return;const t=actx.currentTime;[1568,1760,2093,2349].forEach((f,i)=>tinkle(f,t+i*.11,.04,master,2.2));}
 
 /* ---------- UI ---------- */
-function renderSoundUI(){const el=$('#sndBody');$('#sndState').textContent=SND.on?'소리 끄기':'소리 켜기';{const ic=document.getElementById('sndIco');if(ic)ic.textContent=SND.on?'🔊':'🔇';}$('#sndTile').classList.toggle('on',SND.on);if(!el)return;
+function renderSoundUI(){const el=$('#sndBody');$('#sndState').textContent='소리';$('#sndTile').setAttribute('aria-label',SND.on?'소리 설정, 현재 켜짐':'소리 설정, 현재 꺼짐');$('#sndTile').classList.toggle('on',SND.on);if(!el)return;
   el.innerHTML=`<button class="bigSw ${SND.on?'on':''}" id="sMaster"><span>${SND.on?'🔊':'🔇'}</span>${SND.on?'소리 켜짐 · 누르면 꺼요':'소리 꺼짐 · 누르면 켜요'}</button>
   <div class="slRow"><span>전체 볼륨</span><input type="range" min="0" max="100" value="${Math.round(SND.vol*100)}" data-k="vol"></div>
   <div class="sec">음악</div><div class="seg">${MUSIC.map(m=>`<button data-music="${m[0]}" class="${SND.music===m[0]?'on':''}">${m[1]}</button>`).join('')}</div>
