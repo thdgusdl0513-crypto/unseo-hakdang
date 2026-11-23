@@ -42,3 +42,27 @@ html,body,button,input,textarea,select{font-family:'Gowun Dodum','Apple SD Gothi
 @media(min-width:800px){#menu .sheet{max-width:540px;max-height:94vh;max-height:94dvh;border-radius:26px;margin-bottom:3vh}}
 @media(max-height:700px){#menu .sheet::before{height:104px}}
 @media(prefers-reduced-motion:reduce){#menu .sheet{animation:none}}
+
+/* 2026-11-23 · 손그림 마을 소품 통일 · 학당별 원본 기능 보존 */
+:root{--story-accent:#9c849f;--story-paper:#f7f0f4;--story-veil:rgba(75,63,91,.66);}
+#intro{background:linear-gradient(180deg,rgba(27,39,35,.35),var(--story-veil)),url('assets/decor/storybook-street.webp') center 48% /cover no-repeat!important}
+#intro h2,#intro p{text-shadow:0 2px 15px rgba(38,37,32,.65)}
+#menu .sheet::before{height:177px;background:var(--story-paper) url('assets/decor/storybook-street.webp') no-repeat center 51%/cover;box-shadow:inset 0 0 0 1px rgba(122,112,84,.12),inset 0 -11px 18px rgba(62,58,45,.09)}
+#menu .sh::after{content:' · 달빛 아래 작은 가게';font-size:11px;font-weight:400;color:var(--story-accent)}
+#menu .me-card{background:#fffdf8;border-color:rgba(124,144,108,.32)}
+#menuGrid button:hover,#menuGrid button:focus-visible{background:#f1f4e8}
+#menuGrid .menu-icon{background-color:#f8f5eb}
+#shop .sheet::before{content:'';display:block;height:190px;border-radius:18px;background:var(--story-paper) url('assets/decor/storybook-street.webp') center 52%/cover no-repeat;margin:3px 0 12px;box-shadow:0 2px 12px rgba(80,70,50,.08)}
+#shop .sh span:nth-child(2){font-weight:700;color:#527a76}
+#shop .snk{background:#fffdf6;border:1px solid #e8dbc6;border-radius:17px}
+#shop .snk .snkI{filter:saturate(.78)}
+#shop .shopTop{border-radius:16px;background:#f5f2e6;padding:10px 12px;margin-bottom:10px}
+#season .sheet::before{content:'';display:block;height:140px;margin:1px 0 8px;border-radius:16px;background:#fffaf2 url('assets/decor/season-trees.webp') center center/auto 132px no-repeat;box-shadow:inset 0 0 0 1px #f0e5d7}
+#season .sec{color:#647e65}
+#bikeHud{padding:8px 14px 8px 72px;min-height:57px;background:#fffaf2 url('assets/decor/storybook-bicycle.svg') no-repeat left 6px center/64px auto!important;border-color:#c6d4bf;box-shadow:0 4px 18px rgba(50,65,48,.14)}
+#bikeHud button{background:#698f82}
+#stage::after{background:url('assets/decor/storybook-leaves.svg') no-repeat bottom left / 220px auto;opacity:.3;height:70px}
+#help .sheet,#records .sheet,#wardrobe .sheet{background-image:linear-gradient(150deg,rgba(255,255,255,.95),rgba(251,247,236,.94))}
+#intro .ideco .roof{opacity:.1}
+@media(min-width:800px){#shop .sheet::before{height:245px}#menu .sheet::before{height:205px}}
+@media(max-height:700px){#menu .sheet::before{height:115px}#shop .sheet::before{height:115px}}
