@@ -64,7 +64,7 @@ body.seated #hint,body.seated #action{display:none!important}
 #chatIn::placeholder{color:#a08468}
 #chatSend{padding:0 16px;border-radius:20px;background:var(--rose);color:#fff6e8;font-size:14px}
 #timer{pointer-events:auto;width:100%;max-width:520px;padding:14px 16px 12px;border-radius:20px;display:none}
-#timer.show{display:block}
+#timer.show{display:block}body.tmMini #timer.show{display:none}#sitFloat{position:fixed;z-index:7;display:none;flex-direction:column;align-items:flex-start;gap:6px;transform:translateY(-50%);pointer-events:auto}body.tmMini #sitFloat{display:flex}#sitFloat button{font:inherit;border:0;border-radius:999px;padding:7px 13px;cursor:pointer;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.18)}#sfTime{font-size:14px;color:#7a5030;font-variant-numeric:tabular-nums}#sfUp{font-size:15px;background:#d98a4a!important;color:#fff;padding:9px 16px!important}
 .tmTop{display:flex;justify-content:space-between;align-items:center;font-size:13.5px}.tmTop em{font-style:normal;font-size:11px;color:var(--teal);border:1px solid rgba(63,127,122,.6);border-radius:10px;padding:2px 8px}
 #tmTime{font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:42px;text-align:center;color:#8a4a24;margin-top:2px}
 #tmHint{text-align:center;font-size:12px;color:var(--ink2);margin-bottom:9px}
@@ -407,6 +407,7 @@ body.seated #hint,body.seated #action{display:none!important}
   <div id="bigTitle"><small id="zEn"></small><h1 id="zTitle"></h1></div>
   <div id="chatWrap"><div id="chatLog"></div></div>
   <div id="mini" class="paper" aria-label="작은 지도"><canvas id="miniC" width="208" height="208"></canvas><b id="miniN"></b></div>
+  <div id="sitFloat"><button id="sfTime" class="paper"></button><button id="sfUp" class="paper">일어나기</button></div>
   <button id="shotBtn" class="paper" aria-label="사진 찍기">📸</button>
   <button id="lightBtn" class="paper" aria-label="조명" hidden>💡</button>
   <div id="bottom">
@@ -610,6 +611,62 @@ body.seated #hint,body.seated #action{display:none!important}
   <div id="loadTxt">학당 문을 여는 중…</div>
 </div>
 
+<style>
+#a2hsBtn{margin:10px auto 0;font:inherit;font-size:14px;color:inherit;background:rgba(255,255,255,.55);border:1px solid rgba(120,90,60,.3);border-radius:999px;padding:7px 14px;cursor:pointer}
+#a2hs{position:fixed;inset:0;z-index:60;background:rgba(20,12,8,.55);display:none;align-items:center;justify-content:center;padding:16px}
+#a2hs.show{display:flex}
+#a2hs .bx{width:100%;max-width:440px;max-height:88vh;overflow-y:auto;background:#fbf3e4;color:#4a3426;border-radius:22px;padding:18px 18px 14px;box-shadow:0 12px 40px rgba(0,0,0,.35);text-align:left}
+#a2hs h3{margin:0 0 4px;font-size:19px;color:#7a4424}
+#a2hs .sub{font-size:13px;color:#8a6a52;margin-bottom:10px}
+#a2hs .tabs{display:flex;gap:6px;margin-bottom:10px}
+#a2hs .tabs button{flex:1;font:inherit;font-size:14px;border:1px solid #e2cfb4;background:#fff8ec;border-radius:12px;padding:8px 4px;color:#6a4a32;cursor:pointer}
+#a2hs .tabs button.on{background:#d98a4a;color:#fff;border-color:#d98a4a}
+#a2hs ol{margin:0;padding-left:22px;line-height:1.6;font-size:15px}
+#a2hs li{margin-bottom:6px}
+#a2hs b{color:#a0502a}
+#a2hs .tip{font-size:13px;background:#f3e6d0;border-radius:12px;padding:8px 10px;margin-top:8px;line-height:1.5}
+#a2hs .close{display:block;width:100%;margin-top:12px;font:inherit;font-size:16px;border:0;border-radius:14px;padding:11px;background:#d98a4a;color:#fff;cursor:pointer}
+</style>
+<div id="a2hs"><div class="bx">
+  <h3>📱 홈 화면에 학당 추가하기</h3>
+  <div class="sub">앱처럼 아이콘을 눌러 바로 들어올 수 있어요.</div>
+  <div class="tabs"><button data-os="g">갤럭시</button><button data-os="i">아이폰</button><button data-os="p">아이패드</button></div>
+  <div data-p="g"><ol>
+    <li><b>삼성 인터넷</b>: 아래쪽 <b>≡ 메뉴</b> → <b>‘현재 페이지 추가’</b> → <b>‘홈 화면’</b>을 눌러요.</li>
+    <li><b>크롬</b>: 오른쪽 위 <b>⋮</b> → <b>‘홈 화면에 추가’</b> → <b>‘설치’</b> 또는 <b>‘추가’</b>를 눌러요.</li>
+    <li>홈 화면에 생긴 학당 아이콘으로 들어오면 끝!</li></ol>
+    <div class="tip">💬 카카오톡에서 링크를 열었다면 오른쪽 위 <b>⋮</b> → <b>‘다른 브라우저로 열기’</b>를 먼저 눌러요.</div></div>
+  <div data-p="i"><ol>
+    <li>꼭 <b>Safari(사파리)</b>로 열어요.</li>
+    <li>아래쪽 <b>공유 버튼(□↑)</b>을 눌러요. 안 보이면 주소창 옆 <b>⋯</b>을 먼저 눌러요.</li>
+    <li>목록을 아래로 내려 <b>‘홈 화면에 추가’</b>를 눌러요.</li>
+    <li>오른쪽 위 <b>‘추가’</b>를 누르면 끝!</li></ol>
+    <div class="tip">💬 카카오톡에서 열었다면 오른쪽 아래 <b>⋯</b>(또는 나침반) → <b>‘Safari로 열기’</b>를 먼저 눌러요.</div></div>
+  <div data-p="p"><ol>
+    <li>꼭 <b>Safari(사파리)</b>로 열어요.</li>
+    <li>화면 <b>오른쪽 위 공유 버튼(□↑)</b>을 눌러요. 안 보이면 주소창 옆 <b>⋯</b>을 먼저 눌러요.</li>
+    <li><b>‘홈 화면에 추가’</b>를 눌러요.</li>
+    <li>오른쪽 위 <b>‘추가’</b>를 누르면 끝!</li></ol>
+    <div class="tip">💡 가로·세로 모두 잘 보여요. 처음 들어올 때만 인터넷이 필요해요.</div></div>
+  <button class="close" id="a2hsX">알겠어요</button>
+</div></div>
+<script>
+(function(){
+  const box=document.getElementById('a2hs');const ua=navigator.userAgent;
+  const isPad=/iPad/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1),isIOS=/iPhone|iPod/.test(ua);
+  const sel=os=>{box.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.os===os));box.querySelectorAll('[data-p]').forEach(p=>p.style.display=p.dataset.p===os?'':'none');};
+  const open=()=>{sel(isPad?'p':isIOS?'i':'g');box.classList.add('show');};
+  box.querySelector('.tabs').addEventListener('click',e=>{const b=e.target.closest('[data-os]');if(b)sel(b.dataset.os);});
+  document.getElementById('a2hsX').addEventListener('click',()=>box.classList.remove('show'));
+  box.addEventListener('click',e=>{if(e.target===box)box.classList.remove('show');});
+  const chips=document.querySelector('#intro .ichips');if(chips){const b=document.createElement('button');b.id='a2hsBtn';b.textContent='📱 홈 화면에 추가하는 법';b.onclick=open;chips.after(b);}
+  window.__a2hs=open;
+  const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+  const K=(window.CLOUD_BASE||'unseo/')+'a2hsSeen';
+  try{if(!standalone&&!localStorage.getItem(K)){localStorage.setItem(K,1);setTimeout(open,900);}}catch(e){}
+})();
+</script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -619,7 +676,7 @@ body.seated #hint,body.seated #action{display:none!important}
 <script>
 (async function(){
   try{await Promise.race([Promise.all([document.fonts.load('800 80px "Nanum Myeongjo"','雲書學堂閣基礎魔法靈藥溫和寮體力勅令符天地玄黃第一講藥草園天下大將軍地女'),document.fonts.load('30px "Gowun Batang"','가나다 마법')]),new Promise(r=>setTimeout(r,2500))]);}catch(e){}
-  try{for(const s of ['core.js','avatars.js','wardrobe.js','emotes.js','pets.js','spaces.js','sound.js','prologue.js','app.js','social.js','garden.js','quotes.js','campus.js']){await new Promise((res,rej)=>{const el=document.createElement('script');el.src=s;el.onload=res;el.onerror=()=>rej(new Error(s+' 불러오기 실패'));document.body.appendChild(el);});}}
+  try{for(const s of ['core.js','avatars.js','wardrobe.js','emotes.js','pets.js','spaces.js','sound.js','prologue.js','app.js','social.js','garden.js','quotes.js','campus.js']){await new Promise((res,rej)=>{const el=document.createElement('script');el.src=s+'?v=1123';el.onload=res;el.onerror=()=>rej(new Error(s+' 불러오기 실패'));document.body.appendChild(el);});}}
   catch(e){document.getElementById('loadTxt').textContent='학당을 열지 못했어요: '+e.message;}
 })();
 window.addEventListener('error',e=>{const l=document.getElementById('loadTxt');if(l)l.textContent='오류: '+e.message;});

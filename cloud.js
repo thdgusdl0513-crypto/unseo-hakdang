@@ -50,12 +50,15 @@
     const write=()=>{wT=null;lastW=Date.now();presRef.set({by:uid,p:mine,t:TS}).catch(()=>{});};
     fdb.ref('.info/connected').on('value',s=>{conn=!!s.val();if(conn){presRef.onDisconnect().remove();write();}connCbs.forEach(f=>{try{f(conn);}catch(e){}});});
     window.addEventListener('pagehide',()=>{presRef.remove();});
+    let OFF=0;fdb.ref('.info/serverTimeOffset').on('value',s=>{OFF=+s.val()||0;});
+    setInterval(()=>{if(conn&&!wT&&document.visibilityState!=='hidden')write();},45000);
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&conn&&!wT)write();});
     let prev=new Map();
     return {
       presence(patch){Object.assign(mine,patch);Object.keys(mine).forEach(k=>{if(mine[k]===null||mine[k]===undefined)delete mine[k];});
         if(!wT){const wait=Math.max(0,220-(Date.now()-lastW));wT=setTimeout(write,wait);}return Promise.resolve();},
       onPeers(cb,err){const ref=R('presence');const h=ref.on('value',s=>{const now=Date.now();const list=[];const cur=new Map();
-          s.forEach(c=>{const v=c.val()||{};const p={peer:c.key,by:v.by||null,isMe:v.by===uid,sameTab:c.key===PEER,kind:'viewer',guest:false,presence:v.p||{},updatedAt:now};list.push(p);cur.set(c.key,p);});
+          s.forEach(c=>{const v=c.val()||{};if(c.key!==PEER&&(+v.t||0)<now+OFF-150000){if(v.by===uid)R('presence/'+c.key).remove().catch(()=>{});return;}const p={peer:c.key,by:v.by||null,isMe:v.by===uid,sameTab:c.key===PEER,kind:'viewer',guest:false,presence:v.p||{},updatedAt:now};list.push(p);cur.set(c.key,p);});
           if(!cur.has(PEER))list.push({peer:PEER,by:uid,isMe:true,sameTab:true,kind:'viewer',guest:false,presence:mine,updatedAt:now});
           const left=[...prev.values()].filter(p=>!cur.has(p.peer));prev=cur;cb({peers:list,joined:[],left,updated:[]});},e=>err&&err(errOf(e)));return ()=>ref.off('value',h);},
       peers:()=>[...prev.values()],
