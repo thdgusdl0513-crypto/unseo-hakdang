@@ -35,12 +35,13 @@ const GAMES=[
  {id:'rumi',ico:'🔢',name:'숫자패 놀이',desc:'루미큐브 방식! 같은 색 연속 숫자나 같은 숫자 다른 색으로 3장 이상 묶어 내려놓고, 손패를 먼저 다 털면 승리. (2~4명)',pvp:true},
  {id:'clock',ico:'⏱️',name:'초 맞추기',desc:'10초·20초·30초! 시계를 안 보고 감으로 멈춰요. 세 판 동안 오차가 가장 적은 사람이 승리.',ai:true,pvp:true},
  {id:'yeop',ico:'🪙',name:'엽전 거상',desc:'스플렌더 방식! 오방색 엽전을 모아 물건 카드를 사고, 세종대왕·이순신 같은 조선의 위인을 모셔 와요. 15점을 먼저! (2~4명)',ai:true,pvp:true},
+ {id:'ladder',ico:'🪜',name:'사다리 타기',desc:'이름과 결과를 적고 사다리를 만들어요. 한 화면에서 친구들과 함께 이름을 하나씩 눌러 결과를 확인해요. (간식 당첨·순서 정하기)',solo:true},
  {id:'memo',ico:'🃏',name:'짝맞추기',desc:'같은 그림 두 장을 찾아요. 다같이 하면 차례대로, 짝을 많이 찾은 사람이 승리!',solo:true,pvp:true}];
 let G=null; // 지금 하는 게임
 function liveGames(){const out=[],seen=new Set();Object.values(typeof REMOTES==='object'?REMOTES:{}).forEach(r=>{const g=r.pr&&r.pr.gm;if(!g||typeof g!=='string')return;const [gid,game,n]=g.split('|');if(!gid||seen.has(gid))return;seen.add(gid);if(N&&N.gid===gid)return;out.push({gid,game,n:+n||2,host:r.by});});return out;}
 function renderGames(){const fr=(typeof onlineFriends==='function')?onlineFriends():[];const live=liveGames();
   $('#gList').innerHTML=(live.length?`<div class="sec">👀 지금 친구들이 하는 놀이</div>`+live.map(l=>{const g=GAMES.find(x=>x.id===l.game)||{};return `<div class="frRow"><span><b>${g.ico||'🎮'} ${E(g.name||'놀이')}</b><small>${E(NM(l.host))}님 방 · ${l.n}명</small></span><button class="ghost" data-watch="${l.gid}" data-host="${l.host}" data-game="${l.game}">👀 구경하기</button></div>`;}).join('')+'<div class="sec">놀이 고르기</div>':'')+GAMES.map(g=>`<div class="gCard"><div class="gIco">${g.ico}</div><div class="gTx"><b>${g.name}</b><small>${g.desc}</small>
-    <div class="gBtn">${g.solo?`<button class="primary" data-g="${g.id}" data-vs="solo">혼자 하기</button>`:''}${g.ai?`<button class="primary" data-g="${g.id}" data-vs="ai">🦁 해태랑</button>`:''}${g.pvp?`<button class="ghost" data-g="${g.id}" data-vs="pick">👥 다같이</button>`:''}</div></div></div>`).join('')
+    <div class="gBtn">${g.solo?`<button class="primary" data-g="${g.id}" data-vs="solo">${g.id==='ladder'?'🪜 사다리 만들기':'혼자 하기'}</button>`:''}${g.ai?`<button class="primary" data-g="${g.id}" data-vs="ai">🦁 해태랑</button>`:''}${g.pvp?`<button class="ghost" data-g="${g.id}" data-vs="pick">👥 다같이</button>`:''}</div></div></div>`).join('')
     +`<div class="gRec">🏆 내 전적 · ${Object.entries(LSg('gRec',{})).map(([k,v])=>`${(GAMES.find(g=>g.id===k)||{}).name||k} ${v.w||0}승 ${v.l||0}패`).join(' · ')||'아직 없어요'}</div>`;
   $('#gPick').hidden=true;}
 function rec(id,win){const r=LSg('gRec',{});r[id]=r[id]||{w:0,l:0};if(win===true)r[id].w++;else if(win===false)r[id].l++;LSs('gRec',r);}
@@ -477,6 +478,7 @@ function memoPick(i){const c=G.deck[i];if(G.lock||c.o||c.m||G.over)return;c.o=tr
 
 /* ---------- 이벤트 ---------- */
 document.addEventListener('click',e=>{const t=e.target;
+  if(t.closest('[data-g="ladder"]')){if(window.openLadder)openLadder('games');return;}
   const g=t.closest('[data-g]');if(g){const vs=g.dataset.vs;if(vs==='pick')pickFriend(g.dataset.g);else if(g.dataset.g==='omok'||g.dataset.g==='clock'||g.dataset.g==='yeop'||g.dataset.g==='yut'){startLocalN(g.dataset.g);}else{N=null;startGame(g.dataset.g,vs,'local',0);}return;}
   if(t.closest('#gAll')){const on=t.closest('#gAll').checked;$$('#gPick [data-who]').forEach(c=>c.checked=on);return;}
   const si=t.closest('#gSendInv');if(si){const ids=$$('#gPick [data-who]').filter(c=>c.checked).map(c=>c.dataset.who);G=null;hostInvite(si.dataset.game,ids);return;}
