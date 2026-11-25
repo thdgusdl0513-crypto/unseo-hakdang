@@ -541,7 +541,7 @@ if(petPreviewGrid)petPreviewGrid.addEventListener('error',event=>{
   img.replaceWith(fallback);
 },true);
 $('#nickSave').addEventListener('click',()=>{const v=$('#nickEdit').value.trim().slice(0,12);if(!v){$('#nickEdit').focus();return;}ST.nick=v;LS.set('nick',v);saveMember();pushPresence(true);updateMe();toast('닉네임을 「'+esc(v)+'」(으)로 바꿨어요');});
-$('#avGrid').addEventListener('click',e=>{const b=e.target.closest('[data-av]');if(!b)return;setAvatar(b.dataset.av);renderAvatars();toast(AVMAP[b.dataset.av].name+'(으)로 변신했어요');});
+$('#avGrid').addEventListener('click',e=>{const b=e.target.closest('[data-av]');if(!b)return;setAvatar(b.dataset.av);renderAvatars();});
 $('#petGrid').addEventListener('click',e=>{const b=e.target.closest('[data-pet]');if(!b)return;setPet(b.dataset.pet);renderAvatars();toast(b.dataset.pet==='none'?'혼자 다니기로 했어요':PETMAP[b.dataset.pet].name+'이(가) 졸졸 따라와요');});
 $('#introAv').addEventListener('click',e=>{const b=e.target.closest('[data-av]');if(!b)return;ST.avatar=b.dataset.av;setAvatar(b.dataset.av);renderAvatars();});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-avatar-variant]');if(!b)return;const id=b.dataset.avatarVariant;if(!AVATAR_GROUP_BY_ID[id])return;setAvatar(id);renderAvatars();});
@@ -560,7 +560,7 @@ var MY_EM='',MY_CL='';
 const spName=sp=>sp==='campus'?'학당 마당':(ROOMS[sp]?ROOMS[sp].name:'학당');
 function onlineFriends(){const seen=new Set([ST.nick||'']);return Object.values(REMOTES).filter(r=>{if(!r.pr||!r.pr.sp||!r.pr.nk||!r.by||r.by===MYID)return false;const k=r.pr.nk;if(seen.has(k))return false;seen.add(k);return true;});}
 function renderFriends(){const el=$('#frList');if(!el)return;const fr=onlineFriends();
-  el.innerHTML=fr.length?fr.map(r=>{const im=thumbOf('av',AVMAP[r.pr.av]?r.pr.av:'girl');const here=r.pr.sp===ST.space;return `<div class="frRow">${im?`<img src="${im}" alt="">`:''}<span><b>${esc(nameOf(r.by,r.pr.nk))}</b><small>${esc(spName(r.pr.sp))}${here?' · 같은 곳':''}${r.pr.rd?' · 공부 중':''}</small></span><button class="ghost" data-go="${r.peer}">찾아가기</button><button class="primary" data-call="${r.by}">부르기</button></div><div class="frMore"><button class="ghost" data-dm="${r.by}">🤫 귓속말</button><button class="ghost" data-play="${r.by}">🎮 같이 놀기</button></div>${canKick()?`<div class="kickRow"><button class="kick" data-kick="${r.by}" data-nk="${esc(nameOf(r.by,r.pr.nk))}">🚪 ${esc(nameOf(r.by,r.pr.nk))}님 내보내기</button></div>`:''}`;}).join(''):`<div class="empty">${MODE==='shared'?'지금 접속한 친구가 없어요. 아래 \'학당 링크 보내기\'로 불러 보세요!':'학당이 연결되지 않아 친구를 볼 수 없어요. 왼쪽 위 연결 상태를 확인해 주세요.'}</div>`;}
+  el.innerHTML=fr.length?fr.map(r=>{const im=thumbOf('av',AVMAP[r.pr.av]?r.pr.av:'girl');const here=r.pr.sp===ST.space;return `<div class="frRow">${im?`<img src="${im}" alt="">`:''}<span><b>${esc(nameOf(r.by,r.pr.nk))}${isHostId(r.by)?' <em class="hostTag">👑 방장</em>':''}</b><small>${esc(spName(r.pr.sp))}${here?' · 같은 곳':''}${r.pr.rd?' · 공부 중':''}</small></span><button class="ghost" data-go="${r.peer}">찾아가기</button><button class="primary" data-call="${r.by}">부르기</button></div><div class="frMore"><button class="ghost" data-dm="${r.by}">🤫 귓속말</button><button class="ghost" data-play="${r.by}">🎮 같이 놀기</button></div>${canKick()?`<div class="kickRow"><button class="kick" data-kick="${r.by}" data-nk="${esc(nameOf(r.by,r.pr.nk))}">🚪 ${esc(nameOf(r.by,r.pr.nk))}님 내보내기</button></div>`:''}`;}).join(''):`<div class="empty">${MODE==='shared'?'지금 접속한 친구가 없어요. 아래 \'학당 링크 보내기\'로 불러 보세요!':'학당이 연결되지 않아 친구를 볼 수 없어요. 왼쪽 위 연결 상태를 확인해 주세요.'}</div>`;}
 let callCool=0;
 function sendCall(to){if(MODE!=='shared'){toast('학당이 연결돼 있어야 친구를 부를 수 있어요');return;}if(Date.now()<callCool){toast('잠깐만요, 조금 뒤에 다시 불러 주세요');return;}callCool=Date.now()+8000;MY_CL=to+'|'+Date.now();pushPresence(true);
   toast(to==='*'?'모두에게 초대장을 보냈어요 📣':esc(nameOf(to))+'님에게 초대장을 보냈어요 📣');playEmote(me,'wave');}
@@ -744,13 +744,13 @@ function frame(){requestAnimationFrame(frame);const dt=Math.min(clock.getDelta()
     if(d>6){R0.position.set(tx,ty,tz);}else{R0.position.x+=dx*Math.min(1,dt*8);R0.position.z+=dz*Math.min(1,dt*8);R0.position.y+=(ty-R0.position.y)*Math.min(1,dt*8);}
     let tr=sit?sit.ry:+pr.ry||0;let da=tr-R0.rotation.y;da=Math.atan2(Math.sin(da),Math.cos(da));R0.rotation.y+=da*Math.min(1,dt*10);
     r.amt+=((d>.05&&!sit?1:0)-r.amt)*Math.min(1,dt*8);r.ph+=dt*12*r.amt;animateAvatar(r.A,r.ph,r.amt,t,!!sit);emoteTick(r.A,dt);const fx=FACES.some(f=>f[0]===pr.fx)?pr.fx:'base';faceTick(r.A,nowP,emoteFace(r.A)||(fx==='base'&&pr.rd?'focus':fx));if(r.A.book)r.A.book.visible=!!sit&&((!!ROOMS[pr.sp]&&ROOMS[pr.sp].study)||!!pr.rd);r.A.reading=!!pr.rd&&!!sit;
-    const lab=focusSub(r.by,pr.rd?Math.max(0,Math.floor((Date.now()-pr.rd)/60000)):-1);const nm=nameOf(r.by,typeof pr.nk==='string'?pr.nk.slice(0,12):'');if(r.lastLabel!==nm+lab){r.L.set(nm,lab);r.lastLabel=nm+lab;}
+    const lab=focusSub(r.by,pr.rd?Math.max(0,Math.floor((Date.now()-pr.rd)/60000)):-1);const nm=(isHostId(r.by)?'👑 ':'')+nameOf(r.by,typeof pr.nk==='string'?pr.nk.slice(0,12):'');if(r.lastLabel!==nm+lab){r.L.set(nm,lab);r.lastLabel=nm+lab;}
     if(r.pet){petFollow(r.pet,(r.pr&&r.pr.st>=0)?petAnchor(R0):R0,dt,t,SP.bounds);faceTick(r.pet,nowP,'base');}
     r.L.sprite.position.set(R0.position.x,R0.position.y+avatarLabelY(r.A),R0.position.z);{if(pr.bk&&!r.bike&&typeof bikeMesh==='function'){r.bike=bikeMesh(0xd8504a);r.A.root.add(r.bike);}if(r.bike)r.bike.visible=!!pr.bk;if(!r.C){r.C=makeGlassClock();scene.add(r.C.sprite);}const run=!!pr.rd;r.C.sprite.visible=run;if(run){const e=Date.now()-pr.rd;r.C.set(fmtClock(e),`오늘 ${todayTot(r.by,Math.floor(e/60000))}분`,pr.cc);r.C.sprite.position.set(R0.position.x,R0.position.y+avatarLabelY(r.A)+.78,R0.position.z);}r.B.sprite.position.set(R0.position.x,R0.position.y+avatarLabelY(r.A)+(run?1.6:.68),R0.position.z);}if(r.B.sprite.visible&&performance.now()>r.B.until)r.B.sprite.visible=false;});
   SP.tick.forEach(f=>f(t,dt));
   if(tapT>0){tapT=Math.max(0,tapT-dt*1.4);tapRing.material.opacity=tapT*.9;tapRing.scale.setScalar(1+(1-tapT)*1.2);}
   if(performance.now()-presT>150)flushPresence();
-  const sec=Math.floor(Date.now()/1000);if(sec!==lastSec){lastSec=sec;if(ST.sitting>=0&&$('#timer').classList.contains('show')){finishFocusIfDue(false);renderTimer();}myLabel.set(ST.nick||'나',focusSub(MYID,TM.run?Math.floor(elapsed()/60000):-1));}
+  const sec=Math.floor(Date.now()/1000);if(sec!==lastSec){lastSec=sec;if(ST.sitting>=0&&$('#timer').classList.contains('show')){finishFocusIfDue(false);renderTimer();}myLabel.set((ADMIN_ON?'👑 ':'')+(ST.nick||'나'),focusSub(MYID,TM.run?Math.floor(elapsed()/60000):-1));}
   setGuide();updateCam(dt,false);renderer.render(scene,camera);placeSitFloat();}
 frame();
 /* ---------- 작은 지도 ---------- */
@@ -819,3 +819,33 @@ $('#shotDl').addEventListener('click',()=>{if(!shotUrl)return;const a=document.c
   const hud=document.getElementById('shotBtn');(hud&&hud.parentNode||document.body).appendChild(z);
   const st=document.createElement('style');st.textContent='#zoomCtl{position:absolute;right:72px;bottom:calc(14px + env(safe-area-inset-bottom) + var(--mmLift,0px));display:grid;grid-template-columns:40px 40px;gap:6px;pointer-events:auto;z-index:2;transition:bottom .3s}#zoomCtl button{width:40px;height:40px;border-radius:50%;font-size:20px;font-weight:800;display:grid;place-items:center;border:0;cursor:pointer;color:var(--ink);padding:0}@media (max-width:420px){#zoomCtl{right:62px;grid-template-columns:36px 36px;gap:5px}#zoomCtl button{width:36px;height:36px;font-size:18px}}body.kbOpen #zoomCtl{display:none}';document.head.appendChild(st);
   hold('#zcIn',()=>camDist=clampD(camDist-.3));hold('#zcOut',()=>camDist=clampD(camDist+.3));hold('#zcUp',()=>pitch=Math.min(1.25,pitch+.035));hold('#zcDn',()=>pitch=Math.max(.02,pitch-.035));})();
+
+/* 👑 방장: 선생님(관리자) 코드로 들어온 사람. 서버에 저장된 코드가 진짜 선생님 코드인지 해시로 확인해요 */
+var HOST_H='f91bfed0a0f16dfb501cd4f62f8ff5da73f4fb3ff3d265637f97e843dd2288a3';var HOSTC=HOSTC||{};
+function isHostId(id){if(!HOSTC)HOSTC={};if(id===MYID||id==='me')return !!ADMIN_ON;const m=MEMBERS[id];const a=m&&typeof m.admin==='string'?m.admin:'';if(!a)return false;
+  if(HOSTC[a]===undefined){HOSTC[a]=false;try{crypto.subtle.digest('SHA-256',new TextEncoder().encode(a)).then(b=>{const h=[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');HOSTC[a]=h==='f91bfed0a0f16dfb501cd4f62f8ff5da73f4fb3ff3d265637f97e843dd2288a3';if(HOSTC[a]){try{renderFriends();}catch(e){}}}).catch(()=>{});}catch(e){}}
+  return HOSTC[a];}
+window.isHostId=isHostId;
+
+/* 📱 캐릭터 고르기: 아래에 늘 보이는 '지금 내 캐릭터' 확인 막대 + 색깔 고르기로 자동 이동 */
+(function(){const sh=document.querySelector('#me .sheet');if(!sh||document.getElementById('avDock'))return;
+  const dk=document.createElement('div');dk.id='avDock';dk.innerHTML='<div class="avdImg" id="avdImg"></div><div class="avdTx"><small>지금 내 캐릭터</small><b id="avdNm"></b></div><button class="primary" id="avDone">✅ 이걸로 할래요</button>';sh.appendChild(dk);
+  function upd(){try{const a=AVMAP[ST.avatar]||AVMAP.girl;if(!a)return;const im=thumbOf('av',a.id,(typeof avatarUsesLook==='function'&&avatarUsesLook(a))?ST.look:null);document.getElementById('avdImg').innerHTML=im?`<img src="${im}" alt="">`:`<span>${a.emo||'✨'}</span>`;document.getElementById('avdNm').textContent=a.name;}catch(e){}}
+  window.__avDock=upd;const _ra=renderAvatars;renderAvatars=function(){_ra.apply(this,arguments);upd();};upd();
+  let last=null;
+  sh.addEventListener('click',e=>{const g=e.target.closest('#avGrid [data-av-group]');const v=e.target.closest('[data-avatar-variant]');
+    if(g||v){dk.classList.remove('pop');void dk.offsetWidth;dk.classList.add('pop');}
+    if(g){const grp=AVATAR_GROUPS.find(x=>x.key===g.dataset.avGroup);const hasMore=grp&&grp.ids.length>1;const a=AVMAP[g.dataset.av];const hasColor=a&&(a.dragonColor||a.type==='dino');
+      if((hasMore||hasColor)&&last!==g.dataset.avGroup){setTimeout(()=>{const box=document.getElementById('avColorBox');if(box&&box.innerHTML.trim()){box.scrollIntoView({behavior:'smooth',block:'start'});box.classList.remove('flash');void box.offsetWidth;box.classList.add('flash');}},120);}
+      last=g.dataset.avGroup;}},true);
+  document.getElementById('avDone').addEventListener('click',()=>{const a=AVMAP[ST.avatar];closeSheets();setTimeout(()=>{try{playEmote(me,'wave');}catch(e){}toast('✨ '+((a&&a.name)||'새 캐릭터')+'(으)로 변신 완료!');},250);});
+})();
+
+/* 📱 첫 화면(캐릭터 만들기): 카드 안에서 스크롤 + 아래에 늘 보이는 '고른 캐릭터 · 입학하기' */
+(function(){const st=document.getElementById('stepNick'),go=document.getElementById('nickGo');if(!st||!go||document.getElementById('introDock'))return;
+  const dk=document.createElement('div');dk.id='introDock';dk.innerHTML='<div class="avdImg" id="idImg"></div><div class="avdTx"><small>내가 고른 캐릭터</small><b id="idNm"></b></div>';st.appendChild(dk);dk.appendChild(go);
+  function upd(){try{const a=AVMAP[ST.avatar]||AVMAP.girl;if(!a)return;const im=thumbOf('av',a.id,(typeof avatarUsesLook==='function'&&avatarUsesLook(a))?ST.look:null);document.getElementById('idImg').innerHTML=im?`<img src="${im}" alt="">`:`<span>${a.emo||'✨'}</span>`;document.getElementById('idNm').textContent=a.name;}catch(e){}}
+  const _ra=renderAvatars;renderAvatars=function(){_ra.apply(this,arguments);upd();};upd();
+  let last=null;st.addEventListener('click',e=>{const g=e.target.closest('#introAv [data-av-group]');const v=e.target.closest('[data-avatar-variant]');if(g||v){dk.classList.remove('pop');void dk.offsetWidth;dk.classList.add('pop');}
+    if(g){const grp=AVATAR_GROUPS.find(x=>x.key===g.dataset.avGroup);const a=AVMAP[g.dataset.av];if(((grp&&grp.ids.length>1)||(a&&(a.dragonColor||a.type==='dino')))&&last!==g.dataset.avGroup){setTimeout(()=>{const box=document.getElementById('introAvColorBox');if(box&&box.innerHTML.trim()){box.scrollIntoView({behavior:'smooth',block:'start'});box.classList.remove('flash');void box.offsetWidth;box.classList.add('flash');}},120);}last=g.dataset.avGroup;}},true);
+})();
