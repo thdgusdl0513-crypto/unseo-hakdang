@@ -92,8 +92,8 @@ function draw(cv,id,PR){const c=cv.getContext('2d');cv.width=CW;cv.height=CH;con
    sun:(x,y,s)=>{for(let i=0;i<8;i++){const a=i*Math.PI/4;line(x+Math.cos(a)*s*.8,y+Math.sin(a)*s*.8,x+Math.cos(a)*s*1.2,y+Math.sin(a)*s*1.2,5);}blob(x,y,s*.65,s*.65,'#ffcf4a',K,5,0);}};
   /* 동물 */
   function face(x,y,s,kind){const eyeY=y-s*.05;
-    if(['cat','rabbit','chick','dog'].includes(kind)&&(id%3===0)){c.beginPath();c.arc(x-s*.32,eyeY+6,s*.1,Math.PI*1.1,Math.PI*1.9);c.moveTo(x+s*.42,eyeY+6);c.arc(x+s*.32,eyeY+6,s*.1,Math.PI*1.1,Math.PI*1.9);c.strokeStyle=K;c.lineWidth=6;c.stroke();}
-    else{blob(x-s*.3,eyeY,s*.07,s*.09,{raw:PR?'#000':'#2a1e18'},false,0,0);blob(x+s*.3,eyeY,s*.07,s*.09,{raw:PR?'#000':'#2a1e18'},false,0,0);if(!PR){blob(x-s*.28,eyeY-s*.03,s*.025,s*.025,'#fff',false,0,0);blob(x+s*.32,eyeY-s*.03,s*.025,s*.025,'#fff',false,0,0);}else{blob(x-s*.3,eyeY,s*.07,s*.09,'#000',false,0,0);blob(x+s*.3,eyeY,s*.07,s*.09,'#000',false,0,0);}}
+    if(['cat','rabbit','chick','dog'].includes(kind)&&(id%3===0)){c.beginPath();c.arc(x-s*.32,eyeY+8,s*.13,Math.PI*1.1,Math.PI*1.9);c.moveTo(x+s*.32+s*.13*Math.cos(Math.PI*1.1),eyeY+8+s*.13*Math.sin(Math.PI*1.1));c.arc(x+s*.32,eyeY+8,s*.13,Math.PI*1.1,Math.PI*1.9);c.strokeStyle=K;c.lineWidth=Math.max(7,s*.07);c.stroke();}
+    else{blob(x-s*.3,eyeY,s*.1,s*.13,{raw:PR?'#000':'#2a1e18'},false,0,0);blob(x+s*.3,eyeY,s*.1,s*.13,{raw:PR?'#000':'#2a1e18'},false,0,0);if(!PR){blob(x-s*.27,eyeY-s*.045,s*.035,s*.035,'#fff',false,0,0);blob(x+s*.33,eyeY-s*.045,s*.035,s*.035,'#fff',false,0,0);}}
     if(!PR){blob(x-s*.5,y+s*.12,s*.11,s*.07,'#ffb3c1',false,0,0);blob(x+s*.5,y+s*.12,s*.11,s*.07,'#ffb3c1',false,0,0);}
     if(kind==='chick'||kind==='penguin'){poly([[x-s*.12,y+s*.08],[x+s*.12,y+s*.08],[x,y+s*.24]],'#ffa23a',4);return;}
     if(kind==='seal'){c.beginPath();c.arc(x-s*.08,y+s*.12,s*.08,0,Math.PI);c.arc(x+s*.08,y+s*.12,s*.08,0,Math.PI);c.strokeStyle=K;c.lineWidth=5;c.stroke();blob(x,y+s*.06,s*.06,s*.04,{raw:PR?'#000':'#2a1e18'},false,0,0);line(x-s*.2,y+s*.14,x-s*.42,y+s*.1,3);line(x+s*.2,y+s*.14,x+s*.42,y+s*.1,3);return;}
@@ -194,11 +194,11 @@ function draw(cv,id,PR){const c=cv.getContext('2d');cv.width=CW;cv.height=CH;con
 }
 /* ---------- 프린터 (Web Bluetooth) ---------- */
 const BT={ch:null,kind:'',name:''};
-const SVC=[0xff00,0x18f0,0xae30,0xffe0,0xfff0,'49535343-fe7d-4ae5-8fa9-9fafd205e455','e7810a71-73ae-499d-8c15-faa9aef0c3f2'];
+const SVC=[0xff00,0xff10,0xff20,0xffe0,0xfff0,0xffd0,0xffb0,0xff80,0x18f0,0xae30,0xaf30,0xae00,0xfee7,0xe0ff,0xabf0,0x180a,'49535343-fe7d-4ae5-8fa9-9fafd205e455','e7810a71-73ae-499d-8c15-faa9aef0c3f2','6e400001-b5a3-f393-e0a9-e50e24dcca9e','0000ff00-0000-1000-8000-00805f9b34fb'];
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function btConnect(){if(!navigator.bluetooth)throw new Error('nobt');const dev=await navigator.bluetooth.requestDevice({acceptAllDevices:true,optionalServices:SVC});const g=await dev.gatt.connect();let ch=null,kind='escpos';
   for(const sv of SVC){let s;try{s=await g.getPrimaryService(sv);}catch(e){continue;}const cs=await s.getCharacteristics();const w=cs.find(x=>x.properties.writeWithoutResponse)||cs.find(x=>x.properties.write);if(w){ch=w;if(sv===0xff00)kind='phomemo';break;}}
-  if(!ch)throw new Error('nochar');BT.ch=ch;BT.kind=kind;BT.name=dev.name||'프린터';dev.addEventListener('gattserverdisconnected',()=>{BT.ch=null;});}
+  if(!ch){let L=[];try{L=(await g.getPrimaryServices()).map(x=>x.uuid.replace(/^0000(....)-0000-1000-8000-00805f9b34fb$/,'0x$1'));}catch(e){}BT.diag=(dev.name||'이름 없음')+' · 통로: '+(L.join(', ')||'없음');try{dev.gatt.disconnect();}catch(e){}throw new Error('nochar');}BT.ch=ch;BT.kind=kind;BT.name=dev.name||'프린터';dev.addEventListener('gattserverdisconnected',()=>{BT.ch=null;});}
 async function btWrite(b,on){const ch=BT.ch;const nr=ch.properties.writeWithoutResponse;const N=nr?120:180;for(let i=0;i<b.length;i+=N){const p=b.slice(i,i+N);if(nr&&ch.writeValueWithoutResponse)await ch.writeValueWithoutResponse(p);else await ch.writeValue(p);if(nr)await sleep(BT.kind==='phomemo'?18:12);if(on&&(i/N)%20===0)on(i/b.length);}if(on)on(1);}
 function job(src,pw,kind){const h=Math.round(src.height*pw/src.width);const cv=document.createElement('canvas');cv.width=pw;cv.height=h;const c=cv.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,pw,h);c.drawImage(src,0,0,pw,h);const d=c.getImageData(0,0,pw,h).data;const bw=pw/8;const r=new Uint8Array(bw*h);
   for(let y=0;y<h;y++)for(let x=0;x<pw;x++){const k=(y*pw+x)*4;if(d[k]*.3+d[k+1]*.59+d[k+2]*.11<150)r[y*bw+(x>>3)]|=(0x80>>(x&7));}
@@ -221,7 +221,7 @@ const st=document.createElement('style');st.textContent=`#chBody .lotto{position
 #chBody .cBook{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:8px}#chBody .cBook button{aspect-ratio:720/1000;padding:0;border-radius:8px;border:1px solid #e2cfb4;background:#f6ead4;overflow:hidden;font-size:18px;color:#b09070}#chBody .cBook img{width:100%;height:100%;object-fit:cover;display:block}
 #chBody h4{margin:14px 0 4px;font-size:14px;color:#6a4a2a}`;document.head.appendChild(st);
 let back='menu',view=null;const thumbs={};
-function thumb(i){if(thumbs[i])return thumbs[i];const cv=document.createElement('canvas');draw(cv,i,false);const t=document.createElement('canvas');t.width=144;t.height=200;t.getContext('2d').drawImage(cv,0,0,144,200);return thumbs[i]=t.toDataURL('image/png');}
+function thumb(i){if(thumbs[i])return thumbs[i];const cv=document.createElement('canvas');draw(cv,i,false);const t=document.createElement('canvas');t.width=288;t.height=400;const tc=t.getContext('2d');tc.imageSmoothingQuality='high';tc.drawImage(cv,0,0,288,400);return thumbs[i]=t.toDataURL('image/png');}
 async function render(){await fontsReady();const T=pickToday();const id=view==null?T.id:view;const isToday=view==null;const b=book();const all=typeof ADMIN_ON!=='undefined'&&ADMIN_ON;
   const cv=document.createElement('canvas');draw(cv,id,false);const src=cv.toDataURL('image/png');const opened=!isToday||T.open;
   $q('#chBody').innerHTML=`<div class="lotto"><div class="lh"><span>🎟️ ${isToday?'오늘의 부적 복권':'부적 도감'}</span><span>${isToday?T.d.replace(/-/g,'.'):''} · <b>No.${String(id+1).padStart(2,'0')}</b></span></div>
@@ -229,7 +229,7 @@ async function render(){await fontsReady();const T=pickToday();const id=view==nu
    <div class="cMsg">${opened?`<b>“${E(C[id][1])}”</b>`:'은박을 손가락으로 쓱쓱 긁어 보세요! 🪙<br><small>하루에 한 장 · 자정이 지나면 새 복권이 와요</small>'}</div>
    ${opened?`<div class="cBtns"><button class="ghost" data-csave>💾 이미지 저장</button><button class="primary" data-cprint>🖨️ 영수증 프린터</button></div>`:`<div class="cBtns"><button class="ghost" data-cpeel>✨ 한 번에 벗기기</button></div>`}
    ${!isToday?'<div class="cBtns"><button class="ghost" data-ctoday>🎟️ 오늘의 복권으로</button></div>':''}
-   <h4>📖 부적 도감 ${b.length}/${N}${all?' <small style="font-weight:400">(선생님은 전체 미리보기)</small>':''}</h4><div class="cBook">${C.map((x,i)=>(b.includes(i)||all)?`<button data-cview="${i}" title="${E(x[0])}"><img src="${thumb(i)}" alt=""></button>`:`<button disabled>❔</button>`).join('')}</div>`;
+   <h4>📖 부적 도감 ${b.length}/${N}${all?' <small style="font-weight:400">(선생님은 전체 미리보기)</small>':''}</h4><div class="cBtns"><button class="ghost" data-ca4 ${(all||b.length)?'':'disabled'}>📄 A4로 한번에 저장 (${all?N:b.length}장 · 4×5)</button></div><div class="cBook">${C.map((x,i)=>(b.includes(i)||all)?`<button data-cview="${i}" title="${E(x[0])}"><img src="${thumb(i)}" alt=""></button>`:`<button disabled>❔</button>`).join('')}</div>`;
   if(!opened)setupScratch();}
 function reveal(){const T=pickToday();T.open=true;LS.set('charmToday',T);const b=book();if(!b.includes(T.id)){b.push(T.id);LS.set('charmBook',b);}const s=$q('#chScr');if(s){s.style.opacity='0';setTimeout(render,600);}else render();try{if(typeof chime==='function')chime();}catch(e){}toast('🎉 오늘의 부적: '+C[T.id][0]);}
 function setupScratch(){const s=$q('#chScr');if(!s)return;const c=s.getContext('2d');const g=c.createLinearGradient(0,0,360,500);g.addColorStop(0,'#c9ccd3');g.addColorStop(.5,'#eef0f4');g.addColorStop(1,'#b8bcc6');c.fillStyle=g;c.fillRect(0,0,360,500);
@@ -249,12 +249,13 @@ function openPrint(id){const S=LS.get('ytPrinter',{w:'auto'});const ios=/iPhone|
 pm.addEventListener('click',async e=>{if(e.target===pm||e.target.closest('[data-px]')){pm.style.display='none';return;}const g=e.target.closest('[data-pgo]');if(!g)return;const msg=pm.querySelector('#chPrMsg');const S=LS.get('ytPrinter',{w:'auto'});S.w=pm.querySelector('#chPw').value;LS.set('ytPrinter',S);
   g.disabled=true;try{if(!BT.ch){msg.textContent='🔎 프린터를 찾는 중… 목록에서 골라 주세요';await btConnect();}msg.textContent='🎨 부적을 준비하는 중…';await fontsReady();const cv=document.createElement('canvas');draw(cv,+g.dataset.pgo,true);
     const pw=S.w==='auto'?(BT.kind==='phomemo'?576:384):+S.w;await btWrite(job(cv,pw,BT.kind),p=>{msg.textContent=`🖨️ ${E(BT.name)}로 보내는 중… ${Math.round(p*100)}%`;});msg.innerHTML='✅ 다 보냈어요! 종이가 다 나오면 뜯어 주세요.';g.textContent='🖨️ 한 장 더';}
-  catch(err){const m=String(err&&err.message||err);BT.ch=null;msg.innerHTML=/cancel|chosen/i.test(m)?'프린터를 고르지 않았어요.':m==='nochar'?'⚠️ 이 기기에서 인쇄 통로를 찾지 못했어요. 이미지 저장 후 프린터 앱으로 출력해 주세요.':'⚠️ 연결이 끊겼거나 보내지 못했어요. 전원과 거리(1m 안)를 확인하고 다시 눌러 주세요.';g.textContent='🔗 다시 연결하고 출력';}
+  catch(err){const m=String(err&&err.message||err);BT.ch=null;msg.innerHTML=/cancel|chosen/i.test(m)?'프린터를 고르지 않았어요.':m==='nochar'?'⚠️ 이 기기에서 인쇄 통로를 찾지 못했어요.<br><small style="word-break:break-all">고른 기기: '+E(BT.diag||'')+'</small><br>목록에서 <b>프린터 이름</b>(예: M02S, MEEMO)을 골랐는지 확인해 주세요. 그래도 같으면 이 화면을 캡처해서 보내 주세요. 이미지 저장 후 프린터 앱으로 출력해 주세요.':'⚠️ 연결이 끊겼거나 보내지 못했어요. 전원과 거리(1m 안)를 확인하고 다시 눌러 주세요.';g.textContent='🔗 다시 연결하고 출력';}
   g.disabled=false;});
 md.addEventListener('click',async e=>{
   if(e.target===md||e.target.closest('[data-cclose]')){md.classList.remove('show');return;}
   if(e.target.closest('[data-cback]')){md.classList.remove('show');if(back&&typeof openSheet==='function')openSheet(back);return;}
   if(e.target.closest('[data-cpeel]')){reveal();return;}
+  const a4=e.target.closest('[data-ca4]');if(a4){a4.disabled=true;const old=a4.textContent;a4.textContent='📄 만드는 중…';try{await saveA4();}catch(err){toast('PDF를 만들지 못했어요');}a4.disabled=false;a4.textContent=old;return;}
   const v=e.target.closest('[data-cview]');if(v){view=+v.dataset.cview;render();md.querySelector('.sheet').scrollTop=0;return;}
   if(e.target.closest('[data-ctoday]')){view=null;render();return;}
   const id=view==null?pickToday().id:view;
@@ -263,6 +264,29 @@ md.addEventListener('click',async e=>{
     cv.toBlob(async blob=>{const file=new File([blob],name,{type:'image/png'});try{if(navigator.canShare&&navigator.canShare({files:[file]})&&/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){await navigator.share({files:[file],title:'오늘의 부적'});return;}}catch(err){if(err&&err.name==='AbortError')return;}
       const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);toast('💾 부적을 저장했어요');},'image/png');}
 });
+/* ---------- 📄 A4 모음 (한 장에 4×5 = 20개) → PDF ---------- */
+function a4Pages(ids){const PW=1654,PH=2339,M=60,G=24,cols=4,rows=5;const ch=(PH-M*2-26-G*(rows-1))/rows,cw=ch*CW/CH;const ox=(PW-(cw*cols+G*(cols-1)))/2,oy=M+26;const pages=[];
+  for(let p=0;p<ids.length;p+=cols*rows){const cv=document.createElement('canvas');cv.width=PW;cv.height=PH;const c=cv.getContext('2d');c.fillStyle='#fff';c.fillRect(0,0,PW,PH);
+    c.fillStyle='#8a6a52';c.font='22px "Jua",sans-serif';c.textAlign='center';c.fillText(`오늘의 부적 모음 · ${Math.floor(p/20)+1}/${Math.ceil(ids.length/20)}`,PW/2,M+4);
+    ids.slice(p,p+cols*rows).forEach((id,k)=>{const x=ox+(k%cols)*(cw+G),y=oy+Math.floor(k/cols)*(ch+G);const t=document.createElement('canvas');draw(t,id,false);c.drawImage(t,x,y,cw,ch);c.setLineDash([8,8]);c.strokeStyle='#c8c8c8';c.lineWidth=1.5;c.strokeRect(x-G/2,y-G/2,cw+G,ch+G);c.setLineDash([]);});
+    pages.push(cv);}return pages;}
+function b64bytes(u){const b=atob(u.split(',')[1]);const a=new Uint8Array(b.length);for(let i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a;}
+function makePdf(pages){const enc=new TextEncoder();const parts=[];let len=0;const offs=[];const add=x=>{const u=typeof x==='string'?enc.encode(x):x;parts.push(u);len+=u.length;};
+  const n=pages.length;const W=595.28,H=841.89;add('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');
+  const obj=(i,body)=>{offs[i]=len;add(`${i} 0 obj\n`);body();add('\nendobj\n');};
+  obj(1,()=>add('<< /Type /Catalog /Pages 2 0 R >>'));
+  obj(2,()=>add(`<< /Type /Pages /Count ${n} /Kids [${pages.map((_,i)=>`${3+i*3} 0 R`).join(' ')}] >>`));
+  pages.forEach((cv,i)=>{const pi=3+i*3,ci=pi+1,ii=pi+2;const jpg=b64bytes(cv.toDataURL('image/jpeg',.92));const cs=`q ${W} 0 0 ${H} 0 0 cm /Im0 Do Q`;
+    obj(pi,()=>add(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /XObject << /Im0 ${ii} 0 R >> >> /Contents ${ci} 0 R >>`));
+    obj(ci,()=>{add(`<< /Length ${cs.length} >>\nstream\n`);add(cs);add('\nendstream');});
+    obj(ii,()=>{add(`<< /Type /XObject /Subtype /Image /Width ${cv.width} /Height ${cv.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpg.length} >>\nstream\n`);add(jpg);add('\nendstream');});});
+  const total=3+n*3;const xref=len;let x=`xref\n0 ${total}\n0000000000 65535 f \n`;for(let i=1;i<total;i++)x+=String(offs[i]).padStart(10,'0')+' 00000 n \n';add(x);add(`trailer\n<< /Size ${total} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`);
+  return new Blob(parts,{type:'application/pdf'});}
+async function saveA4(){await fontsReady();const all=typeof ADMIN_ON!=='undefined'&&ADMIN_ON;const ids=all?[...Array(N).keys()]:book().slice().sort((a,b)=>a-b);if(!ids.length){toast('아직 모은 부적이 없어요');return;}
+  const blob=makePdf(a4Pages(ids));const name=`오늘의부적_모음_${ids.length}장.pdf`;const file=new File([blob],name,{type:'application/pdf'});
+  try{if(navigator.canShare&&navigator.canShare({files:[file]})&&/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)){await navigator.share({files:[file],title:'오늘의 부적 모음'});return;}}catch(err){if(err&&err.name==='AbortError')return;}
+  const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),8000);toast(`📄 A4 ${Math.ceil(ids.length/20)}쪽 PDF를 저장했어요`);}
+window.__charmA4=async()=>{await fontsReady();const ids=[...Array(N).keys()];const b=makePdf(a4Pages(ids));return Array.from(new Uint8Array(await b.arrayBuffer()));};
 window.__charmDraw=(cv,id,PR)=>draw(cv,id,PR);window.__charmN=N;
 window.openCharm=function(from){back=from||'menu';view=null;if(typeof closeSheets==='function')closeSheets();md.classList.add('show');render();};
 })();

@@ -114,7 +114,7 @@ md.addEventListener('click',async e=>{
 });
 /* ---------- 🖨️ 블루투스 영수증 프린터 (Web Bluetooth) ---------- */
 const BT={dev:null,ch:null,kind:'',name:''};
-const SVC=[0xff00,0x18f0,0xae30,0xffe0,0xfff0,'49535343-fe7d-4ae5-8fa9-9fafd205e455','e7810a71-73ae-499d-8c15-faa9aef0c3f2','000018f0-0000-1000-8000-00805f9b34fb'];
+const SVC=[0xff00,0xff10,0xff20,0xffe0,0xfff0,0xffd0,0xffb0,0xff80,0x18f0,0xae30,0xaf30,0xae00,0xfee7,0xe0ff,0xabf0,0x180a,'49535343-fe7d-4ae5-8fa9-9fafd205e455','e7810a71-73ae-499d-8c15-faa9aef0c3f2','6e400001-b5a3-f393-e0a9-e50e24dcca9e','0000ff00-0000-1000-8000-00805f9b34fb'];
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 function prSet(){return LS.get('ytPrinter',{w:'auto',dark:3});}
 async function btConnect(){if(!navigator.bluetooth)throw new Error('nobt');
@@ -122,7 +122,7 @@ async function btConnect(){if(!navigator.bluetooth)throw new Error('nobt');
   const gatt=await dev.gatt.connect();let ch=null,kind='escpos';
   for(const sv of SVC){let s;try{s=await gatt.getPrimaryService(sv);}catch(e){continue;}const cs=await s.getCharacteristics();
     const w=cs.find(c=>c.properties.writeWithoutResponse)||cs.find(c=>c.properties.write);if(w){ch=w;if(sv===0xff00)kind='phomemo';break;}}
-  if(!ch)throw new Error('nochar');
+  if(!ch){let L=[];try{L=(await gatt.getPrimaryServices()).map(x=>x.uuid.replace(/^0000(....)-0000-1000-8000-00805f9b34fb$/,'0x$1'));}catch(e){}BT.diag=(dev.name||'이름 없음')+' · 통로: '+(L.join(', ')||'없음');try{dev.gatt.disconnect();}catch(e){}throw new Error('nochar');}
   BT.dev=dev;BT.ch=ch;BT.kind=kind;BT.name=dev.name||'프린터';dev.addEventListener('gattserverdisconnected',()=>{BT.ch=null;});return BT;}
 async function btWrite(bytes,onProg){const ch=BT.ch;const N=ch.properties.writeWithoutResponse?120:180;
   for(let i=0;i<bytes.length;i+=N){const part=bytes.slice(i,i+N);if(ch.properties.writeWithoutResponse&&ch.writeValueWithoutResponse)await ch.writeValueWithoutResponse(part);else await ch.writeValue(part);
@@ -154,7 +154,7 @@ pm.addEventListener('click',async e=>{if(e.target===pm||e.target.closest('[data-
     await btWrite(job,p=>{msg.textContent=`🖨️ ${E(BT.name)}로 보내는 중… ${Math.round(p*100)}%`;});
     msg.innerHTML=`✅ 다 보냈어요! 종이가 다 나오면 뜯어 주세요.<br><small>너무 크거나 작게 나오면 위의 ‘용지 폭’을 바꿔 다시 출력해 보세요.</small>`;btn.textContent='🖨️ 한 장 더';}
   catch(err){const m=String(err&&err.message||err);BT.ch=null;
-    msg.innerHTML=/cancel|chosen/i.test(m)?'프린터를 고르지 않았어요.':m==='nochar'?'⚠️ 이 기기에서 인쇄 통로를 찾지 못했어요. 프린터가 맞는지 확인하거나, 이미지 저장 후 프린터 앱으로 출력해 주세요.':'⚠️ 연결이 끊겼거나 보내지 못했어요. 프린터 전원과 거리(1m 안)를 확인하고 다시 눌러 주세요.';btn.textContent='🔗 다시 연결하고 출력';}
+    msg.innerHTML=/cancel|chosen/i.test(m)?'프린터를 고르지 않았어요.':m==='nochar'?'⚠️ 이 기기에서 인쇄 통로를 찾지 못했어요.<br><small style="word-break:break-all">고른 기기: '+E(BT.diag||'')+'</small><br>목록에서 <b>프린터 이름</b>(예: M02S, MEEMO)을 골랐는지 확인해 주세요. 그래도 같으면 이 화면을 캡처해서 보내 주세요. 프린터가 맞는지 확인하거나, 이미지 저장 후 프린터 앱으로 출력해 주세요.':'⚠️ 연결이 끊겼거나 보내지 못했어요. 프린터 전원과 거리(1m 안)를 확인하고 다시 눌러 주세요.';btn.textContent='🔗 다시 연결하고 출력';}
   btn.disabled=false;});
 window.__ytJob=async(pw,kind)=>{const cv=document.createElement('canvas');await draw(cv,true);return Array.from(buildJob(rasterOf(cv,pw),kind));};
 window.openYearTicket=function(from){back=from||'menu';P=load();if(typeof closeSheets==='function')closeSheets();md.classList.add('show');render();};
