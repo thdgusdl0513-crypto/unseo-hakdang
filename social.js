@@ -32,7 +32,7 @@ const GAMES=[
  {id:'yut',ico:'🎋',name:'윷놀이',desc:'말 4개를 먼저 다 완주하면 승리! 윷·모·잡기는 한 번 더, 모서리에 딱 멈추면 지름길. 다같이 하면 개인전·팀전(청팀/홍팀)을 골라요.',ai:true,pvp:true},
  {id:'cham',ico:'👉',name:'참참참',desc:'해태 손가락과 다른 쪽으로 피해요. 다섯 판, 적게 맞으면 승리!',ai:true,pvp:true},
  {id:'omok',ico:'⚫',name:'오목',desc:'돌 다섯 개를 한 줄로 먼저 놓으면 승리! 3·3은 금지. 다같이 하면 여러 색 돌로 차례대로 둬요.',ai:true,pvp:true},
- {id:'rumi',ico:'🔢',name:'숫자패 놀이',desc:'루미큐브 방식! 같은 색 연속 숫자나 같은 숫자 다른 색으로 3장 이상 묶어 내려놓고, 손패를 먼저 다 털면 승리. (2~4명)',pvp:true},
+ {id:'rumi',ico:'🔢',ai:true,name:'숫자패 놀이',desc:'루미큐브 방식! 같은 색 연속 숫자나 같은 숫자 다른 색으로 3장 이상 묶어 내려놓고, 손패를 먼저 다 털면 승리. (2~4명)',pvp:true},
  {id:'clock',ico:'⏱️',name:'초 맞추기',desc:'10초·20초·30초! 시계를 안 보고 감으로 멈춰요. 세 판 동안 오차가 가장 적은 사람이 승리.',ai:true,pvp:true},
  {id:'yeop',ico:'🪙',name:'엽전 거상',desc:'스플렌더 방식! 오방색 엽전을 모아 물건 카드를 사고, 세종대왕·이순신 같은 조선의 위인을 모셔 와요. 15점을 먼저! (2~4명)',ai:true,pvp:true},
  {id:'ladder',ico:'🪜',name:'사다리 타기',desc:'이름과 결과를 적고 사다리를 만들어요. 한 화면에서 친구들과 함께 이름을 하나씩 눌러 결과를 확인해요. (간식 당첨·순서 정하기)',solo:true},
@@ -127,7 +127,7 @@ function lineAt(b,i,dx,dy,me){const n=15,x=i%n,y=Math.floor(i/n);let s='';for(le
 function openThree(line){const pats=['..XXX.','.XXX..','.XX.X.','.X.XX.'];for(const p of pats){for(let st=0;st+p.length<=11;st++){if(st>5||st+p.length<=5)continue;if(line.slice(st,st+p.length)!==p)continue;if(p[5-st]==='X')return true;}}return false;}
 function isDoubleThree(b,i,me){const nb=b.slice(0,i)+me+b.slice(i+1);if(five(nb,i,me))return false;let c=0;[[1,0],[0,1],[1,1],[1,-1]].forEach(([dx,dy])=>{if(openThree(lineAt(b,i,dx,dy,me)))c++;});return c>=2;}
 let clk=null;
-function aiTurn(){const s=N&&N.s;if(!s||s.win||s.pl[s.turn]!=='AI')return;setTimeout(()=>{if(!N||N.s!==s||s.win)return;if(N.game==='omok')hostAct('AI',{i:omokAI(s.b,String(s.turn))});if(N.game==='yeop')ypAI();if(N.game==='yut'){if(s.phase==='throw')hostAct('AI',{k:'throw'});else if(s.phase==='pick')hostAct('AI',{k:'pick',pc:yAIpick(s,'AI')});}},N.game==='yeop'?900:N.game==='yut'?900:700);}
+function aiTurn(){const s=N&&N.s;if(!s||s.win||s.pl[s.turn]!=='AI')return;setTimeout(()=>{if(!N||N.s!==s||s.win)return;if(N.game==='omok')hostAct('AI',{i:omokAI(s.b,String(s.turn))});if(N.game==='yeop')ypAI();if(N.game==='rumi')rumiAI();if(N.game==='yut'){if(s.phase==='throw')hostAct('AI',{k:'throw'});else if(s.phase==='pick')hostAct('AI',{k:'pick',pc:yAIpick(s,'AI')});}},N.game==='yeop'?900:N.game==='yut'?900:N.game==='rumi'?1600:700);}
 function startLocalN(game){G=null;N={gid:'local'+Date.now(),game,host:MYID,isHost:true,local:true,joined:[MYID,'AI'],invited:[],no:[]};N.s=newState(game,[MYID,'AI']);N.celebrated=false;if(game!=='yeop'&&game!=='yut')N.s.msg=game==='omok'?'내 차례 · 칸을 두 번 누르면 돌을 놓아요':'';openSheet('gPlay');bcast();}
 /* ====================== 엽전 거상 (스플렌더 방식) ====================== */
 const YPC=['#1f5fa8','#c8322c','#e3b021','#f2eee2','#2a2a2f','#d4a62a'];
@@ -250,6 +250,22 @@ function rumiCheck(s,u,a){const H=N.priv.hands[u].slice();const nt=a.table;if(!A
   if(!s.opened[u]){const key=x=>x.slice().sort().join(',');for(let i=0;i<s.table.length;i++){if(!nt[i]||key(nt[i])!==key(s.table[i]))return {e:'처음 내려놓을 땐 바닥 패를 건드릴 수 없어요'};}
     const pts=nt.slice(s.table.length).reduce((a,st)=>a+setPts(st),0);if(pts<30)return {e:`처음 내려놓기는 내 패로만 30점 이상! (지금 ${pts}점)`};}
   return {used:rem};}
+/* 🦁 해태의 숫자패 두기 */
+function rumiFind(hand){const H=hand.slice(),out=[];const take=ts=>{ts.forEach(t=>{const k=H.indexOf(t);if(k>=0)H.splice(k,1);});out.push(ts);};
+  for(;;){const cand=[];const real=H.filter(t=>t!=='J');
+    ['R','B','Y','K'].forEach(c=>{const ns=[...new Set(real.filter(t=>tCol(t)===c).map(tNum))].sort((a,b)=>a-b);let st=0;for(let i=1;i<=ns.length;i++){if(i===ns.length||ns[i]!==ns[i-1]+1){if(i-st>=3)cand.push(ns.slice(st,i).map(n=>c+n));st=i;}}});
+    for(let n=1;n<=13;n++){const cs=[...new Set(real.filter(t=>tNum(t)===n).map(tCol))];if(cs.length>=3)cand.push(cs.map(c=>c+n));}
+    if(!cand.length)break;cand.sort((a,b)=>setPts(b)-setPts(a));take(cand[0]);}
+  while(H.includes('J')){const real=H.filter(t=>t!=='J');let best=null;
+    for(let i=0;i<real.length;i++)for(let j=i+1;j<real.length;j++){const a=real[i],b=real[j];if(a===b)continue;const st=[a,b,'J'];if(arrange(st)){const p=setPts(st);if(!best||p>best.p)best={st,p};}}
+    if(!best)break;take(best.st);}
+  return {sets:out,left:H};}
+function rumiAI(){const s=N.s,u='AI';const H=N.priv.hands[u].slice();const f=rumiFind(H);let table=s.table.map(x=>x.slice());const opened=!!s.opened[u];
+  if(!opened){const pts=f.sets.reduce((a,st)=>a+setPts(st),0);if(pts<30||!f.sets.length){hostAct(u,{k:'draw'});return;}table=table.concat(f.sets);hostAct(u,{k:'commit',table});if(N.s.pl[N.s.turn]===u&&!N.s.win)hostAct(u,{k:'draw'});return;}
+  let left=f.left.slice();table=table.concat(f.sets);let placed=f.sets.length;
+  for(let again=true;again;){again=false;for(let i=0;i<left.length;i++){const t=left[i];for(const st of table){if(st.length<13&&arrange([...st,t])){st.push(t);left.splice(i,1);i--;placed++;again=true;break;}}}}
+  if(!placed){hostAct(u,{k:'draw'});return;}
+  table=table.map(st=>arrange(st)||st);hostAct(u,{k:'commit',table});if(N.s&&N.s.pl[N.s.turn]===u&&!N.s.win)hostAct(u,{k:'draw'});}
 function rumiNext(s){s.turn=(s.turn+1)%s.pl.length;s.cnt=Object.fromEntries(s.pl.map(id=>[id,N.priv.hands[id].length]));s.pool=N.priv.pool.length;
   if(s.passes>=s.pl.length&&!N.priv.pool.length){let mn=1e9;const sum=id=>N.priv.hands[id].reduce((a,t)=>a+(t==='J'?30:tNum(t)),0);s.pl.forEach(id=>mn=Math.min(mn,sum(id)));s.win=s.pl.filter(id=>sum(id)===mn);s.msg='더미가 다 떨어졌어요 · 남은 점수가 가장 적은 사람 승리';return;}
   if(!s.win)s.msg+=` → ${nm2(s.pl[s.turn])} 차례`;RS=null;}
@@ -481,7 +497,7 @@ function memoPick(i){const c=G.deck[i];if(G.lock||c.o||c.m||G.over)return;c.o=tr
 /* ---------- 이벤트 ---------- */
 document.addEventListener('click',e=>{const t=e.target;
   if(t.closest('[data-g="ladder"]')){if(window.openLadder)openLadder('games');return;}
-  const g=t.closest('[data-g]');if(g){const vs=g.dataset.vs;if(vs==='pick')pickFriend(g.dataset.g);else if(g.dataset.g==='omok'||g.dataset.g==='clock'||g.dataset.g==='yeop'||g.dataset.g==='yut'){startLocalN(g.dataset.g);}else{N=null;startGame(g.dataset.g,vs,'local',0);}return;}
+  const g=t.closest('[data-g]');if(g){const vs=g.dataset.vs;if(vs==='pick')pickFriend(g.dataset.g);else if(g.dataset.g==='omok'||g.dataset.g==='clock'||g.dataset.g==='yeop'||g.dataset.g==='yut'||g.dataset.g==='rumi'){startLocalN(g.dataset.g);}else{N=null;startGame(g.dataset.g,vs,'local',0);}return;}
   if(t.closest('#gAll')){const on=t.closest('#gAll').checked;$$('#gPick [data-who]').forEach(c=>c.checked=on);return;}
   const si=t.closest('#gSendInv');if(si){const ids=$$('#gPick [data-who]').filter(c=>c.checked).map(c=>c.dataset.who);G=null;hostInvite(si.dataset.game,ids);return;}
   if(t.closest('#gStart')&&N&&N.isHost&&N.joined.length>=2){N.s=newState(N.game,N.joined.slice());N.celebrated=false;if(N.game!=='yeop'&&N.game!=='yut')N.s.msg=N.game==='memo'?`${nm2(N.s.pl[0])} 차례`:'';bcast();return;}

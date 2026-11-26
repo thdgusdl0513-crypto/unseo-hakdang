@@ -623,14 +623,24 @@ let LIKES=LS.get('local.likes',{}),plSort='hot',plOpen=null,armed=null,armT=null
 const MUSIC_APPS=[['멜론',q=>'https://www.melon.com/search/total/index.htm?q='+q],['지니',q=>'https://www.genie.co.kr/search/searchMain?query='+q],['Spotify',q=>'https://open.spotify.com/search/'+q],['Apple Music',q=>'https://music.apple.com/kr/search?term='+q],['YouTube Music',q=>'https://music.youtube.com/search?q='+q]];
 const IS_IOS=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 const AM=Object.assign({},LS.get('amCache',{}));
-function amLookup(p){const q=(p.title+' '+(p.artist||'')).trim();if(AM[q])return;if(AM[q]===null)return;AM[q]=null;
-  const cb='__am'+Math.random().toString(36).slice(2);let s=null;const done=v=>{if(AM[q]!==null)return;AM[q]=v;if(v){const c=LS.get('amCache',{});c[q]=v;LS.set('amCache',c);}try{delete window[cb];}catch(e){}if(s)s.remove();renderPlaylist();};
-  window[cb]=d=>{const r=d&&d.results&&d.results.find(x=>x.trackViewUrl);done(r?r.trackViewUrl:'');};
-  s=document.createElement('script');s.src='https://itunes.apple.com/search?term='+encodeURIComponent(q)+'&country=kr&entity=song&limit=3&callback='+cb;s.onerror=()=>done('');document.head.appendChild(s);setTimeout(()=>done(''),7000);}
+const AMFAIL={};
+async function amSearch(term,country){const u='https://itunes.apple.com/search?term='+encodeURIComponent(term)+'&country='+country+'&media=music&entity=song&limit=10';
+  try{const r=await fetch(u);if(r.ok){const j=await r.json();return j.results||[];}}catch(e){}
+  return await new Promise(res=>{const cb='__am'+Math.random().toString(36).slice(2);let s=null,fin=false;const done=v=>{if(fin)return;fin=true;try{delete window[cb];}catch(e){}if(s)s.remove();res(v);};
+    window[cb]=d=>done((d&&d.results)||[]);s=document.createElement('script');s.src=u+'&callback='+cb;s.onerror=()=>done([]);document.head.appendChild(s);setTimeout(()=>done([]),6000);});}
+const amNorm=t=>String(t||'').toLowerCase().replace(/\(.*?\)|\[.*?\]|feat\.?.*$/g,'').replace(/[^0-9a-z가-힣ぁ-んァ-ン一-龥]/g,'');
+function amPick(list,p){const T=amNorm(p.title),A=amNorm(p.artist);const ok=list.filter(x=>x.trackViewUrl);if(!ok.length)return null;
+  const sc=x=>{const t=amNorm(x.trackName),a=amNorm(x.artistName);let v=0;if(t===T)v+=4;else if(T&&(t.includes(T)||T.includes(t)))v+=2;if(A&&(a.includes(A)||A.includes(a)))v+=3;return v;};
+  const best=ok.map(x=>[sc(x),x]).sort((a,b)=>b[0]-a[0])[0];return (best[0]>=4||(!A&&best[0]>=2))?best[1].trackViewUrl:null;}
+async function amLookup(p){const q=(p.title+' '+(p.artist||'')).trim();if(AM[q])return;if(AM[q]===null)return;if(AMFAIL[q]&&Date.now()-AMFAIL[q]<90000)return;AM[q]=null;
+  let url=null;const tries=[[q,'kr'],[p.title,'kr'],[q,'us'],[p.title,'jp']];
+  for(const [t,c] of tries){if(!t)continue;const r=await amSearch(t,c);url=amPick(r,p);if(url)break;}
+  if(url){AM[q]=url;const c=LS.get('amCache',{});c[q]=url;LS.set('amCache',c);}else{delete AM[q];AMFAIL[q]=Date.now();}
+  try{renderPlaylist();}catch(e){}}
 function appleLink(p){const q=(p.title+' '+(p.artist||'')).trim();const d=AM[q];
   if(d){const href=IS_IOS?d.replace(/^https:/,'music:'):d;return `<a class="am" href="${esc(href)}"${IS_IOS?'':' target="_blank" rel="noopener noreferrer"'}>Apple Music ▶ 바로 재생</a>`;}
   if(d===null)return `<a class="am wait">Apple Music · 곡 찾는 중…</a>`;
-  return `<a href="${esc('https://music.apple.com/kr/search?term='+encodeURIComponent(q))}" target="_blank" rel="noopener noreferrer">Apple Music</a>`;}
+  return `<a href="#" data-amfind="${esc(q)}">Apple Music에서 찾기</a>`;}
 function appLinks(p){const q=encodeURIComponent((p.title+' '+(p.artist||'')).trim());return `<div class="apps">${appleLink(p)}${MUSIC_APPS.filter(a=>a[0]!=='Apple Music').map(a=>`<a href="${esc(a[1](q))}" target="_blank" rel="noopener noreferrer">${a[0]}</a>`).join('')}<em>음악 앱에서 찾아 들으면 화면을 꺼도 계속 들을 수 있어요</em></div>`;}
 const FB=()=>window.__cloudKind==='firebase';
 function subLikes(){DB.collection('likes').limit(1000).onSnapshot(s=>{const o={};s.docs.forEach(d=>{if(FB())o[d.id]=d.data()||{};else{const [it,u]=d.id.split('~');if(it&&u){(o[it]=o[it]||{})[u]={v:1};}}});LIKES=o;renderPlaylist();},()=>{});}
@@ -650,6 +660,7 @@ $('#plTk').addEventListener('click',e=>{e.stopPropagation();openSheet('playlist'
 $('#plAdd').addEventListener('click',()=>{const f=$('#plFormBox');f.hidden=!f.hidden;$('#plAdd').textContent=f.hidden?'＋ 곡 추천하기':'접기';if(!f.hidden)$('#plTitle').focus();});
 $('#plSort').addEventListener('click',e=>{const b=e.target.closest('[data-s]');if(!b)return;plSort=b.dataset.s;renderPlaylist();});
 $('#plList').addEventListener('click',async e=>{const lk=e.target.closest('[data-like]'),dl=e.target.closest('[data-pdel]');
+  const af=e.target.closest('[data-amfind]');if(af){e.preventDefault();const q=af.dataset.amfind;try{navigator.clipboard&&navigator.clipboard.writeText(q);}catch(err){}toast('🎵 곡 이름을 복사했어요<small>Apple Music 검색창에 붙여 넣어 주세요</small>');setTimeout(()=>{const w='https://music.apple.com/kr/search?term='+encodeURIComponent(q);if(IS_IOS)location.href='music://music.apple.com/kr/search?term='+encodeURIComponent(q);else window.open(w,'_blank','noopener');},350);return;}
   const ap=e.target.closest('[data-apps]');if(ap){plOpen=plOpen===ap.dataset.apps?null:ap.dataset.apps;const it=DATA.playlist.find(x=>x.id===plOpen);if(it)amLookup(it);renderPlaylist();return;}
   if(dl){const id=dl.dataset.pdel;if(armed!==id){armed=id;renderPlaylist();clearTimeout(armT);armT=setTimeout(()=>{armed=null;renderPlaylist();},3500);return;}armed=null;const ok=await delDoc('playlist',id);if(ok!==false)toast('곡을 삭제했어요');return;}
   if(lk){const id=lk.dataset.like,on=!iLike(id);LIKES[id]=Object.assign({},LIKES[id]);if(on)LIKES[id][MYID]={v:1};else delete LIKES[id][MYID];renderPlaylist();
