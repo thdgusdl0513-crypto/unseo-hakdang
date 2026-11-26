@@ -12,7 +12,7 @@
 <title>몽원학당 · 동양풍 마법사 학교</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Orbit&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Nanum+Myeongjo:wght@400;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbit&family=Nova+Mono&family=Gowun+Batang:wght@400;700&family=Gowun+Dodum&family=Nanum+Myeongjo:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
 :root{--paper:#f6ead2;--paper2:#efdcba;--ink:#4a3224;--ink2:#7a5a44;--amber:#d9884a;--amber2:#e8a860;--teal:#3f7f7a;--rose:#c4584a;--shadow:0 6px 18px rgba(40,22,10,.28)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -480,6 +480,7 @@ body.seated #hint,body.seated #action{display:none!important}
     <button data-open="wardrobe"><span>🧥</span>옷장</button>
     <button data-open="friends"><span>📣</span>친구 · 귓속말<i id="dmDot" class="tileDot" hidden></i></button>
     <button data-open="games"><span>🎲</span>놀이마당</button>
+    <button id="ytTile" type="button" onclick="openYearTicket('menu')"><span>🧾</span>올해 결산 영수증</button>
     <button data-open="garden"><span>🪴</span>화분 가꾸기<i id="gdDot" class="tileDot" hidden></i></button>
     <button data-open="me"><span><svg viewBox="0 0 40 40" width="30" height="30"><ellipse cx="20" cy="25" rx="17" ry="4.5" fill="#2a2420" opacity=".85"/><path d="M13 24V14Q13 10 20 10Q27 10 27 14V24Z" fill="#2a2420"/><rect x="13" y="21" width="14" height="2.4" fill="#6a4a30"/><path d="M9 27Q20 39 31 27" stroke="#d9a050" stroke-width="1.8" fill="none" stroke-dasharray="1.6 2.2"/></svg></span>닉네임·캐릭터</button>
     <button id="sndTile"><span id="sndIco">🔊</span><em id="sndState" style="font-style:normal">소리</em></button>
@@ -734,7 +735,7 @@ body.seated #hint,body.seated #action{display:none!important}
 <script>
 (async function(){
   try{await Promise.race([Promise.all([document.fonts.load('800 80px "Nanum Myeongjo"','雲書學堂閣基礎魔法靈藥溫和寮體力勅令符天地玄黃第一講藥草園天下大將軍地女'),document.fonts.load('30px "Gowun Batang"','가나다 마법')]),new Promise(r=>setTimeout(r,2500))]);}catch(e){}
-  try{const MISS=[];const CORE=['words.js','core.js','avatars.js','wardrobe.js','emotes.js','pets.js','spaces.js','app.js'];for(const s of ['core.js','avatars.js','wardrobe.js','emotes.js','pets.js','spaces.js','sound.js','prologue.js','app.js','focus-companions.js','profile.js','focus-alarm.js','letters.js','ladder.js','social.js','garden.js','quotes.js','campus.js']){await new Promise((res,rej)=>{const el=document.createElement('script');el.src=s+'?v=20261125-avdock2';el.onload=res;el.onerror=()=>{if(CORE.includes(s))rej(new Error(s+' 불러오기 실패'));else{MISS.push(s);res();}};document.body.appendChild(el);});}
+  try{const MISS=[];const CORE=['words.js','core.js','avatars.js','wardrobe.js','emotes.js','pets.js','spaces.js','app.js'];for(const s of ['core.js','avatars.js','wardrobe.js','emotes.js','pets.js','spaces.js','sound.js','prologue.js','app.js','focus-companions.js','profile.js','focus-alarm.js','letters.js','ladder.js','yearticket.js','social.js','garden.js','quotes.js','campus.js']){await new Promise((res,rej)=>{const el=document.createElement('script');el.src=s+'?v=20261126-receipt4';el.onload=res;el.onerror=()=>{if(CORE.includes(s))rej(new Error(s+' 불러오기 실패'));else{MISS.push(s);res();}};document.body.appendChild(el);});}
   if(MISS.length){window.__missing=MISS;const b=document.createElement('div');b.id='missBar';b.style.cssText='position:fixed;left:50%;top:10px;transform:translateX(-50%);z-index:9999;background:#fbe3da;color:#9a3a20;border:2px solid #d0603a;border-radius:14px;padding:10px 14px;font-size:14px;line-height:1.5;max-width:92vw;box-shadow:0 6px 18px rgba(0,0,0,.2);text-align:center';b.innerHTML='⚠️ 이 파일을 찾지 못했어요: <b>'+MISS.join(', ')+'</b><br><small>GitHub의 이 학당 폴더에 위 파일을 올려 주세요. 그 기능은 지금 동작하지 않아요.</small> <button style="font:inherit;border:0;border-radius:8px;padding:2px 8px;margin-left:6px" onclick="this.parentNode.remove()">닫기</button>';document.body.appendChild(b);}}
   catch(e){document.getElementById('loadTxt').textContent='학당을 열지 못했어요: '+e.message;}
 })();
