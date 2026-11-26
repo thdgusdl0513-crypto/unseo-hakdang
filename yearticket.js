@@ -25,7 +25,7 @@ const W=1000;let H=1700;
 function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
 function wrap(c,t,maxW){const out=[];let line='';for(const ch of String(t)){const tt=line+ch;if(c.measureText(tt).width>maxW&&line){out.push(line);line=ch;}else line=tt;}if(line)out.push(line);return out;}
 async function draw(cv,PR){
-  try{await Promise.all(['40px "Nova Mono"','40px "Orbit"'].map(f=>document.fonts.load(f)));}catch(e){}
+  try{await Promise.race([Promise.all(['40px "Nova Mono"','40px "Orbit"'].map(f=>document.fonts.load(f))),new Promise(r=>setTimeout(r,2500))]);}catch(e){}
   const MONO='"Nova Mono","Orbit","Courier New",monospace',KR='"Orbit","Gowun Dodum",sans-serif';
   const red=PR?'#000':'#d2232a',ink=PR?'#000':'#1d1b19',sub=PR?'#333':'rgba(29,27,25,.62)';const L=70,R=W-70;
   const items=P.items.filter(x=>String(x[1]||'').trim()).slice(0,9);

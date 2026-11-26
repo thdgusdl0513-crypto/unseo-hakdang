@@ -73,6 +73,7 @@
     "letters": {
       "$mb": {
         ".read": "auth != null && root.child('members').child(auth.uid).child('mb').val() === $mb",
+        ".write": "auth != null && root.child('members').child(auth.uid).child('admin').val() === 'happy_life' && !newData.exists()",
         ".indexOn": [
           "ts"
         ],
@@ -85,6 +86,7 @@
     "plans": {
       "$mb": {
         ".read": "auth != null && (root.child('members').child(auth.uid).child('mb').val() === $mb || root.child('members').child(auth.uid).child('admin').val() === 'happy_life')",
+        ".write": "auth != null && root.child('members').child(auth.uid).child('admin').val() === 'happy_life' && !newData.exists()",
         ".indexOn": [
           "ts"
         ],
@@ -184,6 +186,7 @@
       "letters": {
         "$mb": {
           ".read": "auth != null && root.child('cheongdo').child('members').child(auth.uid).child('mb').val() === $mb",
+          ".write": "auth != null && root.child('cheongdo').child('members').child(auth.uid).child('admin').val() === 'happy_life' && !newData.exists()",
           ".indexOn": [
             "ts"
           ],
@@ -196,6 +199,7 @@
       "plans": {
         "$mb": {
           ".read": "auth != null && (root.child('cheongdo').child('members').child(auth.uid).child('mb').val() === $mb || root.child('cheongdo').child('members').child(auth.uid).child('admin').val() === 'happy_life')",
+          ".write": "auth != null && root.child('cheongdo').child('members').child(auth.uid).child('admin').val() === 'happy_life' && !newData.exists()",
           ".indexOn": [
             "ts"
           ],
@@ -296,6 +300,7 @@
       "letters": {
         "$mb": {
           ".read": "auth != null && root.child('songhyeon').child('members').child(auth.uid).child('mb').val() === $mb",
+          ".write": "auth != null && root.child('songhyeon').child('members').child(auth.uid).child('admin').val() === 'happy_life' && !newData.exists()",
           ".indexOn": [
             "ts"
           ],
@@ -308,6 +313,7 @@
       "plans": {
         "$mb": {
           ".read": "auth != null && (root.child('songhyeon').child('members').child(auth.uid).child('mb').val() === $mb || root.child('songhyeon').child('members').child(auth.uid).child('admin').val() === 'happy_life')",
+          ".write": "auth != null && root.child('songhyeon').child('members').child(auth.uid).child('admin').val() === 'happy_life' && !newData.exists()",
           ".indexOn": [
             "ts"
           ],

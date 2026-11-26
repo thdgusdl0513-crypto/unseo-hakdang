@@ -20,15 +20,16 @@ function setup(){const n=L.n;const names=L.names.slice(0,n),res=L.res.slice(0,n)
   <div class="ldQuick"><button data-lq="me">🙋 나 + 접속한 친구 넣기</button><button data-lq="num">1번·2번…로 채우기</button><button data-lq="clearN">이름 지우기</button></div>
   <div class="ldQuick"><button data-lq="win1">🍪 당첨 1개</button><button data-lq="win2">🍪 당첨 2개</button><button data-lq="win3">🍪 당첨 3개</button><button data-lq="order">순서 정하기 (1등~)</button><button data-lq="clearR">결과 지우기</button></div>
   <div class="ldGrid"><div class="h">참가자</div><div class="h">결과 (사다리 아래)</div>${names.map((v,i)=>`<input data-lnm="${i}" maxlength="10" placeholder="참가자 ${i+1}" value="${E(v)}"><input data-lrs="${i}" maxlength="12" placeholder="결과 ${i+1}" value="${E(res[i])}">`).join('')}</div>
+  <label class="ldChk"><input type="checkbox" id="ldMix" ${L.mixNames!==false?'checked':''}> 참가자 자리도 무작위로 섞기</label>
   <label class="ldChk"><input type="checkbox" id="ldHide" ${L.hide!==false?'checked':''}> 결과를 가려 두었다가 한 명씩 열기</label>
   <button class="primary ldGo" id="ldStart">🪜 사다리 만들기</button>`;}
-function readInputs(){if(!$q('[data-lnm="0"]'))return;const n=L.n;L.names=[...Array(n)].map((_,i)=>(($q(`[data-lnm="${i}"]`)||{}).value||'').trim());L.res=[...Array(n)].map((_,i)=>(($q(`[data-lrs="${i}"]`)||{}).value||'').trim());const h=$q('#ldHide');if(h)L.hide=h.checked;LS.set('ladderSet',L);}
+function readInputs(){if(!$q('[data-lnm="0"]'))return;const n=L.n;L.names=[...Array(n)].map((_,i)=>(($q(`[data-lnm="${i}"]`)||{}).value||'').trim());L.res=[...Array(n)].map((_,i)=>(($q(`[data-lrs="${i}"]`)||{}).value||'').trim());const h=$q('#ldHide');if(h)L.hide=h.checked;const mx=$q('#ldMix');if(mx)L.mixNames=mx.checked;LS.set('ladderSet',L);}
 function build(){readInputs();const n=L.n;const names=L.names.map((v,i)=>v||`참가자 ${i+1}`),res=L.res.map((v,i)=>v||'꽝');
   if(typeof badBlock==='function'&&!ADMIN_ON&&badBlock(names.join(' ')+' '+res.join(' ')))return;
   const rows=Math.max(10,n*3);const rung=[];for(let r=0;r<rows;r++){rung.push([]);for(let c=0;c<n-1;c++){const prev=c>0&&rung[r][c-1];const above=r>0&&rung[r-1][c];rung[r].push(!prev&&!above&&Math.random()<.42);}}
   for(let c=0;c<n-1;c++){if(!rung.some(r=>r[c])){const r=1+Math.floor(Math.random()*(rows-2));if(!(c>0&&rung[r][c-1])&&!(rung[r][c+1]))rung[r][c]=true;}}
-  const perm=res.map((v,i)=>i).sort(()=>Math.random()-.5);
-  S={n,names,res:perm.map(i=>res[i]),rows,rung,open:[],hide:L.hide!==false};draw();}
+  const mix=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+  S={n,names:L.mixNames===false?names:mix(names),res:mix(res),rows,rung,open:[],hide:L.hide!==false};draw();}
 function trace(i){const pts=[];let c=i;const W=S.gap,top=S.top;pts.push([S.x0+c*W,top-2]);for(let r=0;r<S.rows;r++){const y=top+(r+1)*S.rh;if(c<S.n-1&&S.rung[r][c]){pts.push([S.x0+c*W,y],[S.x0+(c+1)*W,y]);c++;}else if(c>0&&S.rung[r][c-1]){pts.push([S.x0+c*W,y],[S.x0+(c-1)*W,y]);c--;}}
   pts.push([S.x0+c*W,top+(S.rows+1)*S.rh+2]);return {pts,end:c};}
 function draw(){const n=S.n;const wrap=Math.min(560,(md.querySelector('.sheet').clientWidth||360)-24);S.gap=Math.max(44,Math.min(110,(wrap-64)/Math.max(1,n-1)));S.x0=32;S.top=44;S.rh=Math.max(16,Math.min(26,330/S.rows));
