@@ -67,6 +67,7 @@ function gotGame(v){let m;try{m=JSON.parse(v.g);}catch(e){return;}const from=v.b
   if(m.k==='inv'){if(N&&N.s&&!N.s.win){sendG(from,{k:'no',gid:m.gid});return;}invQ={from,game:m.game,gid:m.gid};const g=GAMES.find(x=>x.id===m.game);$('#gInvTx').innerHTML=`${g?g.ico:'🎮'} <b>${E(NM(from))}</b>님이<br><b>${g?g.name:'놀이'}</b> 같이 하재요!${m.n>2?`<br><small>${m.n}명이 함께해요</small>`:''}`;$('#gInv').classList.add('show');try{chime();}catch(e){}return;}
   if(m.k==='pw'){if(window.__gardenWater)window.__gardenWater(from,m);return;}
   if(!N||N.gid!==m.gid)return;
+  if(m.k==='gc'){const by=m.by||from;gcAdd(by,String(m.t||'').slice(0,120));if(N.isHost){const to=[...(N.s?N.s.pl:N.joined||[]),...(N.watchers||[])].filter(x=>x!==MYID&&x!=='AI'&&x!==from&&x!==by);[...new Set(to)].forEach(x=>sendG(x,{k:'gc',gid:N.gid,by,t:m.t}));}return;}
   if(N.isHost){if(m.k==='join'&&!N.joined.includes(from)){N.joined.push(from);toast(`${E(NM(from))}님이 들어왔어요`);if(!N.s)lobby();return;}
     if(m.k==='no'){N.no.push(from);if(!N.s)lobby();return;}
     if(m.k==='act'&&N.s&&N.s.pl.includes(from)){hostAct(from,m.a);return;}
@@ -253,7 +254,8 @@ function rumiNext(s){s.turn=(s.turn+1)%s.pl.length;s.cnt=Object.fromEntries(s.pl
   if(s.passes>=s.pl.length&&!N.priv.pool.length){let mn=1e9;const sum=id=>N.priv.hands[id].reduce((a,t)=>a+(t==='J'?30:tNum(t)),0);s.pl.forEach(id=>mn=Math.min(mn,sum(id)));s.win=s.pl.filter(id=>sum(id)===mn);s.msg='더미가 다 떨어졌어요 · 남은 점수가 가장 적은 사람 승리';return;}
   if(!s.win)s.msg+=` → ${nm2(s.pl[s.turn])} 차례`;RS=null;}
 let RS=null; // 내 차례 준비 상태 (바닥 패 옮기기 포함)
-function rsInit(){const s=N.s;const key=s.v+'|'+s.turn;if(!RS||RS.key!==key)RS={key,sel:new Set(),tbl:s.table.map(st=>st.map(t=>({t,o:'t'}))),loose:[],hl:(N.hand||[]).slice(),addMode:false,moved:false,sort:RS?RS.sort:'c'};return RS;}
+function rsOrder(h,ord){if(!ord||!ord.length)return h.slice();const rest=h.slice(),out=[];ord.forEach(t=>{const k=rest.indexOf(t);if(k>=0){out.push(t);rest.splice(k,1);}});return out.concat(rest);}
+function rsInit(){const s=N.s;const key=s.v+'|'+s.turn;if(!RS||RS.key!==key){const ord=RS?RS.ord:null,srt=RS?RS.sort:'c';RS={key,sel:new Set(),tbl:s.table.map(st=>st.map(t=>({t,o:'t'}))),loose:[],hl:rsOrder(N.hand||[],ord),addMode:false,moved:false,sort:srt,ord};}return RS;}
 function rsHandLeft(){return RS.hl;}
 const rsOk=st=>st.length>=3&&!!arrange(st.map(x=>x.t));
 function rsSort(st){const ar=arrange(st.map(x=>x.t));if(!ar)return st;const pool=st.slice();const out=ar.map(t=>{const k=pool.findIndex(x=>x.t===t);return pool.splice(k,1)[0];});return out.concat(pool);}
@@ -366,15 +368,15 @@ function nRender(){if(!N||!N.s)return;const s=N.s;const el=PB();if(!$('#gPlay').
   if(N.game==='omok'){const my=s.pl[s.turn]===MYID;const stc=d=>s.pl.length===2?(d==='0'?'#1a1a1e':'#fbfbf6'):COL[+d%COL.length];
     el.innerHTML=chips(s,(id,i)=>i===s.turn?'cur':'').replace(/<span class="nChip/g,'<span class="nChip')+`<div class="omok">${s.b.split('').map((c,i)=>`<i data-nomok="${i}" class="${c!=='.'?'st':''} ${i===s.last?'last':''} ${N.ghost===i?'gh':''}" ${c!=='.'?`style="--s:${stc(c)}"`:N.ghost===i?`style="--s:${stc(String(s.turn))}"`:''}></i>`).join('')}</div>`
       +`<div class="gMsg sm">${E(s.msg||'')}${my&&!s.win?' · 같은 칸을 한 번 더 누르면 놓여요':''}</div>`+(s.win?winLine(s):'');}
-  if(N.game==='rumi'){const my=s.pl[s.turn]===MYID&&!s.win&&!N.spec;rsInit();const left=RS.hl;const op=!!s.opened[MYID];const srt=left.map((t,i)=>({t,i})).sort((a,b)=>RS.sort==='c'?(tCol(a.t).localeCompare(tCol(b.t))||tNum(a.t)-tNum(b.t)):(tNum(a.t)-tNum(b.t)||tCol(a.t).localeCompare(tCol(b.t))));
+  if(N.game==='rumi'){const my=s.pl[s.turn]===MYID&&!s.win&&!N.spec;rsInit();const left=RS.hl;const op=!!s.opened[MYID];const srt=RS.sort==='f'?left.map((t,i)=>({t,i})):left.map((t,i)=>({t,i})).sort((a,b)=>RS.sort==='c'?(tCol(a.t).localeCompare(tCol(b.t))||tNum(a.t)-tNum(b.t)):(tNum(a.t)-tNum(b.t)||tCol(a.t).localeCompare(tCol(b.t))));
     const bad=RS.tbl.filter(st=>!rsOk(st)).length,placed=(N.hand||[]).length-left.length;
     const why=!my?'':RS.loose.length?'꺼낸 패를 모두 묶음에 넣어야 해요':bad?`규칙에 안 맞는 묶음이 ${bad}개 있어요 (빨간 테두리)`:placed<=0?'손패에서 한 장 이상 내려놓아요':'';
     el.innerHTML=`<div class="nPl">${s.pl.map((id,i)=>`<span class="nChip ${i===s.turn?'cur':''}" style="--c:${COL[i%COL.length]}">${E(nm2(id))} ${s.cnt[id]}장${s.opened[id]?'':' · 시작 전'}</span>`).join('')}</div>
       <div class="rTable">${RS.tbl.length?'':'<div class="empty">아직 내려놓은 패가 없어요</div>'}${RS.tbl.map((st,si)=>`<div class="rSet ${RS.addMode&&my?'pick':''} ${my&&!rsOk(st)?'bad':''}" data-rset="${si}">${st.map((x,ti)=>`<span data-rt="${si}_${ti}">${tileH(x.t,(x.o==='h'?'new ':'')+(RS.sel.has('t:'+si+'_'+ti)?'sel':''))}</span>`).join('')}</div>`).join('')}</div>
       ${RS.loose.length?`<div class="rLoose"><small>✋ 바닥에서 꺼낸 패 · 다시 묶음에 넣어야 해요</small><div>${RS.loose.map((x,i)=>`<span data-rl="${i}">${tileH(x.t,(x.o==='h'?'new ':'')+(RS.sel.has('l:'+i)?'sel':''))}</span>`).join('')}</div></div>`:''}
       <div class="gMsg sm">${E(s.msg||'')} · 더미 ${s.pool}장</div>
-      ${N.spec?'<div class="empty" style="text-align:center">👀 구경 중이라 손패는 보이지 않아요</div>':`<div class="rHandBar"><span>내 패 ${left.length}장</span><button class="ghost sm" id="rSort">${RS.sort==='c'?'숫자순':'색깔순'} 정렬</button></div>
-      <div class="rHand">${srt.map(({t,i})=>`<span data-rh="${i}">${tileH(t,RS.sel.has('h:'+i)?'sel':'')}</span>`).join('')}</div>`}`
+      ${N.spec?'<div class="empty" style="text-align:center">👀 구경 중이라 손패는 보이지 않아요</div>':`<div class="rHandBar"><span>내 패 ${left.length}장</span><span class="rSortG">${[['c','색깔순'],['n','숫자순'],['f','✋ 내 마음대로']].map(([k,l])=>`<button class="ghost sm ${RS.sort===k?'on':''}" data-rsort="${k}">${l}</button>`).join('')}</span></div><div class="rTip">패를 꾹 눌러 끌면 원하는 자리로 옮길 수 있어요</div>
+      <div class="rHand" id="rHandBox">${srt.map(({t,i})=>`<span data-rh="${i}">${tileH(t,RS.sel.has('h:'+i)?'sel':'')}</span>`).join('')}</div>`}`
       +(s.win?winLine(s):my?`<div class="rBtns"><button class="ghost" id="rMake" ${RS.sel.size?'':'disabled'}>➕ 새 묶음</button><button class="ghost" id="rAdd" ${RS.sel.size?'':'disabled'}>${RS.addMode?'👆 묶음을 눌러요':'📎 묶음에 붙이기'}</button><button class="ghost" id="rPull" ${op&&[...RS.sel].some(k=>k[0]==='t')?'':'disabled'}>✋ 바닥에서 꺼내기</button></div>
         <div class="rBtns two"><button class="ghost" id="rBack" ${[...RS.sel].some(k=>k[0]!=='h')?'':'disabled'}>↩ 내 손으로</button><button class="ghost" id="rReset" ${RS.moved?'':'disabled'}>⟲ 처음 바닥으로</button></div>
         <div class="rBtns two"><button class="ghost" id="rDraw" ${RS.moved?'disabled':''}>🀫 한 장 가져오기</button><button class="primary" id="rCommit" ${RS.moved&&!why?'':'disabled'}>✔ 내려놓고 넘기기</button></div>
@@ -491,7 +493,8 @@ document.addEventListener('click',e=>{const t=e.target;
     const yd=t.closest('[data-ydest]');if(yd&&N.ysel!=null){const i=N.ysel;N.ysel=null;act({k:'pick',pc:i});return;}}
   if(N&&N.s&&N.game==='yeop'&&ypClick(t))return;
   if(N&&N.s&&N.game==='rumi'&&RS){const s=N.s;const my=s.pl[s.turn]===MYID&&!s.win&&!N.spec;const op=!!s.opened[MYID];
-    if(t.closest('#rSort')){RS.sort=RS.sort==='c'?'n':'c';nRender();return;}
+    if(window.__rNoClick&&Date.now()-window.__rNoClick<450)return;
+    const so=t.closest('[data-rsort]');if(so){const k=so.dataset.rsort;if(k==='f'&&RS.sort!=='f'){const box=document.getElementById('rHandBox');if(box){const vis=[...box.querySelectorAll('[data-rh]')].map(x=>+x.dataset.rh);rsApply(vis);}}RS.sort=k;nRender();return;}
     if(!my){if(t.closest('[data-rh]'))toast('내 차례에 고를 수 있어요');return;}
     const rset=t.closest('[data-rset]');
     if(RS.addMode&&rset){const tgt=RS.tbl[+rset.dataset.rset];if(!op&&tgt.some(x=>x.o==='t')){toast('처음 내려놓기 전에는 바닥 묶음에 붙일 수 없어요');return;}const objs=rsTake();tgt.push(...objs);RS.addMode=false;rsTidy();nRender();return;}
@@ -526,4 +529,33 @@ window.__gameState=()=>N;window.__sendG=sendG;window.__ypAI=()=>ypAI();
 window.__socialOpen=id=>{if(id==='games')renderGames();if(id==='friends')dmInbox();};
 /* 받은 편지함 연결 (Firebase 연결 후) */
 let hooked=false;setInterval(()=>{if(!hooked&&DM()&&DM().ready()){hooked=true;DM().listen(gotDM);}dmBadge();},1000);
+/* ✋ 숫자패: 손패를 끌어서 내 마음대로 배치 */
+function rsApply(visIdx){const old=RS.hl.slice();const map={};visIdx.forEach((oi,ni)=>map[oi]=ni);RS.hl=visIdx.map(i=>old[i]);RS.ord=RS.hl.slice();
+  RS.sel=new Set([...RS.sel].map(k=>k[0]==='h'&&map[+k.slice(2)]!=null?'h:'+map[+k.slice(2)]:k));}
+(function(){let D=null;
+  const end=()=>{if(D&&D.ghost)D.ghost.remove();if(D&&D.src)D.src.classList.remove('dragSrc');document.querySelectorAll('.rHand .dropL,.rHand .dropR').forEach(x=>x.classList.remove('dropL','dropR'));D=null;};
+  const target=(x,y)=>{const box=document.getElementById('rHandBox');if(!box)return null;const els=[...box.querySelectorAll('[data-rh]')];let best=null,bd=1e9;els.forEach((el,k)=>{const r=el.getBoundingClientRect();const cx=r.left+r.width/2,cy=r.top+r.height/2;const d=Math.hypot((x-cx)*1,(y-cy)*1.6);if(d<bd){bd=d;best={el,k,after:x>cx};}});return best;};
+  document.addEventListener('pointerdown',e=>{const el=e.target.closest('#rHandBox [data-rh]');if(!el||!N||N.game!=='rumi'||!RS)return;D={src:el,x:e.clientX,y:e.clientY,id:e.pointerId,on:false};},true);
+  document.addEventListener('pointermove',e=>{if(!D||e.pointerId!==D.id)return;if(!D.on){if(Math.hypot(e.clientX-D.x,e.clientY-D.y)<9)return;D.on=true;const r=D.src.getBoundingClientRect();D.ox=e.clientX-r.left;D.oy=e.clientY-r.top;D.ghost=D.src.cloneNode(true);D.ghost.className='rGhost';D.ghost.style.width=r.width+'px';document.body.appendChild(D.ghost);D.src.classList.add('dragSrc');}
+    e.preventDefault();D.ghost.style.left=(e.clientX-D.ox)+'px';D.ghost.style.top=(e.clientY-D.oy-14)+'px';
+    document.querySelectorAll('.rHand .dropL,.rHand .dropR').forEach(x=>x.classList.remove('dropL','dropR'));const t=target(e.clientX,e.clientY);if(t&&t.el!==D.src)t.el.classList.add(t.after?'dropR':'dropL');},{passive:false});
+  document.addEventListener('pointerup',e=>{if(!D||e.pointerId!==D.id)return;if(!D.on){D=null;return;}const t=target(e.clientX,e.clientY);const box=document.getElementById('rHandBox');
+    if(t&&box){const vis=[...box.querySelectorAll('[data-rh]')].map(x=>+x.dataset.rh);const from=vis.indexOf(+D.src.dataset.rh);let to=t.k+(t.after?1:0);const v=vis.splice(from,1)[0];if(to>from)to--;vis.splice(to,0,v);rsApply(vis);RS.sort='f';}
+    window.__rNoClick=Date.now();end();nRender();});
+  document.addEventListener('pointercancel',end);
 })();
+/* 💬 놀이하면서 채팅 */
+let GC=[],GCID=null;
+function gcAdd(by,t){if(!N)return;if(GCID!==N.gid){GC=[];GCID=N.gid;}GC.push({by,t,ts:Date.now()});if(GC.length>40)GC.shift();gcRender();if(by!==MYID){try{if(typeof chime==='function'&&!$('#gPlay').classList.contains('show'))chime();}catch(e){}}}
+function gcRender(){const box=document.getElementById('gcLog');if(!box)return;if(!N||GCID!==N.gid){box.innerHTML='<div class="gcSys">놀이하면서 같이 이야기해요 💬</div>';return;}
+  box.innerHTML=GC.slice(-30).map(c=>`<div class="${c.by===MYID?'me':''}"><b>${E(nm2(c.by))}</b>${E(c.t)}</div>`).join('');box.scrollTop=box.scrollHeight;}
+function gcSend(){const i=document.getElementById('gcIn');if(!i||!N)return;const t=i.value.trim().slice(0,120);if(!t)return;if(typeof badBlock==='function'&&!(typeof ADMIN_ON!=='undefined'&&ADMIN_ON)&&badBlock(t))return;i.value='';gcAdd(MYID,t);
+  if(N.isHost){const to=[...(N.s?N.s.pl:N.joined||[]),...(N.watchers||[])].filter(x=>x!==MYID&&x!=='AI');[...new Set(to)].forEach(x=>sendG(x,{k:'gc',gid:N.gid,by:MYID,t}));}else sendG(N.host,{k:'gc',gid:N.gid,by:MYID,t});
+  try{if(typeof myBubble!=='undefined'&&myBubble)myBubble.set(t);}catch(e){}}
+(function(){const sh=document.querySelector('#gPlay .sheet');if(!sh||document.getElementById('gChat'))return;const w=document.createElement('div');w.id='gChat';
+  w.innerHTML='<div id="gcLog"></div><div class="gcBar"><input id="gcIn" maxlength="120" placeholder="같이 노는 친구들에게 한마디" enterkeyhint="send" autocomplete="off"><button id="gcSend" class="primary">보내기</button></div>';sh.appendChild(w);
+  document.getElementById('gcSend').addEventListener('click',gcSend);document.getElementById('gcIn').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();gcSend();}});
+  document.getElementById('gcIn').addEventListener('focus',()=>setTimeout(()=>{try{w.scrollIntoView({block:'end',behavior:'smooth'});}catch(e){}},350));
+  const md=document.getElementById('gPlay');new MutationObserver(()=>{const on=md.classList.contains('show');w.style.display=on&&N?'':'none';if(on)gcRender();}).observe(md,{attributes:true,attributeFilter:['class']});w.style.display='none';})();
+})();
+

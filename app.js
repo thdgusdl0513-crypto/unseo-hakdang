@@ -849,3 +849,6 @@ window.isHostId=isHostId;
   let last=null;st.addEventListener('click',e=>{const g=e.target.closest('#introAv [data-av-group]');const v=e.target.closest('[data-avatar-variant]');if(g||v){dk.classList.remove('pop');void dk.offsetWidth;dk.classList.add('pop');}
     if(g){const grp=AVATAR_GROUPS.find(x=>x.key===g.dataset.avGroup);const a=AVMAP[g.dataset.av];if(((grp&&grp.ids.length>1)||(a&&(a.dragonColor||a.type==='dino')))&&last!==g.dataset.avGroup){setTimeout(()=>{const box=document.getElementById('introAvColorBox');if(box&&box.innerHTML.trim()){box.scrollIntoView({behavior:'smooth',block:'start'});box.classList.remove('flash');void box.offsetWidth;box.classList.add('flash');}},120);}last=g.dataset.avGroup;}},true);
 })();
+
+/* 채팅 입력 중엔 대화 내용을 입력창 바로 위로 */
+(function(){const i=document.getElementById('chatIn');if(!i)return;i.addEventListener('focus',()=>{document.body.classList.add('chatF');try{renderChat();const l=document.getElementById('chatLog');if(l)l.scrollTop=l.scrollHeight;}catch(e){}});i.addEventListener('blur',()=>setTimeout(()=>document.body.classList.remove('chatF'),150));})();
